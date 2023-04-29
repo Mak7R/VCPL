@@ -38,7 +38,7 @@ public abstract class Function : SimpleFunction
 
     public override void Run()
     {
-        runFunction?.Invoke();
+        // runFunction?.Invoke(Stack, id);
     }
 }
 
@@ -54,7 +54,7 @@ public class MainFunction : Function
     /// <summary>
     /// Should be realize text to Functions convertion
     /// </summary>
-    public MainFunction(string program) : base((() => {}))
+    public MainFunction(string program) : base(null)
     {
         // here should be algorithm string to Functions convertion
         // in duration of process convertation should be used AddFunctions from import string

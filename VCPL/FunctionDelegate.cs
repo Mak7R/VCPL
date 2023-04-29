@@ -1,3 +1,3 @@
 ﻿namespace VCPL;
 
-public delegate void RunDelegate();
+public delegate void RunDelegate(List<Variable> stack, int id);

@@ -4,7 +4,7 @@ public abstract class Variable
 {
     private static ulong idCreator = 0;
     public readonly ulong Id;
-    private object Value;
+    public object Value;
 
     public Variable(object value)
     {

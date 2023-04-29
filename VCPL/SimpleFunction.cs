@@ -7,7 +7,7 @@
 /// (In future stack will have max size and shoald be initialized when intialized an Function)
 /// It have a one method Run. This method will realize an algorithm of Function.
 /// </summary>
-public abstract class SimpleFunction
+public class SimpleFunction
 {
     protected List<Variable> Stack;
     private static ulong idCreator = 0;
@@ -21,7 +21,11 @@ public abstract class SimpleFunction
         Id = idCreator++;
         this.runFunction = runFunction;
     }
-    public abstract void Run();
+
+    public virtual void Run()
+    {
+        // runFunction?.Invoke(Stack, id);
+    }
     
     public override bool Equals(object? obj)
     {
