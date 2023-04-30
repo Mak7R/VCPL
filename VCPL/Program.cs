@@ -1,15 +1,14 @@
 ﻿
-using System.Runtime.CompilerServices;
 
 namespace VCPL
 {
     static class Program
     {
-        static void Main(string[]? args)
+        static void Main()
         {
-            Dictionary<string, funcDeleg> funcs = new Dictionary<string, funcDeleg>()
+            Dictionary<string, ElementaryFunction> funcs = new Dictionary<string, ElementaryFunction>()
             {
-                { "print", (object? args) => { Console.Write(args);} },
+                { "print", (ref List<Variable> stack, object? args) => { Console.Write(args); } },
             };
 
             List<CodeLine> codeLines = new List<CodeLine>();
@@ -25,16 +24,12 @@ namespace VCPL
                 if (line == "") continue;
                 if (CodeLineConvertor.IsEmpetyLine(line)) continue;
                 
-                codeLines.Add(CodeLineConvertor.StringsToData(line));
+                codeLines.Add(CodeLineConvertor.StringToData(line));
             }
 
             TempMainFunction main = new TempMainFunction(funcs, codeLines);
             
             main.Run();
         }
-        ////  here will be code editor which will create string code of Program
-        // string code = "";
-        // MainFunction main = new MainFunction(code);
-        // main.Run();
     }
 }

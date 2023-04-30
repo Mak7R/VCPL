@@ -1,10 +1,10 @@
 ﻿namespace VCPL;
 
-public abstract class Function : SimpleFunction
+public abstract class Function
 {
-    private List<SimpleFunction> pFunctions;
+    private List<ElementaryFunction> pFunctions;
     
-    public List<SimpleFunction> Functions {
+    public List<ElementaryFunction> Functions {
         get
         {
             return pFunctions;
@@ -15,7 +15,7 @@ public abstract class Function : SimpleFunction
         }
     }
 
-    public Function AddFunction
+    public ElementaryFunction AddFunction
     {
         set
         {
@@ -23,7 +23,7 @@ public abstract class Function : SimpleFunction
         }
     }
 
-    public List<SimpleFunction> AddFunctions
+    public List<ElementaryFunction> AddFunctions
     {
         set
         {
@@ -31,14 +31,9 @@ public abstract class Function : SimpleFunction
         }
     }
     
-    public Function(RunDelegate runFunction) : base(runFunction)
+    public Function(ElementaryFunction runFunction)
     {
-        pFunctions = new List<SimpleFunction>();
-    }
-
-    public override void Run()
-    {
-        // runFunction?.Invoke(Stack, id);
+        pFunctions = new List<ElementaryFunction>();
     }
 }
 
@@ -59,13 +54,5 @@ public class MainFunction : Function
         // here should be algorithm string to Functions convertion
         // in duration of process convertation should be used AddFunctions from import string
         ComilabledProgram = new List<Function>();
-    }
-
-    public override void Run()
-    {
-        foreach (var codeLine in ComilabledProgram)
-        {
-            codeLine.Run();
-        }
     }
 }

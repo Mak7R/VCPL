@@ -1,20 +1,18 @@
 ﻿namespace VCPL;
 
-public delegate void funcDeleg(object? args);
-
 public class TempMainFunction
 {
     public List<Variable> Stack;
-    public Dictionary<string, funcDeleg> Functions;
-    public (funcDeleg method, object? args)[] Program;
+    public Dictionary<string, ElementaryFunction> Functions;
+    public (ElementaryFunction method, object? args)[] Program;
     
 
-    public TempMainFunction(Dictionary<string, funcDeleg> startFunctions, List<CodeLine> codeLines)
+    public TempMainFunction(Dictionary<string, ElementaryFunction> startFunctions, List<CodeLine> codeLines)
     {
         Stack = new List<Variable>();
         Functions = startFunctions;
 
-        Program = new (funcDeleg, object?)[codeLines.Count];
+        Program = new (ElementaryFunction, object?)[codeLines.Count];
 
         for (int i = 0; i < codeLines.Count; i++)
         {
@@ -27,7 +25,7 @@ public class TempMainFunction
     {
         foreach (var toDo in Program)
         {
-            toDo.method.Invoke(toDo.args);
+            toDo.method.Invoke(ref Stack, toDo.args);
         }
     }
 }
