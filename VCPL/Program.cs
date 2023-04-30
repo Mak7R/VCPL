@@ -1,22 +1,21 @@
 ﻿
+using System.Runtime.CompilerServices;
+
 namespace VCPL
 {
     static class Program
     {
-        delegate void funcDeleg();
-        static void Main(string[] args)
+        static void Main(string[]? args)
         {
             Dictionary<string, funcDeleg> funcs = new Dictionary<string, funcDeleg>()
             {
-                { "init", () => {} },
-                { "print", () => {} },
-                { "write", () => {} }
+                { "print", (object? args) => { Console.Write(args);} },
             };
+
+            List<CodeLine> codeLines = new List<CodeLine>();
             
             string line = "";
             
-            string funcName;
-            string[]? arguments;
             
             while (true)
             {
@@ -24,55 +23,14 @@ namespace VCPL
                 line = Console.ReadLine() ?? "";
                 if (line == "end") break;
                 if (line == "") continue;
-
+                if (CodeLineConvertor.IsEmpetyLine(line)) continue;
                 
-                (funcName, arguments) = StringsToData(line);
-                
-                Console.WriteLine(funcName);
-
-                if (arguments != null) 
-                    foreach (var arg in arguments)
-                        Console.WriteLine($"Arg: <{arg}>");
-
+                codeLines.Add(CodeLineConvertor.StringsToData(line));
             }
-        }
 
-        
-        
-        static (string, string[]) StringsToData(string line)
-        {
-            string funcName = "";
-            string argsString = "";
+            TempMainFunction main = new TempMainFunction(funcs, codeLines);
             
-            int i = 0;
-            while (line[i] != ':')
-            {
-                i++;
-                if (i == line.Length) throw new Exception("Incorect input");
-            }
-                
-            funcName = line.Substring(0, i);
-            argsString = line.Substring(i + 1);
-
-            string[] argsList = argsString.Split(',');
-
-            bool deleteSpace = true;
-            for (i = 0; i < argsList.Length; i++)
-            {
-                for (int j = 0; j < argsList[i].Length;)
-                {
-                    if (argsList[i][j] == ' ' && deleteSpace) argsList[i] = argsList[i].Remove(j, 1);
-                    else if (argsList[i][j] == '\"')
-                    {
-                        deleteSpace = !deleteSpace;
-                        j++;
-                    }
-                    else j++;
-                }
-            }
-
-            if (argsList.Length == 1 && argsList[0] == "") return (funcName, null);
-            return (funcName, argsList);
+            main.Run();
         }
         ////  here will be code editor which will create string code of Program
         // string code = "";
