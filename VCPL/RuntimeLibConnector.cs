@@ -114,7 +114,8 @@ public static class RuntimeLibConnector
             {
                 foreach(var func in dict) 
                 {
-                    mylib.Add(func.Key, (ref List<Variable> stack, object? args) => { func.Value.Invoke(args); });
+                    // now it is not working // it should be changed after creating whole basic system
+                    mylib.Add(func.Key, (ref ProgramStack stack, List<ProgramObject>? args) => { func.Value.Invoke(args); });
                 }
             }
             catch
