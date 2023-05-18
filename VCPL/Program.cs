@@ -61,23 +61,22 @@ namespace VCPL
                         }
                     }
                 },
+                {"#import", (object? args) => { RuntimeLibConnector.AddToLib(funcs); }}
             };
-            
-            PreProcessorDirectives.Add( "#import", (object? args) => { RuntimeLibConnector.AddToLib(funcs); });
-            
-            Dictionary<string, ElementaryFunction> preCompilationFunctions = new Dictionary<string, ElementaryFunction>();
-            
 
+            Dictionary<string, ElementaryFunction> preCompilationFunctions = new Dictionary<string, ElementaryFunction>();
+
+
+            List<string> codeStrings = CodeEditor.ConsoleReader();
+            
+            Console.Clear();
+            
             List<CodeLine> codeLines = new List<CodeLine>();
 
             ProgramStack delstack = new ProgramStack();
 
-            string line = "";
-            while (true)
+            foreach (var line in codeStrings)
             {
-                Console.Write(">>> ");
-                line = Console.ReadLine() ?? "";
-                if (line == "end") break;
                 if (line == "") continue;
                 if (CodeLineConvertor.IsEmpetyLine(line)) continue;
 

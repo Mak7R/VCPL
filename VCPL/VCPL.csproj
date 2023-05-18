@@ -8,4 +8,8 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks><!-- Unsafe code -->
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\BasicFunctions\BasicFunctions.csproj" />
+    </ItemGroup>
+
 </Project>
