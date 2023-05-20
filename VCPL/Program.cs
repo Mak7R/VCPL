@@ -12,7 +12,7 @@ namespace VCPL
             {
                 { "print", (ref ProgramStack stack, List<ProgramObject>? args) =>
                 {
-                    foreach (var arg in args)
+                    foreach (ProgramObject arg in args)
                     {
                         if (arg is VCPL.Constant)
                         {
@@ -23,7 +23,6 @@ namespace VCPL
                             Console.Write(arg.Get()?.ToString());
                         }
                     }
-                    Console.WriteLine();
                 } },
                 {"set", (ref ProgramStack stack, List<ProgramObject>? args) =>
                 {
@@ -35,66 +34,67 @@ namespace VCPL
                     {
                         throw new Exception("Constant cannot be as variable in stack");
                     }
-                }}
-                
-            };
-
-            Dictionary<string, PreProcessorDirective> PreProcessorDirectives = new Dictionary<string, PreProcessorDirective>()
-            {
-                {"#init", (object? args) =>
-                    {
-                        if (args is object[] objArgs)
-                        {
-                            if (objArgs[0] is ProgramStack pStack)
-                                if (objArgs[1] is List<string> pArgs)
-                                    foreach (var arg in pArgs)
-                                    {
-                                        if (ArgumentConvertor.isVarable(arg))
-                                        {
-                                            pStack.Add(new Variable(arg, null));
-                                        }
-                                        else
-                                        {
-                                            throw new Exception("It isn't posible to init constants");
-                                        }
-                                    }
-                        }
-                    }
-                },
-                {"#import", (object? args) => { RuntimeLibConnector.AddToLib(funcs); }}
+                }},
+                {"read", ((ref ProgramStack stack, List<ProgramObject>? args) =>
+                {
+                    string value = Console.ReadLine();
+                    ((Reference)args[0]).Set(value);
+                })},
+                {"endl", ((ref ProgramStack stack, List<ProgramObject>? args) => {Console.WriteLine();})}
             };
 
             Dictionary<string, ElementaryFunction> preCompilationFunctions = new Dictionary<string, ElementaryFunction>();
-
-
+            
             List<string> codeStrings = CodeEditor.ConsoleReader();
             
             Console.Clear();
             
             List<CodeLine> codeLines = new List<CodeLine>();
-
-            ProgramStack delstack = new ProgramStack();
-
             foreach (var line in codeStrings)
             {
-                if (line == "") continue;
                 if (CodeLineConvertor.IsEmpetyLine(line)) continue;
-
                 codeLines.Add(CodeLineConvertor.StringToData(line));
             }
 
-            TempMainFunction main = new TempMainFunction(funcs, PreProcessorDirectives, codeLines);
+            TempMainFunction main = null;
             try
             {
+                main = new TempMainFunction(funcs, codeLines);
                 main.Run();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                Console.ReadLine();
             }
 
-            Console.ReadLine();
+            ConsoleKeyInfo cKI;
+            while (true)
+            {
+                cKI = Console.ReadKey(true);
+                Console.Clear();
+                if (cKI.Key == ConsoleKey.Enter)
+                {
+                    try
+                    {
+                        main.Run();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+                else if (cKI.Key == ConsoleKey.Escape)
+                {
+                    return;
+                }
+                else if (cKI.Key == ConsoleKey.Tab)
+                {
+                    CodeEditor.RedrawAll();
+                    Program.Main();
+                    return;
+                }
+            }
+
         }
     }
 }

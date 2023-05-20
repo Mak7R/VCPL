@@ -68,6 +68,11 @@ public class Reference : ProgramObject
     {
         return stack[index].Value;
     }
+
+    public void Set(object? value)
+    {
+        stack[index].Value = value;
+    }
 }
 
 public class NVariable : ProgramObject

@@ -73,7 +73,7 @@ public static class CodeLineConvertor
         }
 
         if (isString) throw new Exception("Incorrect input");
-        argsList.Add(argsString.Substring(start, i - start));
+        if (argsString != "") argsList.Add(argsString.Substring(start, i - start));
         
         return new CodeLine(funcName, argsList);
     }

@@ -10,6 +10,25 @@ public static class CodeEditor
     private static int PositionLeftStr = 0;
     private static int PositionTopStr = 0;
 
+    private static ConsoleKey keyExit = ConsoleKey.Tab;
+
+
+    public static void Reset()
+    {
+        CodeLines = new List<string>();
+        PositionLeftStr = 0;
+        PositionTopStr = 0;
+    }
+
+    public static void RedrawAll()
+    {
+        for (int i = 0; i < CodeLines.Count; i++)
+        {
+            SetCursorPosition(ConsoleSize.MinLeft, ConsoleSize.MinTop + i);
+            Console.Write(CodeLines[i]);
+        }
+        SetCursorPosition(ConsoleSize.MinLeft, ConsoleSize.MinTop);
+    }
     public static void SetCursorPosition(int left, int top)
     {
         PositionTopStr = top - ConsoleSize.MinTop;
@@ -37,7 +56,7 @@ public static class CodeEditor
         while (true)
         {
             ConsoleKeyInfo pressed = Console.ReadKey(true);
-            if (pressed.Key == ConsoleKey.Escape) return CodeLines;
+            if (pressed.Key == keyExit) return CodeLines;
             CursorController(pressed);
         }
     }

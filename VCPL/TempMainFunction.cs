@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Linq;
 
 namespace VCPL;
 
@@ -6,19 +7,22 @@ public class TempMainFunction
 {
     public ProgramStack Stack;
     public Dictionary<string, ElementaryFunction> ElementaryFunctions;
-    public Dictionary<string, PreProcessorDirective> Directives;
     public (ElementaryFunction method, List<ProgramObject> args)[] Program;
     
 
-    public TempMainFunction(Dictionary<string, ElementaryFunction> elementaryFunctions, Dictionary<string, PreProcessorDirective> directives, List<CodeLine> codeLines)
+    public TempMainFunction(Dictionary<string, ElementaryFunction> elementaryFunctions, List<CodeLine> codeLines)
     {
         //// this is a process of compilation
         Stack = new ProgramStack();
-        
         ElementaryFunctions = elementaryFunctions;
-        Directives = directives;
-
-        CompileProgram(ref codeLines);
+        
+        Compilate((from cl in codeLines
+            where cl.FunctionName[0] == '#'
+                select cl).ToList());
+        
+        codeLines = (from cl in codeLines
+                     where cl.FunctionName[0] != '#'
+                     select cl).ToList();
         
         Program = new (ElementaryFunction, List<ProgramObject>)[codeLines.Count];
 
@@ -28,28 +32,33 @@ public class TempMainFunction
         }
     }
 
-    public void CompileProgram(ref List<CodeLine> codeLines)
+    public void Compilate(List<CodeLine> codeLines)
     {
-        for (int i = 0; i < codeLines.Count;)
+        foreach (var codeLine in codeLines)
         {
-            if (codeLines[i].FunctionName[0] == '#')
+            switch (codeLine.FunctionName)
             {
-                if (codeLines[i].FunctionName == "#init")
-                {
-                    Directives[codeLines[i].FunctionName].Invoke(new object[2]{this.Stack, codeLines[i].args});
-                }
-                else
-                {
-                    Directives[codeLines[i].FunctionName].Invoke(codeLines[i].args);
-                }
-                codeLines.RemoveAt(i);
-            }
-            else
-            {
-                i++;
+                case "#init":
+                    foreach (string arg in codeLine.args)
+                    {
+                        if (ArgumentConvertor.isVarable(arg))
+                        {
+                            this.Stack.Add(new Variable(arg, null));
+                        }
+                        else
+                        {
+                            throw new Exception("It isn't posible to init not a variable");
+                        }
+                    }
+                    break;
+                case "#import":
+                    RuntimeLibConnector.AddToLib(ElementaryFunctions);
+                    // better system to adding libs
+                    break;
             }
         }
     }
+
     
     public void Run()
     {
@@ -62,7 +71,7 @@ public class TempMainFunction
 
 public static class ArgumentConvertor
 {
-    public static List<ProgramObject> ConvertArguments(ref ProgramStack stack, List<string> args)
+    public static List<ProgramObject> ConvertArguments(ref ProgramStack stack, List<string>? args)
     {
         List<ProgramObject> ArgumentsList = new List<ProgramObject>();
         for (int i = 0; i < args.Count; i++)
