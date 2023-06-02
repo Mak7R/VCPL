@@ -78,9 +78,7 @@ public static class RuntimeLibConnector
             Console.ReadLine();
             throw;
         }
-
         
-
         Type[] types = asm.GetTypes();
         
         int i = 0;
@@ -115,7 +113,16 @@ public static class RuntimeLibConnector
                 foreach(var func in dict) 
                 {
                     // now it is not working // it should be changed after creating whole basic system
-                    mylib.Add(func.Key, (ref ProgramStack stack, List<ProgramObject>? args) => { func.Value.Invoke(args); });
+                    mylib.Add(func.Key, (ref ProgramStack stack, List<ProgramObject>? args) =>
+                    {
+                        object? argsToSend = null;
+                        if (args != null)
+                        {
+                            argsToSend = (from arg in args select arg.Get()).ToList();
+                        }
+                        func.Value.Invoke(argsToSend); // should be syntax updated
+                        
+                    });
                 }
             }
             catch
