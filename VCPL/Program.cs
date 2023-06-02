@@ -1,6 +1,7 @@
 ﻿
 
 using System.Reflection.Metadata;
+using BasicFunctions;
 
 namespace VCPL
 {
@@ -8,43 +9,6 @@ namespace VCPL
     {
         static void Main()
         {
-            Dictionary<string, ElementaryFunction> funcs = new Dictionary<string, ElementaryFunction>()
-            {
-                { "print", (ref ProgramStack stack, List<ProgramObject>? args) =>
-                {
-                    foreach (ProgramObject arg in args)
-                    {
-                        if (arg is VCPL.Constant)
-                        {
-                            Console.Write(arg.Get()?.ToString());
-                        }
-                        else if (arg is VCPL.Reference)
-                        {
-                            Console.Write(arg.Get()?.ToString());
-                        }
-                    }
-                } },
-                {"set", (ref ProgramStack stack, List<ProgramObject>? args) =>
-                {
-                    if (args[0] is Reference reference)
-                    {
-                        stack[reference.index].Value = args[1].Get();
-                    }
-                    else
-                    {
-                        throw new Exception("Constant cannot be as variable in stack");
-                    }
-                }},
-                {"read", ((ref ProgramStack stack, List<ProgramObject>? args) =>
-                {
-                    string value = Console.ReadLine();
-                    ((Reference)args[0]).Set(value);
-                })},
-                {"endl", ((ref ProgramStack stack, List<ProgramObject>? args) => {Console.WriteLine();})}
-            };
-
-            Dictionary<string, ElementaryFunction> preCompilationFunctions = new Dictionary<string, ElementaryFunction>();
-            
             List<string> codeStrings = CodeEditor.ConsoleReader();
             
             Console.Clear();
@@ -52,14 +16,14 @@ namespace VCPL
             List<CodeLine> codeLines = new List<CodeLine>();
             foreach (var line in codeStrings)
             {
-                if (CodeLineConvertor.IsEmpetyLine(line)) continue;
-                codeLines.Add(CodeLineConvertor.StringToData(line));
+                if (BasicString.IsNoDataString(line)) continue;
+                codeLines.Add(CodeLineConvertor.SyntaxCLite(line));
             }
 
             TempMainFunction main = null;
             try
             {
-                main = new TempMainFunction(funcs, codeLines);
+                main = new TempMainFunction(ElementaryFunctions.Get(), codeLines);
                 main.Run();
             }
             catch (Exception e)

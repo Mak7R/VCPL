@@ -2,6 +2,13 @@
 
 public static class BasicString
 {
+    public static bool IsNoDataString(string str)
+    {
+        foreach (char ch in str) 
+            if (ch != ' ') 
+                return false;
+        return true;
+    }
     public static (string left, string? right)? SplitBy(string str, char separator)
     {
         if (str.Length == 0) return null;

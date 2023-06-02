@@ -2,6 +2,9 @@
 
 namespace VCPL;
 
+/// <summary>
+/// CodeEditor is a console editor. In future it should realize any interface for better changing to another editors.
+/// </summary>
 public static class CodeEditor
 {
     private static (int MinLeft, int MinTop) ConsoleSize = (0, 0);
