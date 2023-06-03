@@ -1,36 +1,36 @@
 ﻿using System.Reflection;
 using GlobalRealization;
 
-namespace CustomLibraries;
+namespace Example;
 
 /// <summary>
-/// This class is an example how to create user libraries
+/// This class is an example how to create user libraries.
+/// This class have to have this name and method GetAll. You can also add mehtod GetNecessaryLibs.
 /// </summary>
 public static class MethodContainer
 {
     /// <summary>
-    /// Dictionry is an container for all methods what you want to add
+    /// This is a necessary mathod. It returns Elementary Functions to VCPL.
     /// </summary>
-    public static Dictionary<string, Action<object?>> lib = new Dictionary<string, Action<object?>>()
+    /// <returns>Elementary Functions. Dictionary of method name and method.</returns>
+    public static Dictionary<string, ElementaryFunction> GetAll()
     {
-        { "MethodName", (object? args) =>
-            {
-                
-            }
-        }
-    };
+        return new Dictionary<string, ElementaryFunction>()
+        {
+            { "MethodName", (ref ProgramStack stack, Reference? value, List<ProgramObject>? args) => {} }
+        };
+    }
 
     /// <summary>
-    /// Method must be in class. It should to give all your methods to VCPL
+    /// This is not a necessary mathod. If it is in your class it just load necessary libs to you program.
     /// </summary>
-    /// <returns>object[2] where object[0] = list of all dll which you use in your methods, object[1] = Dictionary</returns>
-    public static object[] GetAll()
+    /// <returns>List of strings which are pathes to necessary libraries.</returns>
+    public static string[] GetNecessaryLibs()
     {
-
-        return new object[2] {new string[] {
-            
-        },
-        lib};
+        return new string[]
+        {
+            // libs which you are using
+        };
     }
     
     /// <summary>

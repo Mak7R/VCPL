@@ -7,9 +7,9 @@ namespace CustomLibraries;
 
 public static class RuntimeLibConnector
 {
-    public static void AddToLib(Dictionary<string, ElementaryFunction> lib)
+    public static void AddToLib(ref Dictionary<string, ElementaryFunction> lib, string pathToLib)
     {
-        Dictionary<string, ElementaryFunction> addLib = AddLib() ?? new Dictionary<string, ElementaryFunction>();
+        Dictionary<string, ElementaryFunction> addLib = AddLib(pathToLib);
         foreach (var method in addLib)
         {
             lib.Add(method.Key, method.Value);
@@ -63,94 +63,71 @@ public static class RuntimeLibConnector
         
         return loadedAssemblies;
     }
-    public static Dictionary<string, ElementaryFunction>? AddLib()
+    public static Dictionary<string, ElementaryFunction> AddLib(string pathToLib)
     {
         Dictionary<string, ElementaryFunction> mylib = new Dictionary<string, ElementaryFunction>();
-
-        Console.Write("Write lib name with dll: ");
-        string? lib = Console.ReadLine();
-        Assembly asm;
-        try
-        {
-            asm = Assembly.LoadFrom(lib ?? ".dll");
-            LoadAllDependenciesRecursively(lib ?? ".dll");
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
-            Console.ReadLine();
-            throw;
-        }
+        
+        Assembly asm = Assembly.LoadFrom(pathToLib);;
+        LoadAllDependenciesRecursively(pathToLib);
         
         Type[] types = asm.GetTypes();
         
-        int i = 0;
-        bool wasFound = false;
-        foreach (Type t in types)
+        int index = -1;
+        for (int i = 0; i < types.Length; i++)
         {
-            if (t.Name == "MethodContainer") { wasFound = true; }
-            if (!wasFound) i++;
+            if (types[i].Name == "MethodContainer")
+            {
+                index = i;
+                break;
+            }
         }
 
         string[] addlibs;
-        if (wasFound)
+        if (index != -1)
         {
-            var MethodContainer = types[i];
+            var MethodContainer = types[index];
             MethodInfo? GetAll = MethodContainer.GetMethod("GetAll", BindingFlags.Public | BindingFlags.Static);
 
-            object? methodsObj = GetAll?.Invoke(null, null);
-            Dictionary<string, Action<object?>> dict;
-            if (methodsObj is object[] data)
-            {
-                if (data[0] is string[] libs) addlibs = libs;
-                else return null;
-
-                if (data[1] is Dictionary<string, Action<object?>> funcs) dict = funcs;
-                else return null;
-            }
-            else return null;
-            //addlibs = ((string[], Dictionary<string, Action<object?>>)methodsObj);
+            MethodInfo? GetNecessary = MethodContainer.GetMethod("GetNecessaryLibs", BindingFlags.Public | BindingFlags.Static);
             
-            try
+            if (GetAll == null) throw new Exception("Get all was not found"); // new exception system panding (panding == очікується)
+            if (GetNecessary != null)
             {
-                foreach(var func in dict) 
+                object? libs = GetNecessary.Invoke(null, null);
+                if (libs is string[] strings)
                 {
-                    // now it is not working // it should be changed after creating whole basic system
-                    mylib.Add(func.Key, (ref ProgramStack stack, Reference? ReturnValue, List<ProgramObject>? args) =>
-                    {
-                        object? argsToSend = null;
-                        if (args != null)
-                        {
-                            argsToSend = (from arg in args select arg.Get()).ToList();
-                        }
-                        func.Value.Invoke(argsToSend); // should be syntax updated
-                        
-                    });
+                    AddNecessaryLibs(strings); 
+                }
+                else
+                {
+                    throw new Exception("incorrect output"); // new exception system panding
                 }
             }
-            catch
-            { 
-                return null;
+            object? methodsObj = GetAll?.Invoke(null, null);
+            Dictionary<string, ElementaryFunction> dict;
+            if (methodsObj is Dictionary<string, ElementaryFunction> funcs)
+            {
+                dict = funcs;
             }
+            else throw new Exception("incorrect return"); // new exception system panding
         }
         else
         {
-            return null;
+            throw new Exception("MethodContainer was not found"); // new exception system panding
         }
+        
+        return mylib;
+    }
 
-        foreach (string addLib in addlibs)
+    public static void AddNecessaryLibs(string[] libs)
+    {
+        foreach (string lib in libs)
         {
-            // перевірка, чи бібліотека вже завантажена
-            if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location == addLib))
+           if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location == lib))
             {
                 continue;
             }
-
-            // завантаження бібліотеки
-            Assembly.LoadFrom(addLib);
+            Assembly.LoadFrom(lib);
         }
-        
-        Console.WriteLine($"Succesful {asm.FullName} added!"); 
-        return mylib;
     }
 }

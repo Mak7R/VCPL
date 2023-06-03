@@ -70,8 +70,10 @@ public class TempMainFunction
                     }
                     break;
                 case "#import":
-                    RuntimeLibConnector.AddToLib(ElementaryFunctions);
-                    // better system to adding libs
+                    foreach (string arg in codeLine.Args)
+                    {
+                        RuntimeLibConnector.AddToLib(ref ElementaryFunctions, arg);
+                    }
                     break;
             }
         }
