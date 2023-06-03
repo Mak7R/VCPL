@@ -1,4 +1,6 @@
-﻿namespace VCPL;
+﻿using System;
+
+namespace VCPL;
 
 // all errors which throws in runtime
 

@@ -1,4 +1,6 @@
-﻿namespace VCPL;
+﻿using System;
+
+namespace VCPL;
 
 // here will be all SyntaxExceptions
 

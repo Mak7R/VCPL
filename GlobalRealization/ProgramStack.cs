@@ -1,4 +1,7 @@
-﻿namespace GlobalRealization;
+﻿using System;
+using System.Collections.Generic;
+
+namespace GlobalRealization;
 
 public class ProgramStack : List<Variable>
 {

@@ -1,4 +1,6 @@
-﻿namespace VCPL;
+﻿using System.Collections.Generic;
+
+namespace VCPL;
 
 // syntax realisztion !!!
  

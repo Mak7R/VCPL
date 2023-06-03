@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using GlobalRealization;
 
 namespace Example;
@@ -17,7 +19,7 @@ public static class MethodContainer
     {
         return new Dictionary<string, ElementaryFunction>()
         {
-            { "MethodName", (ref ProgramStack stack, Reference? value, List<ProgramObject>? args) => {} }
+            { "MethodName", (ref ProgramStack stack, Reference? returnValue, List<ProgramObject>? args) => {} }
         };
     }
 

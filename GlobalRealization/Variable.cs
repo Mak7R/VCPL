@@ -1,4 +1,6 @@
-﻿namespace GlobalRealization;
+﻿using System;
+
+namespace GlobalRealization;
 
 /// <summary>
 /// should be abstract
