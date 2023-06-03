@@ -7,6 +7,11 @@
 /// </summary>
 public static class CodeLineConvertor
 {
+    /// <summary>
+    /// CLite Syntax
+    /// </summary>
+    /// <param name="line">string line</param>
+    /// <returns>new CodeLine which is equal to input line if realize convertion with CLite syntax</returns>
     public static CodeLine SyntaxCLite(string line)
     {
         string? FunctionName = null;
@@ -31,7 +36,7 @@ public static class CodeLineConvertor
         int closeParenIndex = line.IndexOf(')');
         if (openParenIndex == -1 && closeParenIndex == -1)
         {
-            Args = new List<string> { line.Substring(0, line.Length-1) };
+            Args = new List<string> { line };
         }
         else if ((openParenIndex == -1) != (closeParenIndex == -1))
         {
@@ -45,8 +50,7 @@ public static class CodeLineConvertor
         }
         else
         {
-            string funcName = line.Substring(0, openParenIndex).Trim();
-            FunctionName = funcName;
+            FunctionName = line.Substring(0, openParenIndex).Trim();
             string argsString = line.Substring(openParenIndex + 1, closeParenIndex - openParenIndex - 1);
             Args = GetArgsList(argsString);
         }

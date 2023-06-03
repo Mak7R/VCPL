@@ -10,6 +10,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\BasicFunctions\BasicFunctions.csproj" />
+      <ProjectReference Include="..\CustomLibraries\CustomLibraries.csproj" />
+      <ProjectReference Include="..\GlobalRealization\GlobalRealization.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="UsersLibrarySystem\" />
     </ItemGroup>
 
 </Project>

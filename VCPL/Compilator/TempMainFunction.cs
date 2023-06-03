@@ -1,5 +1,7 @@
 ﻿using System.Globalization;
 using System.Linq;
+using GlobalRealization;
+using CustomLibraries;
 
 namespace VCPL;
 
@@ -7,7 +9,7 @@ public class TempMainFunction
 {
     public ProgramStack Stack;
     public Dictionary<string, ElementaryFunction> ElementaryFunctions;
-    public (ElementaryFunction method, List<ProgramObject> args)[] Program;
+    public (Reference? ReturnData, ElementaryFunction? method, List<ProgramObject> args)[] Program;
     
 
     public TempMainFunction(Dictionary<string, ElementaryFunction> elementaryFunctions, List<CodeLine> codeLines)
@@ -17,18 +19,32 @@ public class TempMainFunction
         ElementaryFunctions = elementaryFunctions;
         
         Compilate((from cl in codeLines
-            where cl.FunctionName[0] == '#'
+            where (cl.FunctionName == null ? '\0' : cl.FunctionName[0]) == '#'
                 select cl).ToList());
         
         codeLines = (from cl in codeLines
-                     where cl.FunctionName[0] != '#'
+                     where (cl.FunctionName == null ? '\0' : cl.FunctionName[0]) != '#'
                      select cl).ToList();
         
-        Program = new (ElementaryFunction, List<ProgramObject>)[codeLines.Count];
+        Program = new (Reference?, ElementaryFunction?, List<ProgramObject>)[codeLines.Count];
 
         for (int i = 0; i < codeLines.Count; i++)
         {
-            Program[i] = (ElementaryFunctions[codeLines[i].FunctionName], ArgumentConvertor.ConvertArguments(ref this.Stack, codeLines[i].args));
+            Reference reference;
+            ProgramObject? obj = ArgumentConvertor.ConvertArgument(ref Stack, codeLines[i].ReturnData);
+            if (obj is Reference Refer)
+            {
+                reference = Refer;
+            }
+            else if(obj == null)
+            {
+                reference = null;
+            }
+            else
+            {
+                throw new Exception("Compilation error");
+            }
+            Program[i] = (reference, codeLines[i].FunctionName == null ? null : ElementaryFunctions[codeLines[i].FunctionName], ArgumentConvertor.ConvertArguments(ref this.Stack, codeLines[i].Args));
         }
     }
 
@@ -38,17 +54,19 @@ public class TempMainFunction
         {
             switch (codeLine.FunctionName)
             {
-                case "#init":
-                    foreach (string arg in codeLine.args)
+                case "#init": // #init(name, start_value, modificator) // modificator (const, static, ref, ...)
+                    if (ArgumentConvertor.isVarable(codeLine.Args[0]))
                     {
-                        if (ArgumentConvertor.isVarable(arg))
-                        {
-                            this.Stack.Add(new Variable(arg, null));
-                        }
+                        if (codeLine.Args.Count == 1) this.Stack.Add(new Variable(codeLine.Args[0], null));
+                        else if (codeLine.Args.Count == 2) this.Stack.Add(new Variable(codeLine.Args[0], codeLine.Args[1]));
                         else
                         {
-                            throw new Exception("It isn't posible to init not a variable");
+                            throw new Exception("Has no realization");
                         }
+                    }
+                    else
+                    {
+                        throw new Exception("It isn't posible to init not a variable");
                     }
                     break;
                 case "#import":
@@ -64,7 +82,7 @@ public class TempMainFunction
     {
         foreach (var command in Program)
         {
-            command.method.Invoke(ref Stack, command.args);
+            command.method.Invoke(ref Stack, command.ReturnData, command.args);
         }
     }
 }
@@ -76,32 +94,38 @@ public static class ArgumentConvertor
         List<ProgramObject> ArgumentsList = new List<ProgramObject>();
         for (int i = 0; i < args.Count; i++)
         {
-            if (isFloat(args[i]))
-            {
-                ArgumentsList.Add(new Constant(Convert.ToDouble(args[i], new CultureInfo("en-US"))));
-            }
-            else if (isNumber(args[i]))
-            {
-                ArgumentsList.Add(new Constant(Convert.ToInt32(args[i])));
-            }
-            else if (isString(args[i]))
-            {
-                ArgumentsList.Add(new Constant(args[i].Substring(1, args[i].Length-2)));
-            }
-            else
-            {
-                int index = stack.FindIndex(args[i]);
-                if (index != -1) ArgumentsList.Add(new Reference(ref stack, index));
-                else
-                {
-                    throw new Exception("Variable with this name was not found");
-                }
-            }
+            ArgumentsList.Add(ConvertArgument(ref stack, args[i]));
         }
-
         return ArgumentsList;
     }
 
+    public static ProgramObject? ConvertArgument(ref ProgramStack stack, string? arg)
+    {
+        if (arg == null) return null;
+        
+        if (isFloat(arg))
+        {
+            return new Constant(Convert.ToDouble(arg, new CultureInfo("en-US")));
+        }
+        else if (isNumber(arg))
+        {
+            return new Constant(Convert.ToInt32(arg));
+        }
+        else if (isString(arg))
+        {
+            return new Constant(arg.Substring(1, arg.Length-2));
+        }
+        else
+        {
+            int index = stack.FindIndex(arg);
+            if (index != -1) return new Reference(ref stack, index);
+            else
+            {
+                throw new Exception("Variable with this name was not found");
+            }
+        }
+    }
+    
     public static bool isString(string arg)
     {
         if (arg[0] == '\'' || arg[0] == '\"') return true;

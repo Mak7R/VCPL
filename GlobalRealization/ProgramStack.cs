@@ -1,4 +1,4 @@
-﻿namespace VCPL;
+﻿namespace GlobalRealization;
 
 public class ProgramStack : List<Variable>
 {
@@ -13,7 +13,7 @@ public class ProgramStack : List<Variable>
             }
         }
 
-        throw new Exception("The variable was not founded");
+        throw new Exception("The variable was not found");
     }
     public Variable? FindVariable(string name)
     {

@@ -22,7 +22,7 @@ namespace VCPL
 
             TempMainFunction main = null;
             try
-            {
+            { 
                 main = new TempMainFunction(ElementaryFunctions.Get(), codeLines);
                 main.Run();
             }

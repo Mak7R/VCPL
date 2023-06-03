@@ -1,6 +1,9 @@
 ﻿using System.IO;
 using System.Reflection;
-namespace VCPL;
+
+using GlobalRealization;
+
+namespace CustomLibraries;
 
 public static class RuntimeLibConnector
 {
@@ -113,7 +116,7 @@ public static class RuntimeLibConnector
                 foreach(var func in dict) 
                 {
                     // now it is not working // it should be changed after creating whole basic system
-                    mylib.Add(func.Key, (ref ProgramStack stack, List<ProgramObject>? args) =>
+                    mylib.Add(func.Key, (ref ProgramStack stack, Reference? ReturnValue, List<ProgramObject>? args) =>
                     {
                         object? argsToSend = null;
                         if (args != null)
