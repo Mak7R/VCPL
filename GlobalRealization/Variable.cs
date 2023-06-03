@@ -1,4 +1,4 @@
-﻿namespace VCPL;
+﻿namespace GlobalRealization;
 
 /// <summary>
 /// should be abstract

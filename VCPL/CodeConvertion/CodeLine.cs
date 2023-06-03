@@ -15,9 +15,9 @@ public struct CodeLine
     /// </summary>
     public string? ReturnData;
 
-    public CodeLine(string functionName, List<string> args, string? returnData = null)
+    public CodeLine(string? functionName, List<string>? args, string? returnData = null)
     {
-        this.FunctionName = FunctionName;
+        this.FunctionName = functionName;
         this.Args = args;
         this.ReturnData = returnData;
     }

@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
+using GlobalRealization;
 
-namespace VCPL;
+namespace CustomLibraries;
 
 /// <summary>
 /// This class is an example how to create user libraries
