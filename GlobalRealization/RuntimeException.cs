@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VCPL;
+namespace GlobalRealization;
 
 // all errors which throws in runtime
 
