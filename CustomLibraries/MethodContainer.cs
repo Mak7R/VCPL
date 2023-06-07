@@ -19,7 +19,7 @@ public static class MethodContainer
     {
         return new Dictionary<string, ElementaryFunction>()
         {
-            { "MethodName", (ref ProgramStack stack, Reference? returnValue, List<ProgramObject>? args) => {} }
+            { "MethodName", (ref DataContainer container, int retDataId, int[] argsIds) => {} }
         };
     }
 

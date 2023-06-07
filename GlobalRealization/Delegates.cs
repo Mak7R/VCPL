@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
+﻿
 
 namespace GlobalRealization;
-
-public delegate void ElementaryFunction(ref ProgramStack stack, Reference? ReturnValue, List<ProgramObject>? args);
+public delegate void ElementaryFunction(ref DataContainer container, int reference, int[] args);
