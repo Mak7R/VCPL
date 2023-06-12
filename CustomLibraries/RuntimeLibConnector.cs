@@ -10,7 +10,7 @@ namespace CustomLibraries;
 
 public static class RuntimeLibConnector
 {
-    public static void AddToLib(ref Dictionary<string, ElementaryFunction> lib, string pathToLib)
+    public static void AddToLib(ref FunctionsContainer lib, string pathToLib)
     {
         Dictionary<string, ElementaryFunction> addLib = AddLib(pathToLib);
         foreach (var method in addLib)

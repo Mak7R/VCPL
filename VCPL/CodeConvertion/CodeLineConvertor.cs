@@ -93,6 +93,12 @@ public static class CodeLineConvertor
             else if (inQuotes && currentChar == quoteChar)
             {
                 inQuotes = false;
+                if (i == argsString.Length - 1)
+                {
+                    endIndex = i+1;
+                    string arg = argsString.Substring(startIndex, endIndex - startIndex).Trim();
+                    args.Add(arg);
+                }
             }
         }
 

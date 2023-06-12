@@ -21,17 +21,17 @@ namespace VCPL
                 codeLines.Add(CodeLineConvertor.SyntaxCLite(line));
             }
 
-            TempMainFunction main = null;
+            Function main = null;
             try
-            { 
-                main = new TempMainFunction(ElementaryFunctions.Get(), codeLines);
-                main.Run();
+            {
+                main = Compilator.Compilate(codeLines, BasicConteext.GetBasicContext());
             }
-            catch (Exception e)
+            catch (CompilationException e)
             {
                 Console.WriteLine(e.Message);
             }
-
+            
+            main.GetCopyFunction().Run(0, new int[0]);
             ConsoleKeyInfo cKI;
             while (true)
             {
@@ -41,7 +41,7 @@ namespace VCPL
                 {
                     try
                     {
-                        main.Run();
+                        main?.GetCopyFunction().Run(0, new int[0]);
                     }
                     catch (Exception e)
                     {
@@ -59,7 +59,6 @@ namespace VCPL
                     return;
                 }
             }
-
         }
     }
 }
