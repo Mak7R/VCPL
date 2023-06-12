@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
 using GlobalRealization;
 
-namespace CustomLibraries;
+namespace VCPL;
 
 public static class RuntimeLibConnector
 {

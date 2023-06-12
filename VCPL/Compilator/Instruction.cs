@@ -1,4 +1,6 @@
-﻿namespace GlobalRealization;
+﻿using GlobalRealization;
+
+namespace VCPL;
 
 public class Instruction
 {
