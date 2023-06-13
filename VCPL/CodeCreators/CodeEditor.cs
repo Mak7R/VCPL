@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Runtime.CompilerServices;
 using BasicFunctions;
 
 namespace VCPL;
@@ -19,6 +19,11 @@ public static class CodeEditor
     private static ConsoleKey keyExit = ConsoleKey.Tab;
 
 
+    public static void SetCode(List<string> codeLines)
+    {
+        CodeLines = codeLines;
+        RedrawAll();
+    }
     public static void Reset()
     {
         CodeLines = new List<string>();

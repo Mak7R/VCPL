@@ -25,6 +25,34 @@ public static class Compilator
         
         return new Function(context.dataContext.Pack(), packedProgram);
     }
+    
+    public static Function Compilate(List<CodeLine> codeLines, Context context, List<string> args)
+    {
+        List<Instruction> Program = new List<Instruction>();
+        
+        context = context.NewContext();
+        foreach (string arg in args)
+        {
+            try
+            {
+                context.dataContext.Push(arg, null);
+            }
+            catch (ArgumentException)
+            {
+                throw new CompilationException("This variable was declarated");
+            }
+        }
+        
+        Compilate(codeLines, Program, context);
+
+        Instruction[] packedProgram = new Instruction[Program.Count];
+        for (int i = 0; i < Program.Count; i++)
+        {
+            packedProgram[i] = Program[i];
+        }
+        
+        return new Function(context.dataContext.Pack(), packedProgram);
+    }
 
     private static void Compilate(List<CodeLine> codeLines,
         List<Instruction> program, Context context)
@@ -51,9 +79,10 @@ public static class Compilator
                         if (BasicString.isVarable(codeLine.Args[0])) arg = context.dataContext.Peek(codeLine.Args[0]);
                         else arg = context.dataContext.Push(null, ConstantConvertor(codeLine.Args[0]));
                         program.Append(new Instruction(
-                            (ref DataContainer container, int retDataId, int[] argsIds) =>
+                            (DataContainer container, int retDataId, int[] argsIds) =>
                             {
-                                container[retDataId] = argsIds[0];
+                                container[retDataId] = container[argsIds[0]];
+                                return false;
                             }, retDataId, new int[1] { arg }));
                         break;
                     default:
@@ -66,7 +95,7 @@ public static class Compilator
                         }
 
                         program.Append(new Instruction(
-                            (ref DataContainer container, int retDataId, int[] argsIds) =>
+                            (DataContainer container, int retDataId, int[] argsIds) =>
                             {
                                 throw new RuntimeException("No realization of turlples");
                             }, retDataId, args));
@@ -106,7 +135,13 @@ public static class Compilator
         
         for (int i = 0; i < subFunctions.Count; i++)
         {
-            definedFunctions.Add(codeLines[subFunctions[i].Item1-1].Args[0], Compilate(codeLines.GetRange(subFunctions[i].Item1, subFunctions[i].Item2 - subFunctions[i].Item1), context));
+            List<string> args = codeLines[subFunctions[i].Item1-1].Args;
+            // throw exception if args.Count == 0 ^
+            if (args.Count == 1) definedFunctions.Add(codeLines[subFunctions[i].Item1-1].Args[0], Compilate(codeLines.GetRange(subFunctions[i].Item1, subFunctions[i].Item2 - subFunctions[i].Item1), context));
+            else
+            {
+                definedFunctions.Add(codeLines[subFunctions[i].Item1-1].Args[0], Compilate(codeLines.GetRange(subFunctions[i].Item1, subFunctions[i].Item2 - subFunctions[i].Item1), context, args.GetRange(1, args.Count-1)));
+            }
         }
 
         int j = 0;
@@ -163,7 +198,7 @@ public static class Compilator
         }
         catch (KeyNotFoundException)
         {
-            throw new CompilationException("Fiunction {FunctionName} was not declarated");
+            throw new CompilationException($"Function {codeLine.FunctionName} was not declarated");
         }
         program.Add(new Instruction(function, retDataId, args));
         return retStr;
@@ -217,9 +252,13 @@ public static class Compilator
         }
     }
     
-    private static object? ConstantConvertor(string arg)
+    private static object ConstantConvertor(string arg)
     {
-        if (BasicString.isFloat(arg))
+        if (BasicString.isChar(arg))
+        {
+            return Convert.ToChar(arg.Substring(1, arg.Length-2));
+        }
+        else if (BasicString.isDouble(arg))
         {
             return Convert.ToDouble(arg, new CultureInfo("en-US"));
         }
@@ -230,10 +269,6 @@ public static class Compilator
         else if (BasicString.isString(arg))
         {
             return arg.Substring(1, arg.Length-2);
-        }
-        else if(BasicString.isNull(arg))
-        {
-            return null;
         }
         else
         {

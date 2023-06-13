@@ -19,7 +19,7 @@ public static class MethodContainer
     {
         return new Dictionary<string, ElementaryFunction>()
         {
-            { "MethodName", (ref DataContainer container, int retDataId, int[] argsIds) => {} }
+            { "MethodName", (DataContainer container, int retDataId, int[] argsIds) => { return false; } }
         };
     }
 

@@ -21,17 +21,23 @@ public static class BasicString
         }
         return (str, null);
     }
+
+    public static bool isChar(string arg)
+    {
+        if (arg.Length == 3 && arg[0] == '\'' && arg[2] == '\'') return true;
+        return false;
+    }
     
     public static bool isString(string arg)
     {
-        if (arg[0] == '\'' || arg[0] == '\"') return true;
+        if (arg[0] == '\"') return true;
         return false;
     }
 
     public static bool isCorrectString(string arg)
     {
-        if (arg[0] == '\'' || arg[0] == '\"')
-            if ( arg[arg.Length-1] == '\'' || arg[arg.Length-1] == '\"' )
+        if (arg[0] == '\"')
+            if (arg[arg.Length-1] == '\"' )
                 return true;
         return false;
     }
@@ -73,7 +79,7 @@ public static class BasicString
         return true;
     }
 
-    public static bool isFloat(string arg)
+    public static bool isDouble(string arg)
     {
         if (isNumber(arg))
         {
@@ -91,14 +97,27 @@ public static class BasicString
 
     public static bool isVarable(string arg)
     {
-        if (!isNumber(arg) && !isString(arg) && !isNull(arg)) return true;
-        return false;
+        if (arg == string.Empty) return false;
+        if (isNumber(arg) ) return false;
+        if (isSpcialSymbol(arg[0])) return false;
+        return true;
     }
 
-    public const string NULL = "null";
-    public static bool isNull(string arg)
+    public static bool isSpcialSymbol(char symbol)
     {
-        if (arg == NULL) return true;
-        else return false;
+        switch (symbol)
+        {
+            case '\'':
+            case '"':
+            case '\\':
+            case '.':
+            case ',':
+            case '+':
+            case '-':
+            case '*':
+                return true;
+            default: 
+                return false;
+        }
     }
 }

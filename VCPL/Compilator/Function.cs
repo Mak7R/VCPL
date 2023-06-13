@@ -17,14 +17,26 @@ public class CopyFunction
 
     public ElementaryFunction GetMethod()
     {
-        return ((ref DataContainer container, int reference, int[] args) => { this.Run(reference, args); });
+        return ((DataContainer container, int reference, int[] args) => { 
+            this.Run(container, reference, args);
+            return false;
+        });
     }
     
-    public void Run(int reference, int[] args)
+    public void Run(DataContainer container, int reference, int[] args)
     {
+        this._container.SetContext(container); // delete if make changes in 
+        for (int i = 0; i < args.Length; i++) 
+            this._container[this._container.Shift + i] = this._container[args[i]];
+
         foreach (var command in Program)
         {
-            command.method.Invoke(ref this._container, command.retDataId, command.argsIds);
+            if (command.method.Invoke(this._container, command.retDataId, command.argsIds))
+            {
+                if (command.argsIds.Length == 0) this._container[reference] = null;
+                else this._container[reference] = this._container[command.argsIds[0]];
+                return;   
+            }
         }
     }
 }

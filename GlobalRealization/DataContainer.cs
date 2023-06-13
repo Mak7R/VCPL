@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
@@ -12,9 +13,13 @@ using System.Text.Json;
 
 public class DataContainer
 {
-    private object?[] _data;
+    private object[] _data;
     private DataContainer Context;
     private int shift;
+    public int Shift
+    {
+        get { return this.shift; }
+    }
     
     public DataContainer(int size)
     {
@@ -29,20 +34,8 @@ public class DataContainer
         this.Context = context;
         this.shift = context.Size;
     }
-    
-    public void Push(object? value, int index)
-    {
-        if (index < shift)
-        {
-            this.Context.Push(value, index);
-        }
-        else
-        {
-            this._data[index - shift] = value;
-        }
-    }
-    
-    public object? this[int index]
+
+    public object this[int index]
     {
         get { return (index < shift ? this.Context[index] : this._data[index - shift]); }
         set
@@ -58,11 +51,6 @@ public class DataContainer
         }
     }
 
-    public T Get<T>(int index)
-    {
-        return (T)(index < shift ? this.Context[index] : this._data[index - shift]);
-    }
-    
     public int Size
     {
         get { return (this.Context?.Size ?? 0) + this._data.Length; }
@@ -71,101 +59,97 @@ public class DataContainer
     public DataContainer GetCopy()
     {
         DataContainer copy = new DataContainer(_data.Length);
-        copy.SetContext(this.Context);
+        
         for (int i = 0; i < _data.Length; i++)
         {
-            object? obj = this._data[i];
-            object? copyObj;
-
-            if (obj == null) copyObj = null;
-            else
-            {
-                string json = JsonSerializer.Serialize(obj);
-                copyObj = (object)JsonSerializer.Deserialize<object>(json); /////////
-                
-            }
-            
-            copy.Push(copyObj, i + shift);
+            copy[i] = Copy(this._data[i]);
         }
+        copy.SetContext(this.Context);
 
         return copy;
+    }
+
+    public static object Copy(object item)
+    {
+        if (item == null) return null;
+        if (item is byte byteItem) return byteItem;
+        if (item is char charItem) return charItem;
+        if (item is bool boolItem) return boolItem;
+        if (item is int intItem) return intItem;
+        if (item is double doubleItem) return doubleItem;
+        if (item is string stringItem) return new string(stringItem);
+        return item; // it should be error // imposible to init not based types
     }
 }
 
 public class TempContainer
 {
-    private List<(string? name, object? value)> data;
+    private List<(string? name, object value)> data;
     private TempContainer Context;
+    
+    private int counter;
+    
     public int Size
     {
         get { return (this.Context?.Size ?? 0) + this.data.Count; }
     }
     public TempContainer()
     {
-        this.data = new List<(string? name, object? value)>();
+        this.data = new List<(string? name, object value)>();
         counter = 0;
         this.Context = null;
     }
     public TempContainer(TempContainer context)
     {
-        this.Context = context;
-        this.data = new List<(string? name, object? value)>();
+        this.data = new List<(string? name, object value)>();
         counter = context.Size;
+        this.Context = context;
     }
     
-    private int counter;
-    public int Push(string? name, object? value)
+    public int Push(string? name, object value)
     {
-        if (this.Context == null)
+        if (name == null)
         {
-            if (name == null) this.data.Add((null, value));
-            else
-            {
-                for (int i = 0; i < this.data.Count; i++) if (this.data[i].name == name) throw new ArgumentException();
-                this.data.Add((name, value));
-            }
+            this.data.Add((null, value)); 
             return counter++;
         }
-        else
-        {
-            if (name == null) this.data.Add((null, value));
-            else
-            {
-                for (int i = 0; i < this.data.Count; i++) if (this.data[i].name == name) throw new ArgumentException();
-                for (int i = 0; i < this.data.Count; i++) if (Context.data[i].name == name) throw new ArgumentException();
+        
+        for (int i = 0; i < this.data.Count; i++) 
+            if (this.data[i].name == name) 
+                throw new ArgumentException();
+        
+        if (this.Context != null) 
+            for (int i = 0; i < this.Context.data.Count; i++) 
+                if (Context.data[i].name == name) 
+                    throw new ArgumentException();
 
-                this.data.Add((name, value));
-            }
-            return counter++;
-        }
+        this.data.Add((name, value));
+        return counter++;
     }
 
     public int Peek(string name)
     {
-        if (this.Context == null)
-        {
-            for (int i = 0; i < this.data.Count; i++)
-                if (this.data[i].name == name)
-                    return i;
-            return -1;
-        }
-        else
-        {
-            for (int i = 0; i < this.data.Count; i++)
-                if (this.data[i].name == name)
-                    return i + Context.Size;
+        for (int i = 0; i < this.data.Count; i++)
+            if (this.data[i].name == name)
+                return i + this.Context?.Size ?? 0;
+        
+        if (Context != null) 
             for (int i = 0; i < this.Context.data.Count; i++)
                 if (this.Context.data[i].name == name)
                     return i;
-            return -1;
-        }  
+        
+        return -1;
     }
     
     public DataContainer Pack()
     {
         DataContainer container = new DataContainer(data.Count);
-        for (int i = 0; i < this.data.Count; i++) container.Push(this.data[i].value, i);
-        if (this.Context != null) { container.SetContext(this.Context.Pack()); }
+        
+        for (int i = 0; i < this.data.Count; i++) 
+            container[i] = this.data[i].value;
+        
+        if (this.Context != null) 
+            container.SetContext(this.Context.Pack());
 
         return container;
     }
