@@ -99,7 +99,7 @@ public static class Menu
 
         try
         {
-            main = Compilator.Compilate(codeLines, BasicConteext.GetBasicContext());
+            main = Compilator.Compilate(codeLines, BasicContext.GetBasicContext());
         }
         catch (CompilationException ce)
         {

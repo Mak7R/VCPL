@@ -132,13 +132,8 @@ public class TempContainer
         for (int i = 0; i < this.data.Count; i++)
             if (this.data[i].name == name)
                 return i + this.Context?.Size ?? 0;
-        
-        if (Context != null) 
-            for (int i = 0; i < this.Context.data.Count; i++)
-                if (this.Context.data[i].name == name)
-                    return i;
-        
-        return -1;
+
+        return this.Context?.Peek(name) ?? -1;
     }
     
     public DataContainer Pack()

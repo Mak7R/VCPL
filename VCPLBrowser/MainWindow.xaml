@@ -1,0 +1,23 @@
+﻿<Window x:Class="VCPLBrowser.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:VCPLBrowser"
+        mc:Ignorable="d"
+        KeyDown="MainWindow_OnKeyDown"
+        Title="VCPLBrowser" Height="600" Width="1070">
+    <Grid x:Name="MainField">
+        <Menu Height="25" VerticalAlignment="Top">
+            <MenuItem Header="File" Height="25">
+                <MenuItem Header="Save" Height="25" Click="OnSaveClick"></MenuItem>
+                <MenuItem Header="Save as" Height="25" Click="OnSaveAsClick"></MenuItem>
+                <MenuItem Header="Open" Height="25" Click="OnOpenClick"></MenuItem>
+            </MenuItem>
+            <MenuItem x:Name="RunStop" Header="Run" Height="25" Click="OnRunStopClick"><!-- Run/Stop --></MenuItem>
+            <MenuItem x:Name="RunWithoutCompilation" Header="Run withot compilation" Click="RunWithoutCompilation_OnClick"></MenuItem>
+        </Menu>
+        <local:MyPage x:Name="Page" Visibility="Hidden" Margin="0, 25, 0, 0"></local:MyPage>
+        <TextBox x:Name="CodeInput" Visibility="Visible" Margin="0, 25, 0, 0" AcceptsReturn="True" FontSize="16"></TextBox>
+    </Grid>
+</Window>

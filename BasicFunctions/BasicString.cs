@@ -1,4 +1,6 @@
-﻿namespace BasicFunctions;
+﻿using System;
+
+namespace BasicFunctions;
 
 public static class BasicString
 {
@@ -119,5 +121,15 @@ public static class BasicString
             default: 
                 return false;
         }
+    }
+
+    public static string GetNameFromPath(string path)
+    {
+        if (path == null || path == String.Empty) return path;
+        for (int i = path.Length - 1; i >= 0; i--)
+        {
+            if (path[i] == '\\') return path.Substring(i + 1);
+        }
+        return path;
     }
 }

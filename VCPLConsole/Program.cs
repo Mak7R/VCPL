@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using BasicFunctions;
-using GlobalRealization;
+using VCPL;
 
-namespace VCPL
+namespace VCPLConsole
 {
     static class Program
     {

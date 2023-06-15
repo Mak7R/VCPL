@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using GlobalRealization;
 using Microsoft.VisualBasic.CompilerServices;
 
@@ -22,17 +23,25 @@ public class Context
     }
 }
 
-public static class BasicConteext
+public static class BasicContext
 {
     public static FunctionsContainer ElementaryFunctions = new FunctionsContainer()
     {
-        {"return", (DataContainer container, int reference, int[] args) =>
+        {
+            "Sleep", (container, reference, args) =>
+            {
+                if (args.Length != 1) throw new RuntimeException("Incorrect args count");
+                Thread.Sleep((int)container[args[0]]);
+                return false;
+            } 
+        },
+        {"return", (container, reference, args) =>
         {
             if (args.Length > 1) throw new CompilationException("Args count is more than posible");
             return true;
         } },
         {
-            "print", (DataContainer container, int retValueId, int[] argsIds) =>
+            "print", (container, retValueId, argsIds) =>
             {
                 if (retValueId != -1) container[retValueId] = null;
                 
@@ -42,19 +51,19 @@ public static class BasicConteext
             }
         },
         {
-            "read", (DataContainer container, int retValueId, int[] argsIds) =>
+            "read", (container, retValueId, argsIds) =>
             {
                 string value = Console.ReadLine();
                 if (retValueId != -1) container[retValueId] = value;
                 return false;
             }
         },
-        { "endl", (DataContainer container, int retValueId, int[] argsIds) => { 
+        { "endl", (container, retValueId, argsIds) => { 
             Console.WriteLine();
             return false;
         } },
         {
-            "new", (DataContainer container, int retValueId, int[] argsIds) =>
+            "new", (container, retValueId, argsIds) =>
             {
                 if (argsIds.Length == 0)
                 {
@@ -69,7 +78,7 @@ public static class BasicConteext
             }
         },
         {
-            "sumInt", (DataContainer container, int ret, int[] args) =>
+            "sumInt", (container, ret, args) =>
             {
                 if (ret == -1) return false;
                 if (args.Length == 0)
@@ -92,7 +101,7 @@ public static class BasicConteext
 
     public static TempContainer BasicData = new TempContainer();
 
-    static BasicConteext()
+    static BasicContext()
     {
         BasicData.Push("NULL", null);
         BasicData.Push("true", true);

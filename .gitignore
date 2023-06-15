@@ -1,0 +1,8 @@
+﻿-bin/
+-obj/
+-/packeges/
+-riderModule.iml
+-/_ReSharper.Caches/
+-
+-#ignore user data
+-*.user

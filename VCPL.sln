@@ -6,6 +6,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicFunctions", "BasicFunc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GlobalRealization", "GlobalRealization\GlobalRealization.csproj", "{D09EE5C2-12FF-45ED-9B04-71C1354C047B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VCPLBrowser", "VCPLBrowser\VCPLBrowser.csproj", "{F3891222-D923-414B-A7C8-97CCFDCB9BD8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VCPLConsole", "VCPLConsole\VCPLConsole.csproj", "{F608C68A-7446-409D-9A39-FEC306C6F8E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,13 @@ Global
 		{D09EE5C2-12FF-45ED-9B04-71C1354C047B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D09EE5C2-12FF-45ED-9B04-71C1354C047B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D09EE5C2-12FF-45ED-9B04-71C1354C047B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3891222-D923-414B-A7C8-97CCFDCB9BD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3891222-D923-414B-A7C8-97CCFDCB9BD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3891222-D923-414B-A7C8-97CCFDCB9BD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3891222-D923-414B-A7C8-97CCFDCB9BD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F608C68A-7446-409D-9A39-FEC306C6F8E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F608C68A-7446-409D-9A39-FEC306C6F8E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F608C68A-7446-409D-9A39-FEC306C6F8E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F608C68A-7446-409D-9A39-FEC306C6F8E8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
