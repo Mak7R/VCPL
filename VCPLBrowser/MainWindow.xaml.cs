@@ -37,54 +37,80 @@ namespace VCPLBrowser
         public MainWindow()
         {
             InitializeComponent();
+
+            Page.Height = this.Height - 65;
+            Page.Width = this.Width;
+            
             context.dataContext.Push("Page", Page);
             context.functionsContext.Add("Move", (container, reference, args) =>
             {
-                MyPage p = ((MyPage)container[args[0]]);
+                Canvas field = (Canvas)container[args[0]];
                 Rectangle rect = (Rectangle)container[args[1]];
+                double acc = 0;
                 while (true)
                 {
-                    switch (p.lastKey)
+                    
+                    foreach (var key in this.pressedKeys)
                     {
-                        case Key.A:
-                            this.Dispatcher.Invoke( () =>
-                            {
-                                rect.Margin = new Thickness(
-                                    rect.Margin.Left - 20, 
-                                    rect.Margin.Top,
-                                    rect.Margin.Right,
-                                    rect.Margin.Bottom);
-                                p.lastKey = Key.None;
-                            });
-                            break;
-                        case Key.W:
-                            this.Dispatcher.Invoke( () =>
-                            {
-                                rect.Margin = new Thickness(rect.Margin.Left, rect.Margin.Top - 20, rect.Margin.Right,
-                                    rect.Margin.Bottom);
-                                p.lastKey = Key.None;
-                            });
-                            break;
-                        case Key.D:
-                            this.Dispatcher.Invoke(() =>
-                            {
-                                rect.Margin = new Thickness(rect.Margin.Left + 20, rect.Margin.Top, rect.Margin.Right,
-                                    rect.Margin.Bottom);
-                                p.lastKey = Key.None;
-                            });
-                            break;
-                        case Key.S:
-                            this.Dispatcher.Invoke( () =>
-                            {
-                                rect.Margin = new Thickness(rect.Margin.Left, rect.Margin.Top + 20, rect.Margin.Right,
-                                    rect.Margin.Bottom);
-                                p.lastKey = Key.None;
-                            });
-                            break;
-                        case Key.Escape:
-                            return false;
-                        default: break;
+                        switch (key)
+                        {
+                            case Key.A:
+                                this.Dispatcher.Invoke(() =>
+                                {
+                                    rect.Margin = new Thickness(
+                                        rect.Margin.Left - 20,
+                                        rect.Margin.Top,
+                                        rect.Margin.Right,
+                                        rect.Margin.Bottom);
+                                    
+                                });
+                                break;
+                            case Key.D:
+                                this.Dispatcher.Invoke(() =>
+                                {
+                                    rect.Margin = new Thickness(rect.Margin.Left + 20, rect.Margin.Top,
+                                        rect.Margin.Right,
+                                        rect.Margin.Bottom);
+                                    
+                                });
+                                break;
+                            case Key.Space:
+                                this.Dispatcher.Invoke(() =>
+                                {
+                                    if (rect.Margin.Top + rect.Height < field.Height)
+                                    {
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        acc -= 50;
+                                    }
+                                });
+                                break;
+                            case Key.Escape:
+                                return false;
+                            default: break;
+                        }
                     }
+
+                    this.Dispatcher.Invoke(() => { 
+                        rect.Margin = new Thickness(rect.Margin.Left, rect.Margin.Top + acc, rect.Margin.Right,
+                            rect.Margin.Bottom);
+                            
+                        if (rect.Margin.Top + rect.Height >= field.Height)
+                        {
+                            rect.Margin = new Thickness(rect.Margin.Left, field.Height - rect.Height, rect.Margin.Right,
+                                rect.Margin.Bottom);
+                            acc = 0;
+                        }
+                        else
+                        {
+                            acc += 10;
+                        }
+                        
+                    });
+                    
+                    Thread.Sleep(200);
                 }
             });
             context.functionsContext.Add("SetBackground", (container, reference, args) =>
@@ -375,9 +401,19 @@ namespace VCPLBrowser
             }
         }
 
+        private List<Key> pressedKeys = new List<Key>();
+        public List<Key> PressedKeys
+        {
+            get { return this.pressedKeys; }
+        }
         private void MainWindow_OnKeyDown(object sender, KeyEventArgs e)
         {
-            Page.lastKey = e.Key;
+             if (!pressedKeys.Contains(e.Key))pressedKeys.Add(e.Key);
+        }
+
+        private void MainWindow_OnKeyUp(object sender, KeyEventArgs e)
+        {
+            pressedKeys.Remove(e.Key);
         }
     }
 }
