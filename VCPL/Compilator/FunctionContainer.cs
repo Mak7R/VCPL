@@ -3,7 +3,7 @@ using GlobalRealization;
 
 namespace VCPL;
 
-public class FunctionsContainer : Dictionary<string, ElementaryFunction>
+public class FunctionsContainer : Dictionary<string?, ElementaryFunction>
 {
     public FunctionsContainer Context;
     public ElementaryFunction this[string key]

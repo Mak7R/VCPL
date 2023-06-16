@@ -16,7 +16,7 @@ public static class CodeLineConvertor
     /// <returns>new CodeLine which is equal to input line if realize convertion with CLite syntax</returns>
     public static CodeLine SyntaxCLite(string line)
     {
-        string? FunctionName = null;
+        string? FunctionName = "";
         string? ReturnData = null;
         List<string>? Args = null;
 

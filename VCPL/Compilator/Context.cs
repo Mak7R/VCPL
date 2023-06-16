@@ -28,6 +28,13 @@ public static class BasicContext
     public static FunctionsContainer ElementaryFunctions = new FunctionsContainer()
     {
         {
+            "", (container, reference, args) =>
+            {
+                container[reference] = container[args[0]];
+                return false;
+            } 
+        },
+        {
             "Sleep", (container, reference, args) =>
             {
                 if (args.Length != 1) throw new RuntimeException("Incorrect args count");

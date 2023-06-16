@@ -25,7 +25,7 @@ public class CopyFunction
     
     public void Run(DataContainer container, int reference, int[] args)
     {
-        this._container.SetContext(container); // delete if make changes in 
+        this._container.SetContext(container);
         for (int i = 0; i < args.Length; i++) 
             this._container[this._container.Shift + i] = this._container[args[i]];
 

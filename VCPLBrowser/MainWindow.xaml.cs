@@ -32,166 +32,15 @@ namespace VCPLBrowser
         private Function main = null;
         private Thread program = null;
         private VCPL.Context context = new Context(new TempContainer(BasicContext.BasicData), BasicContext.ElementaryFunctions);
+        private DataContainer startContext;
         private bool runThread = false;
         
         public MainWindow()
         {
             InitializeComponent();
 
-            Page.Height = this.Height - 65;
-            Page.Width = this.Width;
-            
-            context.dataContext.Push("Page", Page);
-            context.functionsContext.Add("Move", (container, reference, args) =>
-            {
-                Canvas field = (Canvas)container[args[0]];
-                Rectangle rect = (Rectangle)container[args[1]];
-                double acc = 0;
-                while (true)
-                {
-                    
-                    foreach (var key in this.pressedKeys)
-                    {
-                        switch (key)
-                        {
-                            case Key.A:
-                                this.Dispatcher.Invoke(() =>
-                                {
-                                    rect.Margin = new Thickness(
-                                        rect.Margin.Left - 20,
-                                        rect.Margin.Top,
-                                        rect.Margin.Right,
-                                        rect.Margin.Bottom);
-                                    
-                                });
-                                break;
-                            case Key.D:
-                                this.Dispatcher.Invoke(() =>
-                                {
-                                    rect.Margin = new Thickness(rect.Margin.Left + 20, rect.Margin.Top,
-                                        rect.Margin.Right,
-                                        rect.Margin.Bottom);
-                                    
-                                });
-                                break;
-                            case Key.Space:
-                                this.Dispatcher.Invoke(() =>
-                                {
-                                    if (rect.Margin.Top + rect.Height < field.Height)
-                                    {
-                                        return;
-                                    }
-                                    else
-                                    {
-                                        acc -= 50;
-                                    }
-                                });
-                                break;
-                            case Key.Escape:
-                                return false;
-                            default: break;
-                        }
-                    }
-
-                    this.Dispatcher.Invoke(() => { 
-                        rect.Margin = new Thickness(rect.Margin.Left, rect.Margin.Top + acc, rect.Margin.Right,
-                            rect.Margin.Bottom);
-                            
-                        if (rect.Margin.Top + rect.Height >= field.Height)
-                        {
-                            rect.Margin = new Thickness(rect.Margin.Left, field.Height - rect.Height, rect.Margin.Right,
-                                rect.Margin.Bottom);
-                            acc = 0;
-                        }
-                        else
-                        {
-                            acc += 10;
-                        }
-                        
-                    });
-                    
-                    Thread.Sleep(200);
-                }
-            });
-            context.functionsContext.Add("SetBackground", (container, reference, args) =>
-            {
-                this.Dispatcher.Invoke(() => {((Panel)container[args[0]]).Background = new SolidColorBrush(Color.FromRgb(Convert.ToByte(container[args[1]]), Convert.ToByte(container[args[2]]), Convert.ToByte(container[args[3]])));});
-                return false;
-            });
-            context.functionsContext.Add("Label", (container, reference, args) =>
-            {
-                this.Dispatcher.Invoke(() =>
-                {
-                    Label label = new Label();
-                    label.FontSize = 16;
-                    label.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                    label.Width = 200;
-                    label.Height = 100;
-                    label.Margin = new Thickness(20, 20, 0, 0);
-                    label.Content = container[args[1]];
-                    ((Canvas)container[args[0]]).Children.Add(label);
-                    container[reference] = label;
-                });
-                
-                return false;
-            });
-            context.functionsContext.Add("Rect", (container, reference, args) =>
-            {
-                this.Dispatcher.Invoke(() => { 
-                    Rectangle rect = new Rectangle();
-                    container[reference] = rect;
-                });
-                
-                return false;
-            });
-            context.functionsContext.Add("SetRectWHRGB", (container, reference, args) =>
-                {
-                    this.Dispatcher.Invoke(() => 
-                    { 
-                        Rectangle rect = (Rectangle)container[args[0]];
-                        rect.Width = (int)container[args[1]];
-                        rect.Height = (int)container[args[2]];
-                        rect.Fill = new SolidColorBrush(Color.FromRgb(Convert.ToByte(container[args[3]]), Convert.ToByte(container[args[4]]), Convert.ToByte(container[args[5]])));
-                    });
-                    
-                    return false;
-                });
-            context.functionsContext.Add("AddToCanvas", (container, reference, args) =>
-                {
-                    this.Dispatcher.Invoke(() =>
-                    {
-                        Canvas canvas = (Canvas)container[args[0]];
-                        canvas.Children.Add((UIElement)container[args[1]]);
-                    });
-                    
-                    return false;
-                });
-            context.functionsContext.Add("SetMargin", (container, reference, args) =>
-            {
-                this.Dispatcher.Invoke(() =>
-                {
-                    FrameworkElement el = (FrameworkElement)container[args[0]];
-                    el.Margin = new Thickness((int)container[args[1]], (int)container[args[2]], (int)container[args[3]],
-                        (int)container[args[4]]);
-                });
-                return false;
-            });
-            context.functionsContext.Add("SetOnClick", (container, reference, args) =>
-            {
-                Rectangle rectangle = (Rectangle)container[args[0]];
-                this.Dispatcher.Invoke(() =>
-                {
-                    rectangle.MouseDown += (sender, eventArgs) =>
-                    {
-                        rectangle.Fill = new SolidColorBrush(Color.FromRgb((byte)new Random().Next(255),
-                            (byte)new Random().Next(255), (byte)new Random().Next(255)));
-                    };
-                });
-                return false;
-            });
+            this.Init();
         }
-
-        
 
         private void SaveToFile()
         {
@@ -276,7 +125,7 @@ namespace VCPLBrowser
                 List<CodeLine> codeLines = new List<CodeLine>();
                 try
                 {
-                    foreach (string line in CodeInput.Text.Split('\n'))
+                    foreach (string line in CodeInput.Text.Split("\r\n"))
                     {
                         if (BasicString.IsNoDataString(line)) continue;
                         codeLines.Add(CodeLineConvertor.SyntaxCLite(line));
@@ -284,17 +133,25 @@ namespace VCPLBrowser
                 }
                 catch(SyntaxException se)
                 {
-                    Debug.WriteLine(se.Message);
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        MessageBox.Show(this, se.Message, "SyntaxException", MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    });
                     return;
                 }
-
+                
                 try
                 {
                     main = Compilator.Compilate(codeLines, context);
                 }
                 catch (CompilationException ce)
                 {
-                    Debug.WriteLine(ce.Message);
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        MessageBox.Show(this, ce.Message, "CompilationException", MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    });
                     return;
                 }
 
@@ -304,12 +161,16 @@ namespace VCPLBrowser
                     {
                         try
                         {
-                            CopyFunction copyMain = main.GetCopyFunction(); ///
-                            copyMain.Run(null, 0, new int[0]); // think about args
+                            CopyFunction copyMain = main.GetCopyFunction(); 
+                            copyMain.Run(startContext, 0, new int[0]); // think about args
                         }
                         catch (RuntimeException re)
                         {
-                            Debug.WriteLine(re.Message);
+                            this.Dispatcher.Invoke(() =>
+                            {
+                                MessageBox.Show(this, re.Message, "RuntimeException", MessageBoxButton.OK,
+                                    MessageBoxImage.Error);
+                            });
                         }
                         ((MainWindow)obj).Dispatcher.Invoke(() =>
                         {

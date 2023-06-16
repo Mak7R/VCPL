@@ -64,45 +64,7 @@ public static class Compilator
         {
             CodeLine codeLine = codeLines[index];
             
-            if (codeLine.FunctionName == null || codeLine.FunctionName.Length == 0)
-            {
-                int retDataId = context.dataContext.Peek(codeLine.ReturnData);
-                if (retDataId == -1) throw new CompilationException($"Variable was not found: {codeLine.ReturnData}");
-
-
-                switch (codeLine.Args.Count)
-                {
-                    case 0:
-                        throw new CompilationException("No function, no args");
-                    case 1:
-                        int arg;
-                        if (BasicString.isVarable(codeLine.Args[0])) arg = context.dataContext.Peek(codeLine.Args[0]);
-                        else arg = context.dataContext.Push(null, ConstantConvertor(codeLine.Args[0]));
-                        program.Append(new Instruction(
-                            (DataContainer container, int retDataId, int[] argsIds) =>
-                            {
-                                container[retDataId] = container[argsIds[0]];
-                                return false;
-                            }, retDataId, new int[1] { arg }));
-                        break;
-                    default:
-                        int[] args = new int[codeLine.Args.Count];
-                        for (int i = 0; i < codeLine.Args.Count; i++)
-                        {
-                            if (BasicString.isVarable(codeLine.Args[i]))
-                                args[i] = context.dataContext.Peek(codeLine.Args[i]);
-                            else args[i] = context.dataContext.Push(null, ConstantConvertor(codeLine.Args[i]));
-                        }
-
-                        program.Append(new Instruction(
-                            (DataContainer container, int retDataId, int[] argsIds) =>
-                            {
-                                throw new RuntimeException("No realization of turlples");
-                            }, retDataId, args));
-                        break;
-                }
-            }
-            else if (codeLine.FunctionName[0] == '#')
+            if (codeLine.FunctionName != "" && codeLine.FunctionName[0] == '#')
             {
                 if (codeLine.FunctionName == "#define")
                 {

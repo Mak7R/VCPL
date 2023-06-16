@@ -30,9 +30,8 @@ public class DataContainer
 
     public void SetContext(DataContainer context)
     {
-        if (context == null) return;
         this.Context = context;
-        this.shift = context.Size;
+        this.shift = context?.Size ?? 0;
     }
 
     public object this[int index]
