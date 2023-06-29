@@ -22,11 +22,13 @@ public static class Compilator
         {
             packedProgram[i] = Program[i];
         }
-        
+
+        context = context.NewContext();
+
         return new Function(context.dataContext.Pack(), packedProgram);
     }
-    
-    public static Function Compilate(List<CodeLine> codeLines, Context context, List<string> args)
+
+    private static Function Compilate(List<CodeLine> codeLines, Context context, List<string> args)
     {
         List<Instruction> Program = new List<Instruction>();
         
@@ -169,7 +171,7 @@ public static class Compilator
     {
         switch (codeLine.FunctionName)
         {
-            case "#init": // #init(name, start_value, modificator) // modificator (const, static, ref, ...)
+            case "#init": // #init(name, !start_value! <- delete it, modificator, type) // modificator (const, static, ref, ...)
                 if (BasicString.isVarable(codeLine.Args[0]))
                 {
                     if (codeLine.Args.Count == 1)

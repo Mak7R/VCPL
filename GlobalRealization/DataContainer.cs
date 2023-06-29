@@ -109,7 +109,7 @@ public class TempContainer
     {
         if (name == null)
         {
-            this.data.Add((null, value)); 
+            this.data.Add((null, value)); // throw new Exception() <-> Constant Context 
             return counter++;
         }
         

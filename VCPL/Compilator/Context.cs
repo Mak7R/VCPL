@@ -83,26 +83,6 @@ public static class BasicContext
 
                 return false;
             }
-        },
-        {
-            "sumInt", (container, ret, args) =>
-            {
-                if (ret == -1) return false;
-                if (args.Length == 0)
-                {
-                    container[ret] = 0;
-                    return false;
-                }
-
-                int res = 0;
-                foreach (int arg in args)
-                {
-                    res += (int)container[arg];
-                }
-
-                container[ret] = res;
-                return false;
-            }
         }
     };
 
