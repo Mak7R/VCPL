@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using GlobalRealization;
+using Pointer = GlobalRealization.Pointer;
 
 namespace Example;
 
@@ -19,7 +20,7 @@ public static class MethodContainer
     {
         return new Dictionary<string, ElementaryFunction>()
         {
-            { "MethodName", (DataContainer container, int retDataId, int[] argsIds) => { return false; } }
+            { "MethodName", (PackedContext container, Pointer retDataId, Pointer[] argsIds) => { return false; } }
         };
     }
 

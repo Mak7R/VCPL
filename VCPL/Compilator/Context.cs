@@ -1,27 +1,76 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using GlobalRealization;
+using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 
 namespace VCPL;
 
 public class Context
 {
-    public TempContainer dataContext;
-    public FunctionsContainer functionsContext;
+    private TempContainer DataContext;
+    private TempConstantContainer Constants;
+    public FunctionsContainer FunctionsContext { get; private set; }
 
-    public Context(TempContainer dataContext, FunctionsContainer functionsContext)
+    private Context()
     {
-        this.dataContext = dataContext;
-        this.functionsContext = functionsContext;
+        
+    }
+    
+    public Context(TempContainer dataContext, TempConstantContainer constants, FunctionsContainer elementaryFunctions)
+    {
+        this.DataContext = dataContext;
+        this.Constants = constants;
+        this.FunctionsContext = elementaryFunctions;
+    }
+
+    public void PushFunction(string name, ElementaryFunction function)
+    {
+        this.FunctionsContext.Add(name, function);
+        this.Constants.Push(name, function);
+    }
+    
+    public Pointer PushConstant(string? name, object data)
+    {
+        int position = Constants.Push(name, data); 
+        return new Pointer((byte)Contexts.Constant, position);
+    }
+
+    public Pointer PushData(string name, object data)
+    {
+        int position = DataContext.Push(name, data);
+        return new Pointer((byte)Contexts.Variable, position);
+    }
+
+    public Pointer Peek(string name)
+    {
+        int pos = Constants.Peek(name);
+        if (pos == -1)
+        {
+            pos = DataContext.Peek(name);
+            return new Pointer((byte)Contexts.Variable, pos);
+        }
+        return new Pointer((byte)Contexts.Constant, pos);
     }
 
     public Context NewContext()
     {
-        return new Context(new TempContainer(this.dataContext), new FunctionsContainer(this.functionsContext));
+        Context newContext = new Context();
+        newContext.DataContext = new TempContainer(this.DataContext);
+        newContext.Constants = new TempConstantContainer(this.Constants);
+        newContext.FunctionsContext = new FunctionsContainer(this.FunctionsContext);
+        return newContext;
+    }
+
+    public PackedContext Pack()
+    {
+        return new PackedContext() { constants = this.Constants.Pack(), data = this.DataContext.Pack() };
     }
 }
+
+
 
 public static class BasicContext
 {
@@ -50,9 +99,9 @@ public static class BasicContext
         {
             "print", (container, retValueId, argsIds) =>
             {
-                if (retValueId != -1) container[retValueId] = null;
+                if (retValueId != Pointer.NULL) container[retValueId] = null;
                 
-                foreach (int arg in argsIds) Console.Write(container[arg]?.ToString());
+                foreach (var arg in argsIds) Console.Write(container[arg]?.ToString());
 
                 return false;
             }
@@ -61,7 +110,7 @@ public static class BasicContext
             "read", (container, retValueId, argsIds) =>
             {
                 string value = Console.ReadLine();
-                if (retValueId != -1) container[retValueId] = value;
+                if (retValueId != Pointer.NULL) container[retValueId] = value;
                 return false;
             }
         },
@@ -87,16 +136,22 @@ public static class BasicContext
     };
 
     public static TempContainer BasicData = new TempContainer();
+    public static TempConstantContainer BasicConstants = new TempConstantContainer();
 
     static BasicContext()
     {
-        BasicData.Push("NULL", null);
-        BasicData.Push("true", true);
-        BasicData.Push("false", false);
+        BasicConstants.Push("NULL", null);
+        BasicConstants.Push("true", true);
+        BasicConstants.Push("false", false);
+
+        foreach (var elementaryFunction in ElementaryFunctions)
+        {
+            BasicConstants.Push(elementaryFunction.Key, elementaryFunction.Value);
+        }
     }
 
     public static Context GetBasicContext()
     {
-        return new Context(BasicData, ElementaryFunctions);
+        return new Context(BasicData, BasicConstants, ElementaryFunctions);
     }
 }

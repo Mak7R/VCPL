@@ -1,40 +1,44 @@
 ﻿
 
 using GlobalRealization;
+using Pointer = GlobalRealization.Pointer;
 
 namespace VCPL;
 
 public class CopyFunction
 {
-    private DataContainer _container;
+    private PackedContext _context;
     private Instruction[] Program;
 
-    public CopyFunction(DataContainer container, Instruction[] program)
+    public CopyFunction(PackedContext context, Instruction[] program)
     {
-        this._container = container;
+        this._context = context;
         this.Program = program;
     }
 
     public ElementaryFunction GetMethod()
     {
-        return ((DataContainer container, int reference, int[] args) => { 
+        return ((PackedContext container, Pointer reference, Pointer[] args) => { 
             this.Run(container, reference, args);
             return false;
         });
     }
     
-    public void Run(DataContainer container, int reference, int[] args)
+    public void Run(PackedContext container, Pointer reference, Pointer[] args)
     {
-        this._container.SetContext(container);
+        
+        
+        this._context.data.SetContext(container.data);
+        this._context.constants.SetContext(container.constants);
         for (int i = 0; i < args.Length; i++) 
-            this._container[this._container.Shift + i] = this._container[args[i]];
+            this._context.data[this._context.data.GetContext()?.Size ?? 0 + i] = this._context.data[args[i].GetPosition];
 
         foreach (var command in Program)
         {
-            if (command.method.Invoke(this._container, command.retDataId, command.argsIds))
+            if (command.method.Invoke(this._context, command.retDataId, command.argsIds))
             {
-                if (command.argsIds.Length == 0) this._container[reference] = null;
-                else this._container[reference] = this._container[command.argsIds[0]];
+                if (command.argsIds.Length == 0) this._context[reference] = null;
+                else this._context[reference] = this._context[command.argsIds[0]];
                 return;   
             }
         }
@@ -43,17 +47,17 @@ public class CopyFunction
 
 public class Function
 {
-    private DataContainer Container;
+    private PackedContext _context;
     private Instruction[] Program;
     
-    public Function(DataContainer container, Instruction[] program)
+    public Function(PackedContext packedContext, Instruction[] program)
     {
-        this.Container = container;
+        this._context = packedContext;
         this.Program = program;
     }
 
     public CopyFunction GetCopyFunction()
     {
-        return new CopyFunction(Container.GetCopy(), Program);
+        return new CopyFunction(_context.GetCopy(), Program);
     }
 }

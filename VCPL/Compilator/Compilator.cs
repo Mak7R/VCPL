@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using BasicFunctions;
 using GlobalRealization;
+using Pointer = GlobalRealization.Pointer;
 
 namespace VCPL;
 
@@ -23,9 +24,7 @@ public static class Compilator
             packedProgram[i] = Program[i];
         }
 
-        context = context.NewContext();
-
-        return new Function(context.dataContext.Pack(), packedProgram);
+        return new Function(context.Pack(), packedProgram);
     }
 
     private static Function Compilate(List<CodeLine> codeLines, Context context, List<string> args)
@@ -37,7 +36,7 @@ public static class Compilator
         {
             try
             {
-                context.dataContext.Push(arg, null);
+                context.PushData(arg, null);
             }
             catch (ArgumentException)
             {
@@ -52,8 +51,7 @@ public static class Compilator
         {
             packedProgram[i] = Program[i];
         }
-        
-        return new Function(context.dataContext.Pack(), packedProgram);
+        return new Function(context.Pack(), packedProgram);
     }
 
     private static void Compilate(List<CodeLine> codeLines,
@@ -76,7 +74,7 @@ public static class Compilator
                         {
                             subFunctions.Add((index+1, i));
                             
-                            context.functionsContext.Add(codeLine.Args[0], null);
+                            context.PushFunction(codeLine.Args[0], null);
                             
                             index = i;
                             break;
@@ -128,33 +126,33 @@ public static class Compilator
         List<Instruction> program, Context context)
     {
         string retStr = string.Empty;
-        int retDataId;
-        int[] args;
+        Pointer retDataId;
+        Pointer[] args;
         ElementaryFunction function;
 
-        if (codeLine.ReturnData == null) retDataId = -1;
+        if (codeLine.ReturnData == null) retDataId = Pointer.NULL;
         else
         {
-            retDataId = context.dataContext.Peek(codeLine.ReturnData);
+            retDataId = context.Peek(codeLine.ReturnData);
         }
 
-        if (codeLine.Args == null) args = new int[0];
+        if (codeLine.Args == null) args = new Pointer[0];
         else
         {
-            args = new int[codeLine.Args.Count];
+            args = new Pointer[codeLine.Args.Count];
             for (int i = 0; i < codeLine.Args.Count; i++)
             {
-                if (BasicString.isVarable(codeLine.Args[i])) args[i] = context.dataContext.Peek(codeLine.Args[i]);
+                if (BasicString.isVarable(codeLine.Args[i])) args[i] = context.Peek(codeLine.Args[i]);
                 else
                 {
-                    args[i] = context.dataContext.Push(null, ConstantConvertor(codeLine.Args[i]));
+                    args[i] = context.PushConstant(null, ConstantConvertor(codeLine.Args[i]));
                 }
             }
         }
 
         try
         {
-            function = context.functionsContext[codeLine.FunctionName];
+            function = context.FunctionsContext[codeLine.FunctionName];
             if (function == null)
             {
                 retStr = codeLine.FunctionName;
@@ -178,7 +176,7 @@ public static class Compilator
                     {
                         try
                         {
-                            context.dataContext.Push(codeLine.Args[0], null);
+                            context.PushData(codeLine.Args[0], null);
                         }
                         catch (ArgumentException)
                         {
@@ -193,7 +191,7 @@ public static class Compilator
                             {
                                 throw new CompilationException("Variable can be inited only by Constant");
                             }
-                            context.dataContext.Push(codeLine.Args[0], ConstantConvertor(codeLine.Args[1]));
+                            context.PushConstant(codeLine.Args[0], ConstantConvertor(codeLine.Args[1]));
                         }
                         catch (ArgumentException)
                         {
@@ -210,7 +208,7 @@ public static class Compilator
             case "#import":
                 foreach (string arg in codeLine.Args)
                 {
-                    RuntimeLibConnector.AddToLib(ref context.functionsContext, arg);
+                    RuntimeLibConnector.AddToLib(ref context, arg);
                 }
                 break;
         }

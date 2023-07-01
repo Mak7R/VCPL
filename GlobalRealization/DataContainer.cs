@@ -7,45 +7,181 @@ using System.Runtime.CompilerServices;
 
 namespace GlobalRealization;
 
-using System.IO;
-using System.Text.Json;
+public struct Pointer
+{
+    public static readonly Pointer NULL = new Pointer(255, -1);
+    private byte ContextType;
+    private int Position;
 
+    public static bool operator ==(Pointer left, Pointer right)
+    {
+        if (left.ContextType == right.ContextType && left.Position == right.Position)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    public static bool operator !=(Pointer left, Pointer right)
+    {
+        if (left.ContextType != right.ContextType || left.Position != right.Position)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    public byte GetContextType
+    {
+        get { return this.ContextType; }
+    }
+    
+    public int GetPosition
+    {
+        get { return this.Position; }
+    }
+    
+    public Pointer(byte contextType, int position)
+    {
+        this.ContextType = contextType;
+        this.Position = position;
+    }
+}
+
+public class TempConstantContainer
+{
+    private List<(string? name, object value)> data;
+    private TempConstantContainer Context;
+    
+    public List<(string? name, object value)> Data
+    {
+        get { return this.data; }
+    }
+    
+    public TempConstantContainer GetContext
+    {
+        get { return this.Context; }
+    }
+    
+    private int counter;
+    
+    public int Size
+    {
+        get { return (this.Context?.Size ?? 0) + this.data.Count; }
+    }
+    public TempConstantContainer()
+    {
+        this.data = new List<(string?, object)>();
+        counter = 0;
+        this.Context = null;
+    }
+    public TempConstantContainer(TempConstantContainer context)
+    {
+        this.data = new List<(string?, object)>();
+        counter = context.Size;
+        this.Context = context;
+    }
+    
+    public int Push(string? name, object? value)
+    {
+        if (name == null)
+        {
+            this.data.Add((name, value));
+            return counter++;
+        }
+        for (int i = 0; i < this.data.Count; i++) 
+            if (this.data[i].name == name) 
+                throw new ArgumentException();
+
+        this.data.Add((name, value));
+        return counter++;
+    }
+
+    public int Peek(string name)
+    {
+        for (int i = 0; i < this.data.Count; i++)
+            if (this.data[i].name == name)
+                return i + (this.Context?.Size ?? 0);
+
+        return this.Context?.Peek(name) ?? -1;
+    }
+    
+    public ConstantContainer Pack()
+    {
+        return new ConstantContainer(this);
+    }
+}
+
+public class ConstantContainer
+{
+    private object[] _data;
+    private ConstantContainer Context;
+
+    public int Size
+    {
+        get { return (this.Context?.Size ?? 0) + this._data.Length; }
+    }
+    
+    public ConstantContainer(TempConstantContainer container)
+    {
+        this._data = new object[container.Data.Count];
+        for(int i = 0; i < container.Data.Count; i++)
+        {
+            this._data[i] = container.Data[i].value;
+        }
+        Context = container.GetContext == null ? null : container.GetContext.Pack();
+    }
+
+    public void SetContext(ConstantContainer context)
+    {
+        this.Context = context;
+    }
+
+    public object this[int index]
+    {
+        get { return (index < (this.Context?.Size ?? 0) ? this.Context[index] : this._data[index - (this.Context?.Size ?? 0)]); }
+    }
+}
 
 public class DataContainer
 {
     private object[] _data;
     private DataContainer Context;
-    private int shift;
-    public int Shift
-    {
-        get { return this.shift; }
-    }
-    
+
     public DataContainer(int size)
     {
         this._data = new object[size];
         Context = null;
-        shift = 0;
     }
 
     public void SetContext(DataContainer context)
     {
         this.Context = context;
-        this.shift = context?.Size ?? 0;
+    }
+
+    public DataContainer GetContext()
+    {
+        return this.Context;
     }
 
     public object this[int index]
     {
-        get { return (index < shift ? this.Context[index] : this._data[index - shift]); }
+        get { return (index < (Context?.Size ?? 0) ? this.Context[index] : this._data[index - (Context?.Size ?? 0)]); }
         set
         {
-            if (index < shift)
+            if (index < (Context?.Size ?? 0))
             {
                 this.Context[index] = value;
             }
             else
             {
-                this._data[index - shift] = value;
+                this._data[index - (Context?.Size ?? 0)] = value;
             }
         }
     }
@@ -83,7 +219,7 @@ public class DataContainer
 
 public class TempContainer
 {
-    private List<(string? name, object value)> data;
+    private List<(string name, object value)> data;
     private TempContainer Context;
     
     private int counter;
@@ -94,33 +230,27 @@ public class TempContainer
     }
     public TempContainer()
     {
-        this.data = new List<(string? name, object value)>();
+        this.data = new List<(string name, object value)>();
         counter = 0;
         this.Context = null;
     }
     public TempContainer(TempContainer context)
     {
-        this.data = new List<(string? name, object value)>();
+        this.data = new List<(string name, object value)>();
         counter = context.Size;
         this.Context = context;
     }
     
-    public int Push(string? name, object value)
+    public int Push(string name, object value)
     {
         if (name == null)
         {
-            this.data.Add((null, value)); // throw new Exception() <-> Constant Context 
-            return counter++;
+            throw new CompilationException("Variable name was null");
         }
         
         for (int i = 0; i < this.data.Count; i++) 
             if (this.data[i].name == name) 
                 throw new ArgumentException();
-        
-        if (this.Context != null) 
-            for (int i = 0; i < this.Context.data.Count; i++) 
-                if (Context.data[i].name == name) 
-                    throw new ArgumentException();
 
         this.data.Add((name, value));
         return counter++;
@@ -143,7 +273,7 @@ public class TempContainer
             container[i] = this.data[i].value;
         
         if (this.Context != null) 
-            container.SetContext(this.Context.Pack());
+            container.SetContext(this.Context.Pack()); /////////////////////////
 
         return container;
     }

@@ -31,8 +31,8 @@ namespace VCPLBrowser
         private string filePath = null;
         private Function main = null;
         private Thread program = null;
-        private VCPL.Context context = new Context(new TempContainer(BasicContext.BasicData), BasicContext.ElementaryFunctions);
-        private DataContainer startContext;
+        private VCPL.Context context = new Context(new TempContainer(BasicContext.BasicData), BasicContext.BasicConstants, BasicContext.ElementaryFunctions);
+        private PackedContext startContext;
         private bool runThread = false;
         
         public MainWindow()
@@ -162,7 +162,7 @@ namespace VCPLBrowser
                         try
                         {
                             CopyFunction copyMain = main.GetCopyFunction(); 
-                            copyMain.Run(startContext, 0, new int[0]); // think about args
+                            copyMain.Run(startContext, Pointer.NULL, new Pointer[0]); // think about args
                         }
                         catch (RuntimeException re)
                         {
@@ -222,7 +222,7 @@ namespace VCPLBrowser
                         CopyFunction copyMain = main.GetCopyFunction();
                         try
                         {
-                            copyMain.Run(null, 0, new int[0]); // think about args
+                            copyMain.Run(null, Pointer.NULL, new Pointer[0]); // think about args
                         }
                         catch (RuntimeException re)
                         {

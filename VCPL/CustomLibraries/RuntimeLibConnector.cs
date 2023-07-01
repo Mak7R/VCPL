@@ -9,12 +9,12 @@ namespace VCPL;
 
 public static class RuntimeLibConnector
 {
-    public static void AddToLib(ref FunctionsContainer lib, string pathToLib)
+    public static void AddToLib(ref Context lib, string pathToLib)
     {
         Dictionary<string, ElementaryFunction> addLib = AddLib(pathToLib);
         foreach (var method in addLib)
         {
-            lib.Add(method.Key, method.Value);
+            lib.PushFunction(method.Key, method.Value);
         }
     }
     public static List<string> LoadAllDependenciesRecursively(string pathToAssembly)

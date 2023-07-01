@@ -30,8 +30,8 @@ public partial class MainWindow
         Page.Height = this.Height - 65;
         Page.Width = this.Width;
         
-        context.dataContext.Push("Page", Page);
-        context.functionsContext.Add("Write", (container, reference, args) =>
+        context.PushConstant("Page", Page);
+        context.PushFunction("Write", (container, reference, args) =>
         {
             this.Dispatcher.Invoke(() => {
                 Label console = (Label)container[args[0]];
@@ -39,7 +39,7 @@ public partial class MainWindow
             });
             return false;
         });
-        context.functionsContext.Add("WriteLine", (container, reference, args) =>
+        context.PushFunction("WriteLine", (container, reference, args) =>
         {
             this.Dispatcher.Invoke(() => {
                 Label console = (Label)container[args[0]];
@@ -47,7 +47,7 @@ public partial class MainWindow
             });
             return false;
         });
-        context.functionsContext.Add("Console", (container, reference, args) =>
+        context.PushFunction("Console", (container, reference, args) =>
         {
             this.Dispatcher.Invoke(() =>
             {
@@ -61,7 +61,7 @@ public partial class MainWindow
             });
             return false;
         });
-        context.functionsContext.Add("Move", (container, reference, args) =>
+        context.PushFunction("Move", (container, reference, args) =>
         {
             Canvas field = (Canvas)container[args[0]];
             Rectangle rect = (Rectangle)container[args[1]];
@@ -131,12 +131,12 @@ public partial class MainWindow
                 Thread.Sleep(200);
             }
         });
-        context.functionsContext.Add("SetBackground", (container, reference, args) =>
+        context.PushFunction("SetBackground", (container, reference, args) =>
         {
             this.Dispatcher.Invoke(() => {((Panel)container[args[0]]).Background = new SolidColorBrush(Color.FromRgb(Convert.ToByte(container[args[1]]), Convert.ToByte(container[args[2]]), Convert.ToByte(container[args[3]])));});
             return false;
         });
-        context.functionsContext.Add("Label", (container, reference, args) =>
+        context.PushFunction("Label", (container, reference, args) =>
         {
             this.Dispatcher.Invoke(() =>
             {
@@ -153,7 +153,7 @@ public partial class MainWindow
             
             return false;
         });
-        context.functionsContext.Add("Rect", (container, reference, args) =>
+        context.PushFunction("Rect", (container, reference, args) =>
         {
             this.Dispatcher.Invoke(() => { 
                 Rectangle rect = new Rectangle();
@@ -162,7 +162,7 @@ public partial class MainWindow
             
             return false;
         });
-        context.functionsContext.Add("SetRectWHRGB", (container, reference, args) =>
+        context.PushFunction("SetRectWHRGB", (container, reference, args) =>
             {
                 this.Dispatcher.Invoke(() => 
                 { 
@@ -174,7 +174,7 @@ public partial class MainWindow
                 
                 return false;
             });
-        context.functionsContext.Add("AddToCanvas", (container, reference, args) =>
+        context.PushFunction("AddToCanvas", (container, reference, args) =>
             {
                 this.Dispatcher.Invoke(() =>
                 {
@@ -184,7 +184,7 @@ public partial class MainWindow
                 
                 return false;
             });
-        context.functionsContext.Add("SetMargin", (container, reference, args) =>
+        context.PushFunction("SetMargin", (container, reference, args) =>
         {
             this.Dispatcher.Invoke(() =>
             {
@@ -194,7 +194,7 @@ public partial class MainWindow
             });
             return false;
         });
-        context.functionsContext.Add("SetOnClick", (container, reference, args) =>
+        context.PushFunction("SetOnClick", (container, reference, args) =>
         {
             Rectangle rectangle = (Rectangle)container[args[0]];
             this.Dispatcher.Invoke(() =>
@@ -209,6 +209,6 @@ public partial class MainWindow
         });
         
         
-        startContext = this.context.dataContext.Pack();
+        startContext = this.context.Pack();
     }
 }

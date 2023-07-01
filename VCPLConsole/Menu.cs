@@ -143,7 +143,7 @@ public static class Menu
     {
         try
         {
-            main.GetCopyFunction().Run(null, 0, new int[0]);
+            main.GetCopyFunction().Run(null, Pointer.NULL, new Pointer[0]);
         }
         catch (RuntimeException re)
         {

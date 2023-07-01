@@ -5,15 +5,15 @@ namespace VCPL;
 public class Instruction
 {
     public ElementaryFunction? method;
-    public int retDataId;
-    public int[] argsIds;
+    public Pointer retDataId;
+    public Pointer[] argsIds;
 
     public void SetMethod(ElementaryFunction function)
     {
         this.method = function;
     }
 
-    public Instruction(ElementaryFunction? method, int retDataId, int[] argsIds)
+    public Instruction(ElementaryFunction? method, Pointer retDataId, Pointer[] argsIds)
     {
         this.method = method;
         this.retDataId = retDataId;

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Sockets;
 using GlobalRealization;
 
 namespace VCPL;
@@ -7,6 +8,7 @@ namespace VCPL;
 public class FunctionsContainer : Dictionary<string, ElementaryFunction>
 {
     public FunctionsContainer Context;
+
     public ElementaryFunction this[string key]
     {
         get
