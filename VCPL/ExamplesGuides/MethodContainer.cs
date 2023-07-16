@@ -20,7 +20,7 @@ public static class MethodContainer
     {
         return new Dictionary<string, ElementaryFunction>()
         {
-            { "MethodName", (PackedContext container, Pointer retDataId, Pointer[] argsIds) => { return false; } }
+            { "MethodName", (RuntimeContext container, Pointer retDataId, Pointer[] argsIds) => { return false; } }
         };
     }
 

@@ -17,6 +17,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using BasicFunctions;
 using GlobalRealization;
+using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 
 using VCPL;
@@ -31,8 +32,8 @@ namespace VCPLBrowser
         private string filePath = null;
         private Function main = null;
         private Thread program = null;
-        private VCPL.Context context = new Context(new TempContainer(BasicContext.BasicData), BasicContext.BasicConstants, BasicContext.ElementaryFunctions);
-        private PackedContext startContext;
+        private Context context = new Context(null, BasicContext.DeffaultContext);
+        private RuntimeContext startContext;
         private bool runThread = false;
         
         public MainWindow()
@@ -77,8 +78,8 @@ namespace VCPLBrowser
             {
                 this.filePath = saveFileDialog.FileName;
                 this.SaveToFile();
+                UpdateTitle();
             }
-            UpdateTitle();
         }
 
         private void OpenFromFile()
@@ -104,9 +105,8 @@ namespace VCPLBrowser
             {
                 this.filePath = openFileDialog.FileName;
                 this.OpenFromFile();
+                UpdateTitle();
             }
-            
-            UpdateTitle();
         }
 
         private void UpdateTitle()
@@ -159,10 +159,11 @@ namespace VCPLBrowser
                 {
                     try
                     {
+                        
                         try
                         {
-                            CopyFunction copyMain = main.GetCopyFunction(); 
-                            copyMain.Run(startContext, Pointer.NULL, new Pointer[0]); // think about args
+                            FunctionInstance copyMain = (FunctionInstance)main.Get();
+                            copyMain.Invoke(context.Pack(), Pointer.NULL, new Pointer[0]); // think about args
                         }
                         catch (RuntimeException re)
                         {
@@ -208,58 +209,7 @@ namespace VCPLBrowser
 
         private void RunWithoutCompilation_OnClick(object sender, RoutedEventArgs e)
         {
-            if (this.main == null)
-            {
-                MessageBox.Show(this, "Main was not compilated yet", "Main was not compilated yet", MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-            else
-            {
-                program = new Thread((object? obj) =>
-                {
-                    try
-                    {
-                        CopyFunction copyMain = main.GetCopyFunction();
-                        try
-                        {
-                            copyMain.Run(null, Pointer.NULL, new Pointer[0]); // think about args
-                        }
-                        catch (RuntimeException re)
-                        {
-                            Debug.WriteLine(re.Message);
-                        }
-                        ((MainWindow)obj).Dispatcher.Invoke(() =>
-                        {
-                            ((MainWindow)obj).Page.Visibility = Visibility.Hidden;
-                            ((MainWindow)obj).Page.Children.Clear(); /// ???
-                            ((MainWindow)obj).CodeInput.Visibility = Visibility.Visible;
-                            ((MainWindow)obj).RunStop.Header = "Run";
-                            ((MainWindow)obj).isRun = false;
-                        });
-                    }
-                    catch (ThreadInterruptedException e)
-                    {
-                        ((MainWindow)obj).Dispatcher.Invoke(() =>
-                        {
-                            ((MainWindow)obj).Page.Visibility = Visibility.Hidden;
-                            ((MainWindow)obj).Page.Children.Clear(); /// ???
-                            ((MainWindow)obj).CodeInput.Visibility = Visibility.Visible;
-                            ((MainWindow)obj).RunStop.Header = "Run";
-                            ((MainWindow)obj).isRun = false;
-                        });
-                    }
-                });
-                program.IsBackground = true;
-                program.SetApartmentState(ApartmentState.STA);
-                
-                program.Start(this);
-                // message compilation successful
-                
-                CodeInput.Visibility = Visibility.Hidden;
-                Page.Visibility = Visibility.Visible;
-                ((MenuItem)sender).Header = "Stop";
-                isRun = true;
-            }
+            throw new NotImplementedException();
         }
 
         private List<Key> pressedKeys = new List<Key>();

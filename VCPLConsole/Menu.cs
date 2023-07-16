@@ -99,7 +99,7 @@ public static class Menu
 
         try
         {
-            main = Compilator.Compilate(codeLines, BasicContext.GetBasicContext());
+            main = Compilator.Compilate(codeLines, new Context(null, BasicContext.DeffaultContext));
         }
         catch (CompilationException ce)
         {
@@ -143,7 +143,7 @@ public static class Menu
     {
         try
         {
-            main.GetCopyFunction().Run(null, Pointer.NULL, new Pointer[0]);
+            ((IExecutable)main.Get()).Invoke(null, Pointer.NULL, Array.Empty<Pointer>());
         }
         catch (RuntimeException re)
         {

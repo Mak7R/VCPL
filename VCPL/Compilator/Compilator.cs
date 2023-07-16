@@ -4,79 +4,48 @@ using System.Globalization;
 using System.Linq;
 using BasicFunctions;
 using GlobalRealization;
-using Pointer = GlobalRealization.Pointer;
 
 namespace VCPL;
 
 public static class Compilator
 {
-
-    public static Function Compilate(List<CodeLine> codeLines, Context context)
+    public static Function Compilate(List<CodeLine> codeLines, Context context, List<string> args = null)
     {
         List<Instruction> Program = new List<Instruction>();
         
         context = context.NewContext();
+        
+        if (args != null) foreach (string arg in args) context.Push(arg, null);
+
         Compilate(codeLines, Program, context);
 
         Instruction[] packedProgram = new Instruction[Program.Count];
-        for (int i = 0; i < Program.Count; i++)
-        {
-            packedProgram[i] = Program[i];
-        }
+        for (int i = 0; i < Program.Count; i++) packedProgram[i] = Program[i];
 
         return new Function(context.Pack(), packedProgram);
     }
 
-    private static Function Compilate(List<CodeLine> codeLines, Context context, List<string> args)
+    
+    private static void Compilate(List<CodeLine> codeLines, List<Instruction> program, Context context)
     {
-        List<Instruction> Program = new List<Instruction>();
+        Dictionary<int, string> UndefinedInstructions = new Dictionary<int, string>();
+        List<(string name, int start, int end, Function func)> customFunctions = new List<(string, int start, int end, Function func)>();
         
-        context = context.NewContext();
-        foreach (string arg in args)
+        for (int i = 0; i < codeLines.Count; i++)
         {
-            try
-            {
-                context.PushData(arg, null);
-            }
-            catch (ArgumentException)
-            {
-                throw new CompilationException("This variable was declarated");
-            }
-        }
-        
-        Compilate(codeLines, Program, context);
-
-        Instruction[] packedProgram = new Instruction[Program.Count];
-        for (int i = 0; i < Program.Count; i++)
-        {
-            packedProgram[i] = Program[i];
-        }
-        return new Function(context.Pack(), packedProgram);
-    }
-
-    private static void Compilate(List<CodeLine> codeLines,
-        List<Instruction> program, Context context)
-    {
-        List<(int, int)> subFunctions = new List<(int, int)>();
-        List<string> UndefinedFunctions = new List<string>();
-        
-        for (int index = 0; index < codeLines.Count; index++)
-        {
-            CodeLine codeLine = codeLines[index];
+            CodeLine codeLine = codeLines[i];
             
             if (codeLine.FunctionName != "" && codeLine.FunctionName[0] == '#')
             {
                 if (codeLine.FunctionName == "#define")
                 {
-                    for (int i = index + 1; i < codeLines.Count; i++)
+                    for (int j = i + 1; j < codeLines.Count; j++)
                     {
-                        if (codeLines[i].FunctionName == $"#end" && codeLines[i].Args[0] == codeLine.Args[0]) // Compilation errors
+                        if (codeLines[j].FunctionName == $"#end" && codeLines[j].Args[0] == codeLine.Args[0]) // Compilation errors
                         {
-                            subFunctions.Add((index+1, i));
-                            
-                            context.PushFunction(codeLine.Args[0], null);
-                            
-                            index = i;
+                            customFunctions.Add((codeLine.Args[0], i, j, null));
+                            context.Push(codeLine.Args[0], null);
+                            i = j;
                             break;
                         }
                     }
@@ -88,82 +57,61 @@ public static class Compilator
             }
             else
             {
-                string userFunc = CompilateCodeLine(codeLine, program, context);
-                if (userFunc != string.Empty) UndefinedFunctions.Add(userFunc);
+                if (CompilateCodeLine(codeLine, program, context)) UndefinedInstructions.Add(program.Count-1, codeLine.FunctionName);
             }
         }
 
-        Dictionary<string, Function> definedFunctions = new Dictionary<string, Function>();
-        
-        for (int i = 0; i < subFunctions.Count; i++)
+        for (int i = 0; i < customFunctions.Count; i++)
         {
-            List<string> args = codeLines[subFunctions[i].Item1-1].Args;
-            // throw exception if args.Count == 0 ^
-            if (args.Count == 1) definedFunctions.Add(codeLines[subFunctions[i].Item1-1].Args[0], Compilate(codeLines.GetRange(subFunctions[i].Item1, subFunctions[i].Item2 - subFunctions[i].Item1), context));
-            else
+            var customFunction = customFunctions[i];
+            List<string> args = codeLines[customFunction.start].Args;
+            Function f = Compilate(
+                codeLines.GetRange(customFunction.start + 1, customFunction.end - customFunction.start - 1),
+                context,
+                args.GetRange(1, args.Count - 1)
+            );
+            
+            customFunctions[i] = (customFunction.name, customFunction.start, customFunction.end, f);
+            context.Set(customFunction.name, f); //////// what would be better send function or function instance
+        }
+
+        foreach (var undefinedInstruction in UndefinedInstructions)
+        {
+            foreach (var customFunction in customFunctions)
             {
-                definedFunctions.Add(codeLines[subFunctions[i].Item1-1].Args[0], Compilate(codeLines.GetRange(subFunctions[i].Item1, subFunctions[i].Item2 - subFunctions[i].Item1), context, args.GetRange(1, args.Count-1)));
-            }
-        }
-
-        int j = 0;
-        foreach (string undefinedFunction in UndefinedFunctions)
-        {
-            while (j < program.Count)
-            {   
-                if (program[j].method == null)
+                if (undefinedInstruction.Value == customFunction.name)
                 {
-                    program[j].SetMethod(definedFunctions[undefinedFunction].GetCopyFunction().GetMethod());
+                    program[undefinedInstruction.Key].Method =
+                        (ElementaryFunction)((FunctionInstance)customFunction.func.Get()).Get();
                     break;
                 }
-                j++;
+
+                throw new CompilationException("Object was not found!");
             }
-            // if problem make exception
         }
     }
 
-    private static string CompilateCodeLine(CodeLine codeLine,
-        List<Instruction> program, Context context)
+    private static bool CompilateCodeLine(CodeLine codeLine, List<Instruction> program, Context context)
     {
-        string retStr = string.Empty;
-        Pointer retDataId;
         Pointer[] args;
-        ElementaryFunction function;
-
-        if (codeLine.ReturnData == null) retDataId = Pointer.NULL;
-        else
-        {
-            retDataId = context.Peek(codeLine.ReturnData);
-        }
-
-        if (codeLine.Args == null) args = new Pointer[0];
+        if (codeLine.Args == null) args = Array.Empty<Pointer>();
         else
         {
             args = new Pointer[codeLine.Args.Count];
-            for (int i = 0; i < codeLine.Args.Count; i++)
-            {
-                if (BasicString.isVarable(codeLine.Args[i])) args[i] = context.Peek(codeLine.Args[i]);
-                else
-                {
-                    args[i] = context.PushConstant(null, ConstantConvertor(codeLine.Args[i]));
-                }
-            }
+            for (int i = 0; i < codeLine.Args.Count; i++) 
+                args[i] = BasicString.isVarable(codeLine.Args[i])
+                    ? context.Peek(codeLine.Args[i])
+                    : context.Push(null, new Constant(ConstantConvertor(codeLine.Args[i])));
         }
 
-        try
-        {
-            function = context.FunctionsContext[codeLine.FunctionName];
-            if (function == null)
-            {
-                retStr = codeLine.FunctionName;
-            }
-        }
-        catch (KeyNotFoundException)
-        {
-            throw new CompilationException($"Function {codeLine.FunctionName} was not declarated");
-        }
-        program.Add(new Instruction(function, retDataId, args));
-        return retStr;
+        ElementaryFunction function = (ElementaryFunction)context.PeekObject(codeLine.FunctionName)?.Get();
+        program.Add(
+            new Instruction(
+                function,
+                codeLine.ReturnData == null ?  Pointer.NULL : context.Peek(codeLine.ReturnData), 
+                args)
+        );
+        return function == null;
     }
     private static void CompilateDirective(CodeLine codeLine, Context context)
     {
@@ -176,7 +124,7 @@ public static class Compilator
                     {
                         try
                         {
-                            context.PushData(codeLine.Args[0], null);
+                            context.Push(codeLine.Args[0], new Variable(null));
                         }
                         catch (ArgumentException)
                         {
@@ -191,7 +139,7 @@ public static class Compilator
                             {
                                 throw new CompilationException("Variable can be inited only by Constant");
                             }
-                            context.PushConstant(codeLine.Args[0], ConstantConvertor(codeLine.Args[1]));
+                            context.Push(codeLine.Args[0], new Constant(ConstantConvertor(codeLine.Args[1])));
                         }
                         catch (ArgumentException)
                         {

@@ -1,4 +1,4 @@
 ﻿
 
 namespace GlobalRealization;
-public delegate bool ElementaryFunction(PackedContext container, Pointer reference, Pointer[] args);
+public delegate bool ElementaryFunction(RuntimeContext container, Pointer reference, Pointer[] args);

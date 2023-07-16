@@ -1,157 +1,141 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using GlobalRealization;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
+
 
 namespace VCPL;
 
 public class Context
 {
-    private TempContainer DataContext;
-    private TempConstantContainer Constants;
-    public FunctionsContainer FunctionsContext { get; private set; }
+    private Context ParentContext;
 
+    public int Size
+    {
+        get { return (this.ParentContext?.Size ?? 0) + this.DataContext.Count; }
+    }
+
+    private List<(string name, MemoryObject value)> DataContext;
+    
     private Context()
     {
-        
+        ParentContext = null;
+        DataContext = new List<(string name, MemoryObject value)>();
     }
     
-    public Context(TempContainer dataContext, TempConstantContainer constants, FunctionsContainer elementaryFunctions)
+    public Context(Context parentContext)
     {
+        this.ParentContext = parentContext;
+        DataContext = new List<(string name, MemoryObject value)>();
+    }
+
+    public Context(Context parentContext, List<(string name, MemoryObject value)> dataContext)
+    {
+        this.ParentContext = parentContext;
         this.DataContext = dataContext;
-        this.Constants = constants;
-        this.FunctionsContext = elementaryFunctions;
     }
 
-    public void PushFunction(string name, ElementaryFunction function)
+    public Pointer Push(string name, MemoryObject data)
     {
-        this.FunctionsContext.Add(name, function);
-        this.Constants.Push(name, function);
-    }
-    
-    public Pointer PushConstant(string? name, object data)
-    {
-        int position = Constants.Push(name, data); 
-        return new Pointer((byte)Contexts.Constant, position);
-    }
-
-    public Pointer PushData(string name, object data)
-    {
-        int position = DataContext.Push(name, data);
-        return new Pointer((byte)Contexts.Variable, position);
+        if (name != null) 
+            for (int i = 0; i < this.DataContext.Count; i++) 
+                if (DataContext[i].name == name) 
+                    throw new CompilationException("Variable with this name was declarated in this context!");
+        int position = (this.ParentContext?.Size ?? 0) + DataContext.Count;
+        DataContext.Add((name, data));
+        return new Pointer(ContextType.Stack, position);
     }
 
     public Pointer Peek(string name)
     {
-        int pos = Constants.Peek(name);
-        if (pos == -1)
+        for (int i = 0; i < DataContext.Count; i++) 
+            if (DataContext[i].name == name) 
+                return new Pointer(ContextType.Stack, (this.ParentContext?.Size ?? 0) + i);
+
+        return this.ParentContext?.Peek(name) ?? throw new CompilationException("Variable was not found");
+    }
+
+    public MemoryObject PeekObject(string name)
+    {
+        for (int i = 0; i < DataContext.Count; i++)
+            if (DataContext[i].name == name)
+                return DataContext[i].value;
+        return this.ParentContext?.PeekObject(name) ?? null;
+    }
+
+    public void Set(string name, object value)
+    {
+        for (int i = 0; i < DataContext.Count; i++)
+            if (DataContext[i].name == name)
+            {
+                if (DataContext[i].value is IChangeable changeable) changeable.Set(value);
+                if (DataContext[i].value is not MemoryObject) DataContext[i] = (DataContext[i].name, (MemoryObject)value); ///////////////////////
+                else throw new Exception("Cannot to change constant");
+            }
+        this.ParentContext?.Set(name, value);
+    }
+
+    public Context NewContext() => new Context(this);
+
+    public RuntimeContext Pack()
+    {
+        RuntimeContext parentContext = null;
+
+        if (this.ParentContext != null)
         {
-            pos = DataContext.Peek(name);
-            return new Pointer((byte)Contexts.Variable, pos);
+            parentContext = this.ParentContext.Pack();
         }
-        return new Pointer((byte)Contexts.Constant, pos);
-    }
-
-    public Context NewContext()
-    {
-        Context newContext = new Context();
-        newContext.DataContext = new TempContainer(this.DataContext);
-        newContext.Constants = new TempConstantContainer(this.Constants);
-        newContext.FunctionsContext = new FunctionsContainer(this.FunctionsContext);
-        return newContext;
-    }
-
-    public PackedContext Pack()
-    {
-        return new PackedContext() { constants = this.Constants.Pack(), data = this.DataContext.Pack() };
+        return new RuntimeContext(parentContext, this.DataContext);
     }
 }
 
-
-
 public static class BasicContext
 {
-    public static FunctionsContainer ElementaryFunctions = new FunctionsContainer()
+    public static List<(string name, MemoryObject value)> DeffaultContext = new List<(string name, MemoryObject value)>()
     {
+        ("null", new Constant(null)),
+        ("true", new Constant(true)),
+        ("false", new Constant(false)),
+        ("", new FunctionInstance((context, result, args) =>
         {
-            "", (container, reference, args) =>
-            {
-                container[reference] = container[args[0]];
-                return false;
-            } 
-        },
+            context[result] = context[args[0]];
+            return false;
+        })),
+        ("Sleep", new FunctionInstance((context, result, args) =>
         {
-            "Sleep", (container, reference, args) =>
-            {
-                if (args.Length != 1) throw new RuntimeException("Incorrect args count");
-                Thread.Sleep((int)container[args[0]]);
-                return false;
-            } 
-        },
-        {"return", (container, reference, args) =>
+            if (args.Length != 1) throw new RuntimeException("Incorrect args count");
+            Thread.Sleep((int)context[args[0]].Get());
+            return false;
+        })),
+        ("return", new FunctionInstance((context, result, args) =>
         {
             if (args.Length > 1) throw new CompilationException("Args count is more than posible");
             return true;
-        } },
+        })),
+        ("print", new FunctionInstance((context, result, args) =>
         {
-            "print", (container, retValueId, argsIds) =>
-            {
-                if (retValueId != Pointer.NULL) container[retValueId] = null;
+            if (result != Pointer.NULL) context[result] = null;
                 
-                foreach (var arg in argsIds) Console.Write(container[arg]?.ToString());
+            foreach (var arg in args) Console.Write(context[arg]?.ToString());
 
-                return false;
-            }
-        },
+            return false;
+        })),
+        ("read", new FunctionInstance((context, result, args) =>
         {
-            "read", (container, retValueId, argsIds) =>
-            {
-                string value = Console.ReadLine();
-                if (retValueId != Pointer.NULL) container[retValueId] = value;
-                return false;
-            }
-        },
-        { "endl", (container, retValueId, argsIds) => { 
+            string value = Console.ReadLine();
+            if (result != Pointer.NULL) if (context[result] is IChangeable changeable) changeable.Set(value);
+            return false;
+        })),
+        
+        ("endl", new FunctionInstance((context, result, args) => { 
             Console.WriteLine();
             return false;
-        } },
+        } )),
+        ("new", new FunctionInstance((context, result, args) =>
         {
-            "new", (container, retValueId, argsIds) =>
-            {
-                if (argsIds.Length == 0)
-                {
-                    container[retValueId] = new object(); // here should be alhoritm when types will be in VCPL
-                }
-                else
-                {
-                    throw new RuntimeException("new have to get only 0 or 1 args"); // 
-                }
-
-                return false;
-            }
-        }
+            throw new RuntimeException("New has not realisation");
+        }))
     };
-
-    public static TempContainer BasicData = new TempContainer();
-    public static TempConstantContainer BasicConstants = new TempConstantContainer();
-
-    static BasicContext()
-    {
-        BasicConstants.Push("NULL", null);
-        BasicConstants.Push("true", true);
-        BasicConstants.Push("false", false);
-
-        foreach (var elementaryFunction in ElementaryFunctions)
-        {
-            BasicConstants.Push(elementaryFunction.Key, elementaryFunction.Value);
-        }
-    }
-
-    public static Context GetBasicContext()
-    {
-        return new Context(BasicData, BasicConstants, ElementaryFunctions);
-    }
 }

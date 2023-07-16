@@ -4,6 +4,7 @@ namespace GlobalRealization;
 
 public class CompilationException : Exception
 {
+    public CompilationException () {}
     public CompilationException(string message) : base(message){}
 }
 public class RuntimeException : Exception
@@ -14,5 +15,6 @@ public class RuntimeException : Exception
 
 public class SyntaxException : Exception
 {
-    
+    public SyntaxException () {}
+    public SyntaxException(string message) : base(message){}
 }

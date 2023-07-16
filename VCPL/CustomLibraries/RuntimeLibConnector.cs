@@ -14,7 +14,7 @@ public static class RuntimeLibConnector
         Dictionary<string, ElementaryFunction> addLib = AddLib(pathToLib);
         foreach (var method in addLib)
         {
-            lib.PushFunction(method.Key, method.Value);
+            lib.Push(method.Key, new FunctionInstance(method.Value));
         }
     }
     public static List<string> LoadAllDependenciesRecursively(string pathToAssembly)
