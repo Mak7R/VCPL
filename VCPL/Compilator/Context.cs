@@ -114,25 +114,6 @@ public static class BasicContext
             if (args.Length > 1) throw new CompilationException("Args count is more than posible");
             return true;
         })),
-        ("print", new FunctionInstance((context, result, args) =>
-        {
-            if (result != Pointer.NULL) context[result] = null;
-                
-            foreach (var arg in args) Console.Write(context[arg]?.ToString());
-
-            return false;
-        })),
-        ("read", new FunctionInstance((context, result, args) =>
-        {
-            string value = Console.ReadLine();
-            if (result != Pointer.NULL) if (context[result] is IChangeable changeable) changeable.Set(value);
-            return false;
-        })),
-        
-        ("endl", new FunctionInstance((context, result, args) => { 
-            Console.WriteLine();
-            return false;
-        } )),
         ("new", new FunctionInstance((context, result, args) =>
         {
             throw new RuntimeException("New has not realisation");

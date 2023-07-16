@@ -1,14 +1,13 @@
-﻿namespace GlobalRealization;
+﻿using System;
 
-public abstract class MemoryObject
+namespace GlobalRealization;
+
+public abstract class MemoryObject : ICloneable
 {
     public abstract object Get();
+    public abstract object Clone();
 }
 
-public interface ICopiable
-{
-    public object Copy();
-}
 public interface IChangeable
 {
     public void Set(object newValue);

@@ -3,7 +3,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace GlobalRealization;
 
-public class Variable : MemoryObject, IChangeable, ICopiable
+
+/// /////////////////////////////////////////////// may be a problem with Copy
+
+public class Variable : MemoryObject, IChangeable
 {
     protected object Data;
 
@@ -27,18 +30,16 @@ public class Variable : MemoryObject, IChangeable, ICopiable
         this.Data = newValue;
     }
 
-    public virtual object Copy()
+    public override Variable Clone()
     {
-        throw new System.NotImplementedException();
-        if (this.Data is ICopiable copiable) return new Variable(copiable.Copy());
-        else
-        {
-            throw new System.NotImplementedException();
-        }
+        if (this.Data is null) return new Variable(null);
+        else if (this.Data is ValueType) return new Variable(Data);
+        else if (this.Data is ICloneable clone) return new Variable(clone.Clone());
+        else return new Variable(Data);
     }
 }
 
-public class Constant : MemoryObject, ICopiable
+public class Constant : MemoryObject
 {
     protected object Data;
 
@@ -57,14 +58,9 @@ public class Constant : MemoryObject, ICopiable
         return Data;
     }
 
-    public virtual object Copy()
+    public override Constant Clone()
     {
-        throw new System.NotImplementedException();
-        if (this.Data is ICopiable copiable) return new Variable(copiable.Copy());
-        else
-        {
-            throw new System.NotImplementedException();
-        }
+        return this;
     }
 }
 
@@ -89,22 +85,28 @@ public class Function : MemoryObject
         this._program = program;
     }
 
+    public override Function Clone()
+    {
+        return this;
+    }
+    
     public override object Get()
     {
         return new FunctionInstance(((context, result, args) =>
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             /// /////////////////////////////////////////// copy context missed
-            this._context.ParentContext = context;
-            this._context.Push(args);
+            RuntimeContext currentContext = this._context.Copy();
+            currentContext.ParentContext = context;
+            currentContext.Push(args);
 
             for (int i = 0; i < Program.Length; i++)
             {
-                if (Program[i].Invoke(_context))
+                if (Program[i].Invoke(currentContext))
                 {
                     if (result == Pointer.NULL) { return false; }
 
-                    if (this._context[result] is IChangeable changeable)
+                    if (currentContext[result] is IChangeable changeable)
                     {
                         if (Program[i].Args.Length == 0) { changeable.Set(null); }
                         else if (Program[i].Args.Length == 1) {  changeable.Set(args[0]); }
@@ -144,6 +146,11 @@ public class FunctionInstance : MemoryObject, IExecutable
     public bool Invoke(RuntimeContext context, Pointer result, Pointer[] args)
     {
         return this.Function.Invoke(context, result, args);
+    }
+    
+    public override FunctionInstance Clone()
+    {
+        return this;
     }
 }
 

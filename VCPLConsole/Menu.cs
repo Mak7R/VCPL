@@ -9,6 +9,35 @@ public static class Menu
 {
     public static List<string> code = new List<string>(){""};
     private static Function main = null;
+    
+    static Context baseContext = new Context(null, BasicContext.DeffaultContext);
+
+    static Menu()
+    {
+        baseContext.Push("print", new FunctionInstance((context, result, args) =>
+        {
+            if (result != Pointer.NULL) context[result] = null;
+
+            foreach (var arg in args) Console.Write(context[arg].Get()?.ToString());
+
+            return false;
+        }));
+        baseContext.Push("read", new FunctionInstance((context, result, args) =>
+        {
+            string value = Console.ReadLine();
+            if (result != Pointer.NULL)
+                if (context[result] is IChangeable changeable)
+                    changeable.Set(value);
+            return false;
+        }));
+
+        baseContext.Push("endl", new FunctionInstance((context, result, args) =>
+        {
+            Console.WriteLine();
+            return false;
+        }));
+    }
+
     public static void Draw()
     {
         Console.Clear();
@@ -79,6 +108,8 @@ public static class Menu
 
     public static void CompilateCode()
     {
+        
+        
         Console.Clear();
         List<CodeLine> codeLines = new List<CodeLine>();
         try
@@ -99,7 +130,7 @@ public static class Menu
 
         try
         {
-            main = Compilator.Compilate(codeLines, new Context(null, BasicContext.DeffaultContext));
+            main = Compilator.Compilate(codeLines, baseContext);
         }
         catch (CompilationException ce)
         {
@@ -143,7 +174,7 @@ public static class Menu
     {
         try
         {
-            ((IExecutable)main.Get()).Invoke(null, Pointer.NULL, Array.Empty<Pointer>());
+            ((IExecutable)main.Get()).Invoke(baseContext.Pack(), Pointer.NULL, Array.Empty<Pointer>());
         }
         catch (RuntimeException re)
         {
