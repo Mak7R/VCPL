@@ -1,8 +1,6 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace GlobalRealization;
-
 
 /// /////////////////////////////////////////////// may be a problem with Copy
 

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using GlobalRealization;
 
@@ -110,6 +108,44 @@ public static class BasicContext
             throw new RuntimeException("New has not realisation");
         })),
         
+        ("equal", new FunctionInstance(((context, result, args) =>
+        {
+            ((IChangeable)context[result]).Set(context[args[0]].Get().Equals(context[args[1]].Get()));
+            return false;
+        }))),
+        ("disequal", new FunctionInstance(((context, result, args) =>
+        {
+            ((IChangeable)context[result]).Set(!context[args[0]].Get().Equals(context[args[1]].Get()));
+            return false;
+        }))),
+        (">", new FunctionInstance(((context, result, args) =>
+        {
+            ((IChangeable)context[result]).Set(((IComparable)context[args[0]].Get()).CompareTo((IComparable)context[args[1]].Get()) == 1);
+            return false;
+        }))),
+        
+        ("<", new FunctionInstance(((context, result, args) =>
+        {
+            ((IChangeable)context[result]).Set(((IComparable)context[args[0]].Get()).CompareTo((IComparable)context[args[1]].Get()) == -1);
+            return false;
+        }))),
+        
+        ("if", new FunctionInstance(((context, result, args) =>
+        {
+            bool res = false;
+            if (context[args[0]].Get() is bool trueFalse) res = trueFalse;
+
+            if (res) ((FunctionInstance)((Function)context[args[1]]).Get()).Invoke(context, Pointer.NULL, Array.Empty<Pointer>());
+            else ((FunctionInstance)((Function)context[args[2]]).Get()).Invoke(context, Pointer.NULL, Array.Empty<Pointer>());
+            return false;
+        }))),
+        
+        ("while", new FunctionInstance(((context, result, args) =>
+        {
+            throw new NotImplementedException();
+            /// realise while
+            return false;
+        }))),
         
         ("Sleep", new FunctionInstance((context, result, args) =>
         {
