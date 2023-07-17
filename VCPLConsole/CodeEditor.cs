@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using BasicFunctions;
 
-namespace VCPL;
+namespace VCPLConsole;
 
 /// <summary>
 /// CodeEditor is a console editor. In future it should realize any interface for better changing to another editors.

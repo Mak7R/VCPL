@@ -7,7 +7,7 @@ using GlobalRealization;
 
 namespace VCPL;
 
-public static class Compilator
+public static class Compilator // unstatic compilator. compilator controles assembly context
 {
     public static Function Compilate(List<CodeLine> codeLines, Context context, List<string> args = null)
     {
@@ -15,7 +15,7 @@ public static class Compilator
         
         context = context.NewContext();
         
-        if (args != null) foreach (string arg in args) context.Push(arg, null);
+        if (args != null) foreach (string arg in args) context.Push(arg, new Variable(null));
 
         Compilate(codeLines, Program, context);
 
@@ -94,7 +94,7 @@ public static class Compilator
     private static bool CompilateCodeLine(CodeLine codeLine, List<Instruction> program, Context context)
     {
         Pointer[] args;
-        if (codeLine.Args == null) args = Array.Empty<Pointer>();
+        if (codeLine.Args == null || codeLine.Args.Count == 0) args = Array.Empty<Pointer>();
         else
         {
             args = new Pointer[codeLine.Args.Count];
@@ -117,36 +117,45 @@ public static class Compilator
     {
         switch (codeLine.FunctionName)
         {
-            case "#init": // #init(name, !start_value! <- delete it, modificator, type) // modificator (const, static, ref, ...)
+            case "#init":
                 if (BasicString.isVarable(codeLine.Args[0]))
                 {
-                    if (codeLine.Args.Count == 1)
+                    switch (codeLine.Args.Count)
                     {
-                        try
-                        {
+                        case 0:
+                            throw new CompilationException("Reqired argument missed");
+                            break;
+                        case 1:
                             context.Push(codeLine.Args[0], new Variable(null));
-                        }
-                        catch (ArgumentException)
-                        {
-                            throw new CompilationException("This variable was declarated");
-                        }
-                    }
-                    else if (codeLine.Args.Count == 2) 
-                    {
-                        try
-                        {
+                            break;
+                        case 2:
                             if (BasicString.isVarable(codeLine.Args[1]))
+                                context.Push(codeLine.Args[0],
+                                    (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
+                            else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
+                            break;
+                        case 3:
+                            if (codeLine.Args[2] == "const")
                             {
-                                throw new CompilationException("Variable can be inited only by Constant");
+                                if (BasicString.isVarable(codeLine.Args[1]))
+                                    context.Push(codeLine.Args[0],
+                                        new Constant(((MemoryObject)context.PeekObject(codeLine.Args[1]).Clone()).Get()));
+                                else context.Push(codeLine.Args[0], new Constant(ConstantConvertor(codeLine.Args[1])));
                             }
-                            context.Push(codeLine.Args[0], new Constant(ConstantConvertor(codeLine.Args[1])));
-                        }
-                        catch (ArgumentException)
-                        {
-                            throw new CompilationException("This variable was declarated");
-                        }
+                            else if(codeLine.Args[2] == "var")
+                            {
+                                if (BasicString.isVarable(codeLine.Args[1]))
+                                    context.Push(codeLine.Args[0],
+                                        (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
+                                else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
+                            }
+                            else
+                            {
+                                throw new CompilationException("Undefined variable state");
+                            }
+                            break;
+                        default: throw new CompilationException("#init has recived more than 3 args");
                     }
-                    else throw new CompilationException("Has no realization");
                 }
                 else
                 {
@@ -154,10 +163,7 @@ public static class Compilator
                 }
                 break;
             case "#import":
-                foreach (string arg in codeLine.Args)
-                {
-                    RuntimeLibConnector.AddToLib(ref context, arg);
-                }
+                foreach (string arg in codeLine.Args) CustomLibraryConnector.NewImport(ref context, arg);
                 break;
         }
     }

@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using BasicFunctions;
 using GlobalRealization;
+using VCPL;
 
-namespace VCPL;
+namespace VCPLConsole;
 
 public static class Menu
 {

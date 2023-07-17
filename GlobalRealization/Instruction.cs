@@ -2,21 +2,11 @@
 
 namespace GlobalRealization;
 
-public class Instruction
+public class Instruction // may be struct
 {
     public ElementaryFunction? Method;
     public Pointer Result;
     public Pointer[] Args;
-
-    public void SetMethod(ElementaryFunction function)
-    {
-        this.Method = function;
-    }
-
-    public bool Invoke(RuntimeContext context)
-    {
-        return this.Method.Invoke(context, Result, Args);
-    }
 
     public Instruction(ElementaryFunction? method, Pointer retDataId, Pointer[] argsIds)
     {

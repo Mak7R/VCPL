@@ -94,15 +94,13 @@ public class Function : MemoryObject
     {
         return new FunctionInstance(((context, result, args) =>
         {
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            /// /////////////////////////////////////////// copy context missed
             RuntimeContext currentContext = this._context.Copy();
             currentContext.ParentContext = context;
             currentContext.Push(args);
 
             for (int i = 0; i < Program.Length; i++)
             {
-                if (Program[i].Invoke(currentContext))
+                if (Program[i].Method.Invoke(currentContext, Program[i].Result, Program[i].Args))
                 {
                     if (result == Pointer.NULL) { return false; }
 

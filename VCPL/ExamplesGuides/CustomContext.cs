@@ -10,17 +10,17 @@ namespace Example;
 /// This class is an example how to create user libraries.
 /// This class have to have this name and method GetAll. You can also add mehtod GetNecessaryLibs.
 /// </summary>
-public static class MethodContainer
+public static class CustomContext
 {
     /// <summary>
     /// This is a necessary mathod. It returns Elementary Functions to VCPL.
     /// </summary>
     /// <returns>Elementary Functions. Dictionary of method name and method.</returns>
-    public static Dictionary<string, ElementaryFunction> GetAll()
+    public static List<(string name, MemoryObject value)> GetAll()
     {
-        return new Dictionary<string, ElementaryFunction>()
+        return new List<(string name, MemoryObject value)>()
         {
-            { "MethodName", (RuntimeContext container, Pointer retDataId, Pointer[] argsIds) => { return false; } }
+            ( "MethodName", new FunctionInstance((RuntimeContext container, Pointer retDataId, Pointer[] argsIds) => { return false; })),
         };
     }
 

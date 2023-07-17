@@ -159,7 +159,6 @@ namespace VCPLBrowser
                 {
                     try
                     {
-                        
                         try
                         {
                             FunctionInstance copyMain = (FunctionInstance)main.Get();

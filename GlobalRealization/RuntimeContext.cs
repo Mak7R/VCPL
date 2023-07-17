@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 namespace GlobalRealization;
-
-
-
 
 public class RuntimeContext
 {
@@ -69,24 +64,12 @@ public class RuntimeContext
         }
     }
 
-    private MemoryObject this[int pos]
-    {
-        get
-        {
-           return this.container[pos];
-        }
-        set
-        {
-            this.container[pos] = value;
-        }
-    }
-    
     public RuntimeContext Copy()
     {
         RuntimeContext copy = new RuntimeContext(this.ParentContext, container.Length);
         for (int i = 0; i < this.container.Length; i++)
         {
-            copy[i] = (MemoryObject)this.container[i].Clone();
+            copy.container[i] = (MemoryObject)this.container[i].Clone();
         }
 
         return copy;
