@@ -1,138 +1,71 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using GlobalRealization;
-using Pointer = System.Reflection.Pointer;
 
 namespace VCPL;
 
 public static class CustomLibraryConnector
-{
-    public static List<string> LoadAllDependenciesRecursively(string pathToAssembly) // useless
+{ 
+    public static bool ContainsAssembly(AssemblyLoadContext context, AssemblyName assemblyName)
     {
-        var loadedAssemblies = new List<string>();
-        var stack = new Stack<string>();
-        stack.Push(pathToAssembly);
-
-        AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
-        {
-            var assemblyName = new AssemblyName(args.Name);
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{assemblyName.Name}.dll");
-
-            if (!File.Exists(path)) return null; // maybe throw exception
-
-            return Assembly.LoadFrom(path);
-        };
-
-        while (stack.Count > 0)
-        {
-            var assemblyPath = stack.Pop();
-            var assemblyName = AssemblyName.GetAssemblyName(assemblyPath);
-            var assembly = Assembly.Load(assemblyName);
-
-            loadedAssemblies.Add(assemblyPath);
-
-            foreach (var referencedAssemblyName in assembly.GetReferencedAssemblies())
-            {
-                var referencedAssemblyPath = Path.Combine(
-                    Path.GetDirectoryName(assemblyPath),
-                    referencedAssemblyName.Name + ".dll"
-                );
-
-                if (File.Exists(referencedAssemblyPath) && !loadedAssemblies.Contains(referencedAssemblyPath))
-                {
-                    stack.Push(referencedAssemblyPath);
-                }
-            }
-        }
-
-        return loadedAssemblies;
+        var loadedAssemblies = context.Assemblies;
+        foreach (Assembly assembly in loadedAssemblies)
+            if (assembly.FullName == assemblyName.FullName)
+                return true;
+        return false;
     }
-
-    public static void Import(Context context, string pathToLib) // useless
+    public static bool ContainsAssembly(AssemblyLoadContext loadContext, string assemblyName)
     {
-        Assembly asm = Assembly.LoadFrom(pathToLib);
-        LoadAllDependenciesRecursively(pathToLib);
-
-        Type MethodContainer = asm.GetType("CustomContext")
-                               ?? throw new CompilationException(
-                                   "In assembly was not found class CustomContext"); ///////////////////////
-
-        MethodInfo GetAll = MethodContainer.GetMethod("GetAll", BindingFlags.Public | BindingFlags.Static)
-                            ?? throw new CompilationException("Get all was not found");
-
-        MethodInfo? GetNecessary =
-            MethodContainer.GetMethod("GetNecessaryLibs", BindingFlags.Public | BindingFlags.Static);
-
-
-        if (GetNecessary != null)
+        var loadedAssemblies = loadContext.Assemblies;
+        foreach (Assembly assembly in loadedAssemblies)
+            if (assembly.GetName().Name == assemblyName)
+                return true;
+        return false;
+    }
+    
+    public static void LoadDependencies(AssemblyLoadContext loadContext, AssemblyName assemblyName)
+    {
+        if (ContainsAssembly(loadContext, assemblyName)) return;
+        
+        Assembly dependent = null;
+        try { dependent = loadContext.LoadFromAssemblyName(assemblyName); }
+        catch
         {
-            object libs = GetNecessary.Invoke(null, null);
-            if (libs is string[] pathes)
-                foreach (string lib in pathes)
-                    if (!AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location == lib))
-                        Assembly.LoadFrom(lib);
-                    else throw new CompilationException($"Cannot convert {libs.GetType()} to {typeof(string[])}");
+            try { dependent = loadContext.LoadFromAssemblyPath(AppDomain.CurrentDomain.BaseDirectory + assemblyName.Name + ".dll"); }
+            catch { throw new CompilationException("Cannot to load lib"); }
         }
 
-        if (GetAll.Invoke(null, null) is Dictionary<string, MemoryObject> objects)
+        AssemblyName[] dependencies = dependent.GetReferencedAssemblies();
+        foreach (var dep in dependencies) LoadDependencies(loadContext, dep);
+    }
+    public static void Import(ref Context context, AssemblyLoadContext loadContext, string assemblyName)
+    {
+        Assembly lib;
+        if (!ContainsAssembly(loadContext, assemblyName))
         {
-            context = context.NewContext();
-            foreach (var memoryObject in objects) context.Push(memoryObject.Key, memoryObject.Value);
+            lib = loadContext.LoadFromAssemblyPath(AppDomain.CurrentDomain.BaseDirectory + assemblyName + ".dll");
+
+            AssemblyName[] dependencies = lib.GetReferencedAssemblies();
+            foreach (var dependent in dependencies) LoadDependencies(loadContext, dependent);
         }
         else
-            throw new CompilationException(
-                $"Cannot convert {context.GetType()} to {typeof(Dictionary<string, MemoryObject>)}");
-    }
-
-    public static AssemblyLoadContext NewImport(ref Context context, string assemblyName)
-    {
-        AssemblyLoadContext loadContext = new AssemblyLoadContext($"Context {assemblyName}", true);
-        Assembly lib = loadContext.LoadFromAssemblyPath(AppDomain.CurrentDomain.BaseDirectory + assemblyName + ".dll"); // 
-
-        void LoadDependinces(AssemblyName dep)
         {
-            var loadedAssemblies = loadContext.Assemblies;
-            foreach (Assembly assembly in loadedAssemblies)
-                if (assembly.FullName == dep.FullName)
-                    return; 
-            
-            Assembly ldep = null;
-            try
-            {
-                ldep = loadContext.LoadFromAssemblyName(dep);
-            }
-            catch
-            {
-                try { ldep = loadContext.LoadFromAssemblyPath(AppDomain.CurrentDomain.BaseDirectory + dep.Name + ".dll"); }
-                catch { throw new CompilationException("Cannot to load lib"); }
-            }
-
-            AssemblyName[] deps = ldep.GetReferencedAssemblies();
-            foreach (var d in deps) LoadDependinces(d);
+            lib = loadContext.LoadFromAssemblyName(new AssemblyName(assemblyName));
         }
-        
-        AssemblyName[] dependencies = lib.GetReferencedAssemblies();
-        foreach (var dependency in dependencies) LoadDependinces(dependency);
         
         Type MethodContainer = lib.GetType(assemblyName + ".CustomContext")
                                ?? throw new CompilationException(
-                                   "In assembly was not found class CustomContext"); ///////////////////////
+                                   "In assembly was not found class CustomContext");
 
-        MethodInfo GetAll = MethodContainer.GetMethod("GetAll", BindingFlags.Public | BindingFlags.Static)
-                            ?? throw new CompilationException("Get all was not found");
+        FieldInfo Context = MethodContainer.GetField("Context", BindingFlags.Public | BindingFlags.Static)
+                            ?? throw new CompilationException("Field Context was not found");
 
-        if (GetAll.Invoke(null, null) is List<(string name, MemoryObject value)> objects)
-            foreach (var memoryObject in objects)
-                context.Push(memoryObject.name, memoryObject.value);
+        if (Context.GetValue(null) is List<(string name, MemoryObject value)> objects) context.Push(objects);
         else
             throw new CompilationException(
                 $"Cannot convert {context.GetType()} to {typeof(Dictionary<string, MemoryObject>)}");
-        
-        return loadContext;
     }
 
 }

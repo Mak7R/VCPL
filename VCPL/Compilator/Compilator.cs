@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.Loader;
 using BasicFunctions;
 using GlobalRealization;
 
 namespace VCPL;
 
-public static class Compilator // unstatic compilator. compilator controles assembly context
+public static class Compilator
 {
+    public static AssemblyLoadContext LastCompilationAssemblyLoadContext { get; set; }
     public static Function Compilate(List<CodeLine> codeLines, Context context, List<string> args = null)
     {
         List<Instruction> Program = new List<Instruction>();
@@ -163,7 +165,7 @@ public static class Compilator // unstatic compilator. compilator controles asse
                 }
                 break;
             case "#import":
-                foreach (string arg in codeLine.Args) CustomLibraryConnector.NewImport(ref context, arg);
+                foreach (string arg in codeLine.Args) CustomLibraryConnector.Import(ref context, LastCompilationAssemblyLoadContext, arg);
                 break;
         }
     }

@@ -48,6 +48,11 @@ public class Context
         return new Pointer(ContextType.Stack, position);
     }
 
+    public void Push(List<(string name, MemoryObject value)> concateContext)
+    {
+        foreach (var data in concateContext) this.Push(data.name, data.value);
+    }
+
     public Pointer Peek(string name)
     {
         for (int i = 0; i < DataContext.Count; i++) 

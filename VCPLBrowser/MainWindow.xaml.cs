@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,6 +36,7 @@ namespace VCPLBrowser
         private Context context = new Context(null, BasicContext.DeffaultContext);
         private RuntimeContext startContext;
         private bool runThread = false;
+        private AssemblyLoadContext assemblyLoadContext = new AssemblyLoadContext("AssemblyContext", true);
         
         public MainWindow()
         {
@@ -143,6 +145,7 @@ namespace VCPLBrowser
                 
                 try
                 {
+                    Compilator.LastCompilationAssemblyLoadContext = this.assemblyLoadContext;
                     main = Compilator.Compilate(codeLines, context);
                 }
                 catch (CompilationException ce)
