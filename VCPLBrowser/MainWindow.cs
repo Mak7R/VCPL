@@ -49,75 +49,73 @@ public partial class MainWindow
         {
             Canvas field = (Canvas)container[args[0]].Get();
             Rectangle rect = (Rectangle)container[args[1]].Get();
-            double acc = 0;
-            while (true)
+            object oacc = container[args[2]].Get();
+            double acc = oacc is int ? (double)(int)oacc : (double)oacc;
+            foreach (var key in this.pressedKeys)
             {
-                foreach (var key in this.pressedKeys)
+                switch (key)
                 {
-                    switch (key)
-                    {
-                        case Key.A:
-                            this.Dispatcher.Invoke(() =>
+                    case Key.A:
+                        this.Dispatcher.Invoke(() =>
+                        {
+                            rect.Margin = new Thickness(
+                                rect.Margin.Left - 20,
+                                rect.Margin.Top,
+                                rect.Margin.Right,
+                                rect.Margin.Bottom);
+                        });
+                        break;
+                    case Key.D:
+                        this.Dispatcher.Invoke(() =>
+                        {
+                            rect.Margin = new Thickness(rect.Margin.Left + 20, rect.Margin.Top,
+                                rect.Margin.Right,
+                                rect.Margin.Bottom);
+                            
+                        });
+                        break;
+                    case Key.Space:
+                        this.Dispatcher.Invoke(() =>
+                        {
+                            if (rect.Margin.Top + rect.Height < field.Height)
                             {
-                                rect.Margin = new Thickness(
-                                    rect.Margin.Left - 20,
-                                    rect.Margin.Top,
-                                    rect.Margin.Right,
-                                    rect.Margin.Bottom);
-                                
-                            });
-                            break;
-                        case Key.D:
-                            this.Dispatcher.Invoke(() =>
+                                return;
+                            }
+                            else
                             {
-                                rect.Margin = new Thickness(rect.Margin.Left + 20, rect.Margin.Top,
-                                    rect.Margin.Right,
-                                    rect.Margin.Bottom);
-                                
-                            });
-                            break;
-                        case Key.Space:
-                            this.Dispatcher.Invoke(() =>
-                            {
-                                if (rect.Margin.Top + rect.Height < field.Height)
-                                {
-                                    return;
-                                }
-                                else
-                                {
-                                    acc -= 50;
-                                }
-                            });
-                            break;
-                        case Key.Escape:
-                            return false;
-                        default: break;
-                    }
+                                acc -= 50;
+                            }
+                        });
+                        break;
+                    case Key.Escape:
+                        return false;
+                    default: break;
                 }
-
-                this.Dispatcher.Invoke(() => { 
-                    rect.Margin = new Thickness(rect.Margin.Left, rect.Margin.Top + acc, rect.Margin.Right,
-                        rect.Margin.Bottom);
-                        
-                    if (rect.Margin.Top + rect.Height >= field.Height)
-                    {
-                        rect.Margin = new Thickness(rect.Margin.Left, field.Height - rect.Height, rect.Margin.Right,
-                            rect.Margin.Bottom);
-                        acc = 0;
-                    }
-                    else
-                    {
-                        acc += 10;
-                    }
-                    
-                });
-                
-                Thread.Sleep(200);
             }
+
+            this.Dispatcher.Invoke(() => { 
+                rect.Margin = new Thickness(rect.Margin.Left, rect.Margin.Top + acc, rect.Margin.Right,
+                    rect.Margin.Bottom);
+                    
+                if (rect.Margin.Top + rect.Height >= field.Height)
+                {
+                    rect.Margin = new Thickness(rect.Margin.Left, field.Height - rect.Height, rect.Margin.Right,
+                        rect.Margin.Bottom);
+                    acc = 0;
+                }
+                else
+                {
+                    acc += 10;
+                }
+                
+            });
+            ((IChangeable)container[args[2]]).Set(acc);
+            Thread.Sleep(100);
+            return false;
         }));
         context.Push("SetBackground", new FunctionInstance((container, reference, args) =>
         {
-            this.Dispatcher.Invoke(() => {((Panel)container[args[0]].Get()).Background = new SolidColorBrush(Color.FromRgb(Convert.ToByte(container[args[1]]), Convert.ToByte(container[args[2]]), Convert.ToByte(container[args[3]])));});
+            this.Dispatcher.Invoke(() => {((Panel)container[args[0]].Get()).Background = new SolidColorBrush(Color.FromRgb(Convert.ToByte(container[args[1]].Get()), Convert.ToByte(container[args[2]].Get()), Convert.ToByte(container[args[3]].Get())));});
             return false;
         }));
         context.Push("Label", new FunctionInstance((container, reference, args) =>
@@ -129,7 +127,7 @@ public partial class MainWindow
                 label.FontSize = 16;
                 label.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
                 label.Width = 600;
-                label.Height = 100;
+                label.Height = 400;
                 label.Margin = new Thickness(20, 20, 0, 0);
                 label.Content = container[args[1]].Get();
                 ((Canvas)container[args[0]].Get()).Children.Add(label);

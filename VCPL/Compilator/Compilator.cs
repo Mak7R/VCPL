@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using BasicFunctions;
 using GlobalRealization;
@@ -74,7 +75,7 @@ public static class Compilator
             );
             
             customFunctions[i] = (customFunction.name, customFunction.start, customFunction.end, f);
-            context.Set(customFunction.name, f); //////// what would be better send function or function instance
+            context.Set(customFunction.name, f);
         }
 
         foreach (var undefinedInstruction in UndefinedInstructions)
@@ -131,7 +132,7 @@ public static class Compilator
                             context.Push(codeLine.Args[0], new Variable(null));
                             break;
                         case 2:
-                            if (BasicString.isVarable(codeLine.Args[1]))
+                            if (BasicString.isVarable(codeLine.Args[1]) && !isKeyWord(codeLine.Args[1]))
                                 context.Push(codeLine.Args[0],
                                     (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
                             else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
@@ -169,10 +170,34 @@ public static class Compilator
                 break;
         }
     }
+
+    private static bool isKeyWord(string arg)
+    {
+        foreach (var keyWord in KeyWords)
+        {
+            if (keyWord == arg) return true;
+        }
+
+        return false;
+    }
+    private static string[] KeyWords = new string[] { "true", "false", "null" };
     
     private static object ConstantConvertor(string arg)
     {
-        if (BasicString.isChar(arg))
+        if (arg == "true")
+        {
+            return true;
+        }
+        else if (arg == "false")
+        {
+            return false;
+        }
+        else if (arg == "null")
+        {
+            return null;
+        }
+        
+        else if (BasicString.isChar(arg))
         {
             return Convert.ToChar(arg.Substring(1, arg.Length-2));
         }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Threading;
+using BasicFunctions;
 using GlobalRealization;
 
 
@@ -95,7 +97,7 @@ public static class BasicContext
         ("false", new Constant(false)),
         ("", new FunctionInstance((context, result, args) =>
         {
-            context[result] = context[args[0]];
+            ((IChangeable)context[result]).Set(context[args[0]].Get());
             return false;
         })),
         ("return", new FunctionInstance((context, result, args) =>
@@ -107,6 +109,27 @@ public static class BasicContext
         {
             throw new RuntimeException("New has not realisation");
         })),
+        
+        ("+", new FunctionInstance(((context, result, args) =>
+        {
+            ((IChangeable)context[result]).Set(BasicMath.Plus(context[args[0]].Get(), context[args[1]].Get()));
+            return false;
+        }))),
+        ("-", new FunctionInstance(((context, result, args) =>
+        {
+            ((IChangeable)context[result]).Set(BasicMath.Minus(context[args[0]].Get(), context[args[1]].Get()));
+            return false;
+        }))),
+        ("*", new FunctionInstance(((context, result, args) =>
+        {
+            ((IChangeable)context[result]).Set(BasicMath.Multiply(context[args[0]].Get(), context[args[1]].Get()));
+            return false;
+        }))),
+        ("/", new FunctionInstance(((context, result, args) =>
+        {
+            ((IChangeable)context[result]).Set(BasicMath.Divide(context[args[0]].Get(), context[args[1]].Get()));
+            return false;
+        }))),
         
         ("equal", new FunctionInstance(((context, result, args) =>
         {
@@ -123,7 +146,17 @@ public static class BasicContext
             ((IChangeable)context[result]).Set(((IComparable)context[args[0]].Get()).CompareTo((IComparable)context[args[1]].Get()) == 1);
             return false;
         }))),
+        (">e", new FunctionInstance(((context, result, args) =>
+        {
+            ((IChangeable)context[result]).Set(((IComparable)context[args[0]].Get()).CompareTo((IComparable)context[args[1]].Get()) != -1);
+            return false;
+        }))),
         
+        ("<e", new FunctionInstance(((context, result, args) =>
+        {
+            ((IChangeable)context[result]).Set(((IComparable)context[args[0]].Get()).CompareTo((IComparable)context[args[1]].Get()) != 1);
+            return false;
+        }))),
         ("<", new FunctionInstance(((context, result, args) =>
         {
             ((IChangeable)context[result]).Set(((IComparable)context[args[0]].Get()).CompareTo((IComparable)context[args[1]].Get()) == -1);
@@ -142,10 +175,14 @@ public static class BasicContext
         
         ("while", new FunctionInstance(((context, result, args) =>
         {
-            throw new NotImplementedException();
-            /// realise while
+            while ((bool)context[args[0]].Get())
+            {
+                ((FunctionInstance)((Function)context[args[1]]).Get()).Invoke(context, Pointer.NULL, Array.Empty<Pointer>());
+            }
             return false;
         }))),
+        
+        
         
         ("Sleep", new FunctionInstance((context, result, args) =>
         {

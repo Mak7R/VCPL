@@ -114,9 +114,6 @@ public static class BasicString
             case '\\':
             case '.':
             case ',':
-            case '+':
-            case '-':
-            case '*':
                 return true;
             default: 
                 return false;

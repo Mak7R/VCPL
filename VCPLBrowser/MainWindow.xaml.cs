@@ -68,7 +68,7 @@ namespace VCPLBrowser
             }
             else
             {
-                OnSaveClick(this, null);
+                OnSaveAsClick(this, null);
             }
         }
         
