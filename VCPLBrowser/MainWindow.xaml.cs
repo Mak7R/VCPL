@@ -30,7 +30,7 @@ namespace VCPLBrowser
     /// </summary>
     public partial class MainWindow : Window
     {
-        private string filePath = null;
+        private string FilePath = null;
         private Function main = null;
         private Thread program = null;
         private Context context = new Context(null, BasicContext.DeffaultContext);
@@ -45,9 +45,26 @@ namespace VCPLBrowser
             this.Init();
         }
 
+        public MainWindow(string filePath)
+        {
+            InitializeComponent();
+            this.FilePath = filePath;
+            if (FileCodeEditor.ReadCodeS(FilePath, out string readedData))
+            {
+                CodeInput.Text = readedData;
+                UpdateTitle();
+            }
+            else
+            {
+                MessageBox.Show(this, "File was not open", "File was not open", MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            this.Init();
+        }
+        
         private void SaveToFile()
         {
-            bool ok = FileCodeEditor.WriteCodeS(filePath, CodeInput.Text);
+            bool ok = FileCodeEditor.WriteCodeS(FilePath, CodeInput.Text);
             if (ok)
             {
                 MessageBox.Show(this, "File was saved succesful", "File was saved succesful", MessageBoxButton.OK,
@@ -62,7 +79,7 @@ namespace VCPLBrowser
         
         private void OnSaveClick(object sender, RoutedEventArgs e)
         {
-            if (this.filePath != null)
+            if (this.FilePath != null)
             {
                 this.SaveToFile();
             }
@@ -78,7 +95,7 @@ namespace VCPLBrowser
 
             if (saveFileDialog.ShowDialog() == true)
             {
-                this.filePath = saveFileDialog.FileName;
+                this.FilePath = saveFileDialog.FileName;
                 this.SaveToFile();
                 UpdateTitle();
             }
@@ -86,7 +103,7 @@ namespace VCPLBrowser
 
         private void OpenFromFile()
         {
-            if (FileCodeEditor.ReadCodeS(filePath, out string readedData))
+            if (FileCodeEditor.ReadCodeS(FilePath, out string readedData))
             {
                 CodeInput.Text = readedData;
                 MessageBox.Show(this, "File was open succesful", "File was open succesful", MessageBoxButton.OK,
@@ -105,7 +122,7 @@ namespace VCPLBrowser
             
             if (openFileDialog.ShowDialog() == true)
             {
-                this.filePath = openFileDialog.FileName;
+                this.FilePath = openFileDialog.FileName;
                 this.OpenFromFile();
                 UpdateTitle();
             }
@@ -113,7 +130,7 @@ namespace VCPLBrowser
 
         private void UpdateTitle()
         {
-            this.Title = this.filePath == string.Empty ? "VCPLBrowser" : $"VCPLBrowser ({BasicString.GetNameFromPath(this.filePath)})";
+            this.Title = this.FilePath == string.Empty ? "VCPLBrowser" : $"VCPLBrowser ({BasicString.GetNameFromPath(this.FilePath)})";
         }
 
         private bool isRun = false;

@@ -13,5 +13,20 @@ namespace VCPLBrowser
     /// </summary>
     public partial class App : Application
     {
+        protected void OnStartup(object sender, StartupEventArgs e)
+        {
+            MainWindow mainWindow;
+            string filename;
+            if (e.Args.Length > 0)
+            {
+                filename = e.Args[0];
+                mainWindow = new MainWindow(filename);
+            }
+            else
+            {
+                mainWindow = new MainWindow();
+            }
+            mainWindow.Show();
+        }
     }
 }

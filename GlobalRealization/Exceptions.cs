@@ -2,11 +2,6 @@
 
 namespace GlobalRealization;
 
-public class CompilationException : Exception
-{
-    public CompilationException () {}
-    public CompilationException(string message) : base(message){}
-}
 public class RuntimeException : Exception
 {
     public RuntimeException () {}

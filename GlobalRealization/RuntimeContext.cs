@@ -45,12 +45,14 @@ public class RuntimeContext
     {
         get
         {
+            if (pointer == Pointer.NULL) return null;
             return ((this.ParentContext?.Size ?? 0) <= pointer.GetPosition
                 ? this.container[pointer.GetPosition - (this.ParentContext?.Size ?? 0)]
                 : _parentContext[pointer]);
         }
         set
         {
+            if (pointer == Pointer.NULL) return;
             if ((this.ParentContext?.Size ?? 0) <= pointer.GetPosition)
             {
                 if (this.container[pointer.GetPosition - (this.ParentContext?.Size ?? 0)] is IChangeable)

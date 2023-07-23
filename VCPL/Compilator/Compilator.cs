@@ -102,7 +102,7 @@ public static class Compilator
         {
             args = new Pointer[codeLine.Args.Count];
             for (int i = 0; i < codeLine.Args.Count; i++) 
-                args[i] = BasicString.isVarable(codeLine.Args[i])
+                args[i] = BasicString.isVariable(codeLine.Args[i])
                     ? context.Peek(codeLine.Args[i])
                     : context.Push(null, new Constant(ConstantConvertor(codeLine.Args[i])));
         }
@@ -121,7 +121,7 @@ public static class Compilator
         switch (codeLine.FunctionName)
         {
             case "#init":
-                if (BasicString.isVarable(codeLine.Args[0]))
+                if (BasicString.isVariable(codeLine.Args[0]))
                 {
                     switch (codeLine.Args.Count)
                     {
@@ -132,7 +132,7 @@ public static class Compilator
                             context.Push(codeLine.Args[0], new Variable(null));
                             break;
                         case 2:
-                            if (BasicString.isVarable(codeLine.Args[1]) && !isKeyWord(codeLine.Args[1]))
+                            if (BasicString.isVariable(codeLine.Args[1]) && !isKeyWord(codeLine.Args[1]))
                                 context.Push(codeLine.Args[0],
                                     (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
                             else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
@@ -140,14 +140,14 @@ public static class Compilator
                         case 3:
                             if (codeLine.Args[2] == "const")
                             {
-                                if (BasicString.isVarable(codeLine.Args[1]))
+                                if (BasicString.isVariable(codeLine.Args[1]))
                                     context.Push(codeLine.Args[0],
                                         new Constant(((MemoryObject)context.PeekObject(codeLine.Args[1]).Clone()).Get()));
                                 else context.Push(codeLine.Args[0], new Constant(ConstantConvertor(codeLine.Args[1])));
                             }
                             else if(codeLine.Args[2] == "var")
                             {
-                                if (BasicString.isVarable(codeLine.Args[1]))
+                                if (BasicString.isVariable(codeLine.Args[1]))
                                     context.Push(codeLine.Args[0],
                                         (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
                                 else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
@@ -180,7 +180,7 @@ public static class Compilator
 
         return false;
     }
-    private static string[] KeyWords = new string[] { "true", "false", "null" };
+    private static string[] KeyWords = new string[] { "true", "false", "null", "#init", "#define", "#end", "#import" };
     
     private static object ConstantConvertor(string arg)
     {

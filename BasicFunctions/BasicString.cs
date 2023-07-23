@@ -97,10 +97,10 @@ public static class BasicString
         return false;
     }
 
-    public static bool isVarable(string arg)
+    public static bool isVariable(string arg)
     {
         if (arg == string.Empty) return false;
-        if (isNumber(arg) ) return false;
+        if (isNumber(arg)) return false;
         if (isSpcialSymbol(arg[0])) return false;
         return true;
     }

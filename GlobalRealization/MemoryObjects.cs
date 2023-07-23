@@ -2,7 +2,7 @@
 
 namespace GlobalRealization;
 
-/// /////////////////////////////////////////////// may be a problem with Copy
+/// /////////////////////////////////////////////// may be a problem with Clone
 
 public class Variable : MemoryObject, IChangeable
 {
@@ -150,12 +150,12 @@ public class FunctionInstance : MemoryObject, IExecutable
     }
 }
 
-public class Class
+internal class Class
 {
     
 }
 
-public class ClassInstance
+internal class ClassInstance
 {
     
 }
