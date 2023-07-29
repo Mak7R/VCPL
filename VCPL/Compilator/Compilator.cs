@@ -9,10 +9,11 @@ using GlobalRealization;
 
 namespace VCPL;
 
-public static class Compilator
+public class Compilator
 {
-    public static AssemblyLoadContext LastCompilationAssemblyLoadContext { get; set; }
-    public static Function Compilate(List<CodeLine> codeLines, Context context, List<string> args = null)
+    public AssemblyLoadContext CompilatorAssemblyLoadContext { get; set; }
+    public string[] KeyWords = new string[] { "true", "false", "null", "#init", "#define", "#end", "#import" };
+    public Function Compilate(List<CodeLine> codeLines, Context context, List<string> args = null)
     {
         List<Instruction> Program = new List<Instruction>();
         
@@ -29,7 +30,7 @@ public static class Compilator
     }
 
     
-    private static void Compilate(List<CodeLine> codeLines, List<Instruction> program, Context context)
+    private void Compilate(List<CodeLine> codeLines, List<Instruction> program, Context context)
     {
         Dictionary<int, string> UndefinedInstructions = new Dictionary<int, string>();
         List<(string name, int start, int end, Function func)> customFunctions = new List<(string, int start, int end, Function func)>();
@@ -94,7 +95,7 @@ public static class Compilator
         }
     }
 
-    private static bool CompilateCodeLine(CodeLine codeLine, List<Instruction> program, Context context)
+    private bool CompilateCodeLine(CodeLine codeLine, List<Instruction> program, Context context)
     {
         Pointer[] args;
         if (codeLine.Args == null || codeLine.Args.Count == 0) args = Array.Empty<Pointer>();
@@ -116,7 +117,7 @@ public static class Compilator
         );
         return function == null;
     }
-    private static void CompilateDirective(CodeLine codeLine, Context context)
+    private void CompilateDirective(CodeLine codeLine, Context context)
     {
         switch (codeLine.FunctionName)
         {
@@ -132,7 +133,7 @@ public static class Compilator
                             context.Push(codeLine.Args[0], new Variable(null));
                             break;
                         case 2:
-                            if (BasicString.isVariable(codeLine.Args[1]) && !isKeyWord(codeLine.Args[1]))
+                            if (BasicString.isVariable(codeLine.Args[1]) && !this.isKeyWord(codeLine.Args[1]))
                                 context.Push(codeLine.Args[0],
                                     (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
                             else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
@@ -166,21 +167,26 @@ public static class Compilator
                 }
                 break;
             case "#import":
-                foreach (string arg in codeLine.Args) CustomLibraryConnector.Import(ref context, LastCompilationAssemblyLoadContext, arg);
+                if (codeLine.Args.Count != 1) throw new CompilationException("Incorect args count");
+
+                string lib = codeLine.Args[0];
+                if (lib.EndsWith(".vcpl"))
+                {
+                    throw new NotImplementedException();
+                }
+                else CustomLibraryConnector.Import(ref context, CompilatorAssemblyLoadContext, codeLine.Args[0]);
                 break;
         }
     }
 
-    private static bool isKeyWord(string arg)
+    private bool isKeyWord(string arg)
     {
         foreach (var keyWord in KeyWords)
         {
             if (keyWord == arg) return true;
         }
-
         return false;
     }
-    private static string[] KeyWords = new string[] { "true", "false", "null", "#init", "#define", "#end", "#import" };
     
     private static object ConstantConvertor(string arg)
     {

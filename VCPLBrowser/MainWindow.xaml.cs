@@ -159,11 +159,13 @@ namespace VCPLBrowser
                     });
                     return;
                 }
+
+                Compilator compilator = new Compilator();
                 
                 try
                 {
-                    Compilator.LastCompilationAssemblyLoadContext = this.assemblyLoadContext;
-                    main = Compilator.Compilate(codeLines, context);
+                    compilator.CompilatorAssemblyLoadContext = this.assemblyLoadContext;
+                    main = compilator.Compilate(codeLines, context);
                 }
                 catch (CompilationException ce)
                 {
@@ -201,7 +203,7 @@ namespace VCPLBrowser
                             ((MainWindow)obj).isRun = false;
                         });
                     }
-                    catch (ThreadInterruptedException e)
+                    catch (ThreadInterruptedException)
                     {
                         ((MainWindow)obj).Dispatcher.Invoke(() =>
                         {

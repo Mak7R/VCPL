@@ -131,7 +131,7 @@ public static class Menu
 
         try
         {
-            main = Compilator.Compilate(codeLines, baseContext);
+            main = new Compilator().Compilate(codeLines, baseContext);
         }
         catch (CompilationException ce)
         {
