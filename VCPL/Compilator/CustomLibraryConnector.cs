@@ -7,7 +7,9 @@ using GlobalRealization;
 namespace VCPL;
 
 public static class CustomLibraryConnector
-{ 
+{
+    public static string LibrariesDomain = AppDomain.CurrentDomain.BaseDirectory;
+    public const string FileFormat = ".dll";
     public static bool ContainsAssembly(AssemblyLoadContext context, AssemblyName assemblyName)
     {
         var loadedAssemblies = context.Assemblies;
@@ -33,7 +35,7 @@ public static class CustomLibraryConnector
         try { dependent = loadContext.LoadFromAssemblyName(assemblyName); }
         catch
         {
-            try { dependent = loadContext.LoadFromAssemblyPath(AppDomain.CurrentDomain.BaseDirectory + assemblyName.Name + ".dll"); }
+            try { dependent = loadContext.LoadFromAssemblyPath(LibrariesDomain + assemblyName.Name + FileFormat); }
             catch { throw new CompilationException("Cannot to load lib"); }
         }
 
@@ -45,7 +47,14 @@ public static class CustomLibraryConnector
         Assembly lib;
         if (!ContainsAssembly(loadContext, assemblyName))
         {
-            lib = loadContext.LoadFromAssemblyPath(AppDomain.CurrentDomain.BaseDirectory + assemblyName + ".dll");
+            try
+            {
+                lib = loadContext.LoadFromAssemblyPath(LibrariesDomain + assemblyName + FileFormat);
+            }
+            catch
+            {
+                throw new CompilationException("Cannot to load a library");
+            }
 
             AssemblyName[] dependencies = lib.GetReferencedAssemblies();
             foreach (var dependent in dependencies) LoadDependencies(loadContext, dependent);

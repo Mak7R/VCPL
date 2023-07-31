@@ -12,7 +12,8 @@ namespace VCPL;
 public class Compilator
 {
     public AssemblyLoadContext CompilatorAssemblyLoadContext { get; set; }
-    public string[] KeyWords = new string[] { "true", "false", "null", "#init", "#define", "#end", "#import" };
+
+    public string[] KeyWords = new string[] { "true", "false", "null", "#init", "#define", "#end", "#import", "#class" };
     public Function Compilate(List<CodeLine> codeLines, Context context, List<string> args = null)
     {
         List<Instruction> Program = new List<Instruction>();
