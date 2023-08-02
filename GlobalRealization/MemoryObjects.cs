@@ -105,7 +105,7 @@ public class Function : MemoryObject
                     if (currentContext[result] is IChangeable changeable)
                     {
                         if (Program[i].Args.Length == 0) { changeable.Set(null); }
-                        else if (Program[i].Args.Length == 1) {  changeable.Set(args[0]); }
+                        else if (Program[i].Args.Length == 1) {  changeable.Set(currentContext[Program[i].Args[0]].Get()); }
                     }
                     else
                     {

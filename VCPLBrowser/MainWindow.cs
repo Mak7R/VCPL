@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,8 +22,69 @@ using GlobalRealization;
 
 namespace VCPLBrowser;
 
+static class Tools
+{
+    public enum MapType : uint
+    {
+        MAPVK_VK_TO_VSC = 0x0,
+        MAPVK_VSC_TO_VK = 0x1,
+        MAPVK_VK_TO_CHAR = 0x2,
+        MAPVK_VSC_TO_VK_EX = 0x3,
+    }
+
+    [DllImport("user32.dll")]
+    public static extern int ToUnicode(
+        uint wVirtKey,
+        uint wScanCode,
+        byte[] lpKeyState,
+        [Out, MarshalAs(UnmanagedType.LPWStr, SizeParamIndex = 4)] 
+        StringBuilder pwszBuff,
+        int cchBuff,
+        uint wFlags);
+
+    [DllImport("user32.dll")]
+    public static extern bool GetKeyboardState(byte[] lpKeyState);
+
+    [DllImport("user32.dll")]
+    public static extern uint MapVirtualKey(uint uCode, MapType uMapType);
+
+    public static char GetCharFromKey(Key key)
+    {
+        char ch = ' ';
+
+        int virtualKey = KeyInterop.VirtualKeyFromKey(key);
+        byte[] keyboardState = new byte[256];
+        GetKeyboardState(keyboardState);
+
+        uint scanCode = MapVirtualKey((uint)virtualKey, MapType.MAPVK_VK_TO_VSC);
+        StringBuilder stringBuilder = new StringBuilder(2);
+
+        int result = ToUnicode((uint)virtualKey, scanCode, keyboardState, stringBuilder, stringBuilder.Capacity, 0);
+        switch (result)
+        {
+            case -1: 
+                break;
+            case 0: 
+                break;
+            case 1:
+            {
+                ch = stringBuilder[0];
+                break;
+            }
+            default:
+            {
+                ch = stringBuilder[0];
+                break;
+            }
+        }
+        return ch;
+    }
+}
+
 public partial class MainWindow
 {
+    private bool isEnter = false;
+    private string Input;
     private void Init()
     {
         Page.Height = this.Height - 65;
@@ -33,7 +95,7 @@ public partial class MainWindow
         {
             this.Dispatcher.Invoke(() => {
                 Label console = (Label)container[args[0]].Get();
-                console.Content = (string)console.Content + (string)container[args[1]].Get();
+                console.Content = (string)console.Content + container[args[1]].Get().ToString();
             });
             return false;
         }));
@@ -45,6 +107,39 @@ public partial class MainWindow
             });
             return false;
         }));
+        
+        context.Push("ReadLine", new FunctionInstance(((context, result, args) =>
+        {
+            Label console = (Label)context[args[0]].Get();
+            this.Input = "";
+            System.Windows.Input.KeyEventHandler Event = (object sender, KeyEventArgs eventArgs) =>
+            {
+                if (eventArgs.Key == Key.Enter) { this.isEnter = true; return; }
+
+                if (eventArgs.Key == Key.Back)
+                {
+                    if (this.Input != string.Empty && this.Input.Length > 0)
+                    {
+                        this.Input = this.Input.Substring(0, this.Input.Length - 1);
+                        console.Content = ((string)console.Content).Substring(0, ((string)console.Content).Length-1);
+                    }
+                    return;
+                }
+                char key = Tools.GetCharFromKey(eventArgs.Key);
+                console.Content = (string)console.Content + key;
+                this.Input += key;
+            };
+            this.KeyDown += Event;
+            while (!isEnter) ;
+            this.Dispatcher.Invoke(() => {
+                console.Content = (string)console.Content + '\n';
+            });
+            this.KeyDown -= Event;
+            this.isEnter = false;
+            if (result != Pointer.NULL) if (context[result] is IChangeable changeable) changeable.Set(Input);
+            return false;
+        })));
+        
         context.Push("Move", new FunctionInstance((container, reference, args) =>
         {
             Canvas field = (Canvas)container[args[0]].Get();
