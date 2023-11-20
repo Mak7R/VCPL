@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VCPL;
+namespace VCPL.CodeConvertion;
 
 public class SyntaxException : Exception
 {

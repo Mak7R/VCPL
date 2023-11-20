@@ -20,8 +20,9 @@ using BasicFunctions;
 using GlobalRealization;
 using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
-
+using FileController;
 using VCPL;
+using VCPL.CodeConvertion;
 
 namespace VCPLBrowser
 {
@@ -37,6 +38,7 @@ namespace VCPLBrowser
         private RuntimeContext startContext;
         private bool runThread = false;
         private AssemblyLoadContext assemblyLoadContext = new AssemblyLoadContext("AssemblyContext", true);
+        private ICodeConvertor _codeConvertor = new CLiteConvertor();
         
         public MainWindow()
         {
@@ -141,13 +143,13 @@ namespace VCPLBrowser
             {
                 /// compilation should goes in new thread
 
-                List<CodeLine> codeLines = new List<CodeLine>();
+                List<ICodeLine> codeLines = new List<ICodeLine>();
                 try
                 {
                     foreach (string line in CodeInput.Text.Split("\r\n"))
                     {
                         if (BasicString.IsNoDataString(line)) continue;
-                        codeLines.Add(CodeLineConvertor.SyntaxCLite(line));
+                        codeLines.Add(_codeConvertor.Convert(line));
                     }
                 }
                 catch(SyntaxException se)

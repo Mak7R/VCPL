@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using BasicFunctions;
+using FileController;
 using GlobalRealization;
 using VCPL;
+using VCPL.CodeConvertion;
 
 namespace VCPLConsole;
 
@@ -10,6 +12,7 @@ public static class Menu
 {
     public static List<string> code = new List<string>(){""};
     private static Function main = null;
+    private static ICodeConvertor _codeConvertor = new CLiteConvertor();
     
     static Context baseContext = new Context(null, BasicContext.DeffaultContext);
 
@@ -112,13 +115,13 @@ public static class Menu
         
         
         Console.Clear();
-        List<CodeLine> codeLines = new List<CodeLine>();
+        List<ICodeLine> codeLines = new List<ICodeLine>();
         try
         {
             foreach (var line in code)
             {
                 if (BasicString.IsNoDataString(line)) continue;
-                codeLines.Add(CodeLineConvertor.SyntaxCLite(line));
+                codeLines.Add(_codeConvertor.Convert(line));
             }
         }
         catch(SyntaxException se)

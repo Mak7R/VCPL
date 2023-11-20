@@ -28,7 +28,7 @@ public static class BasicContext
             MemoryObject arg1 = context[args[0]];
             
             if (res is IChangeable change) change.Set(arg1.Get());
-            else throw new RuntimeException("Cannot to change constsnt");
+            else throw new RuntimeException("Cannot to change constant");
 
             return false;
         })),

@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\FileController\FileController.csproj" />
       <ProjectReference Include="..\VCPL\VCPL.csproj" />
     </ItemGroup>
 

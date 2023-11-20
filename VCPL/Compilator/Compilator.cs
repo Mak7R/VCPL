@@ -7,6 +7,8 @@ using System.Runtime.Loader;
 using BasicFunctions;
 using GlobalRealization;
 
+using VCPL.CodeConvertion;
+
 namespace VCPL;
 
 public class Compilator
@@ -14,7 +16,7 @@ public class Compilator
     public AssemblyLoadContext CompilatorAssemblyLoadContext { get; set; }
 
     public string[] KeyWords = new string[] { "true", "false", "null", "#init", "#define", "#end", "#import", "#class" };
-    public Function Compilate(List<CodeLine> codeLines, Context context, List<string> args = null)
+    public Function Compilate(List<ICodeLine> codeLines, Context context, List<string> args = null)
     {
         List<Instruction> Program = new List<Instruction>();
         
@@ -31,14 +33,14 @@ public class Compilator
     }
 
     
-    private void Compilate(List<CodeLine> codeLines, List<Instruction> program, Context context)
+    private void Compilate(List<ICodeLine> codeLines, List<Instruction> program, Context context)
     {
         Dictionary<int, string> UndefinedInstructions = new Dictionary<int, string>();
         List<(string name, int start, int end, Function func)> customFunctions = new List<(string, int start, int end, Function func)>();
         
         for (int i = 0; i < codeLines.Count; i++)
         {
-            CodeLine codeLine = codeLines[i];
+            ICodeLine codeLine = codeLines[i];
             
             if (codeLine.FunctionName != "" && codeLine.FunctionName[0] == '#')
             {
@@ -96,7 +98,7 @@ public class Compilator
         }
     }
 
-    private bool CompilateCodeLine(CodeLine codeLine, List<Instruction> program, Context context)
+    private bool CompilateCodeLine(ICodeLine codeLine, List<Instruction> program, Context context)
     {
         Pointer[] args;
         if (codeLine.Args == null || codeLine.Args.Count == 0) args = Array.Empty<Pointer>();
@@ -118,7 +120,7 @@ public class Compilator
         );
         return function == null;
     }
-    private void CompilateDirective(CodeLine codeLine, Context context)
+    private void CompilateDirective(ICodeLine codeLine, Context context)
     {
         switch (codeLine.FunctionName)
         {
