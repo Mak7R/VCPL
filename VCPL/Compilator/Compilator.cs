@@ -11,11 +11,14 @@ using VCPL.CodeConvertion;
 
 namespace VCPL;
 
-public class Compilator
+// I need a new compilator with #directive first compilation
+
+
+public class Compilator : ICompilator
 {
     public AssemblyLoadContext CompilatorAssemblyLoadContext { get; set; }
 
-    public string[] KeyWords = new string[] { "true", "false", "null", "#init", "#define", "#end", "#import", "#class" };
+    public readonly string[] KeyWords = new string[] { "true", "false", "null", "#init", "#define", "#end", "#import", "#class" };
     public Function Compilate(List<ICodeLine> codeLines, Context context, List<string> args = null)
     {
         List<Instruction> Program = new List<Instruction>();

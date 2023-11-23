@@ -5,12 +5,12 @@ namespace GlobalRealization;
 
 public class RuntimeContext
 {
-    private RuntimeContext _parentContext;
-    public RuntimeContext ParentContext
+    private RuntimeContext? _parentContext;
+    public RuntimeContext? ParentContext
     {
         get { return _parentContext; } 
         set {
-            if ((this.ParentContext?.Size ?? 0) == (value?.Size ?? 0)) this._parentContext = value;
+            if ((this._parentContext?.Size ?? 0) == (value?.Size ?? 0)) this._parentContext = value;
             else throw new RuntimeException("Incorect context");
         } 
     }
@@ -45,9 +45,9 @@ public class RuntimeContext
     {
         get
         {
-            if (pointer == Pointer.NULL) return null;
-            return ((this.ParentContext?.Size ?? 0) <= pointer.GetPosition
-                ? this.container[pointer.GetPosition - (this.ParentContext?.Size ?? 0)]
+            if (pointer == Pointer.NULL) throw new RuntimeException("Null reference error");
+            return ((this._parentContext?.Size ?? 0) <= pointer.GetPosition
+                ? this.container[pointer.GetPosition - (this._parentContext?.Size ?? 0)]
                 : _parentContext[pointer]);
         }
         set

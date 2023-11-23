@@ -92,7 +92,7 @@ public class Function : MemoryObject
     {
         return new FunctionInstance(((context, result, args) =>
         {
-            RuntimeContext currentContext = this._context.Copy();
+            RuntimeContext currentContext = this._context.Copy(); // bad (copy context in runtime)
             currentContext.ParentContext = context;
             currentContext.Push(args);
 
@@ -100,9 +100,8 @@ public class Function : MemoryObject
             {
                 if (Program[i].Method.Invoke(currentContext, Program[i].Result, Program[i].Args))
                 {
-                    if (result == Pointer.NULL) { return false; }
-
-                    if (currentContext[result] is IChangeable changeable)
+                    if (result == Pointer.NULL) { }
+                    else if (currentContext[result] is IChangeable changeable)
                     {
                         if (Program[i].Args.Length == 0) { changeable.Set(null); }
                         else if (Program[i].Args.Length == 1) {  changeable.Set(currentContext[Program[i].Args[0]].Get()); }

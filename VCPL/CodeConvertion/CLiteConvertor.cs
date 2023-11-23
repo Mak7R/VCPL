@@ -6,12 +6,18 @@ using System.Threading.Tasks;
 
 namespace VCPL.CodeConvertion
 {
-    public class CLiteConvertor/*<T>*/ : ICodeConvertor /*where T: ICodeLine*/
+    public class CLiteConvertor : ICodeConvertor
     {
+        /// <summary>
+        /// Converts the string line to CodeLine
+        /// </summary>
+        /// <param name="line">String line which should be converted to CodeLine</param>
+        /// <exception cref="SyntaxException">If is any error with line parsing it can throw new SyntaxException</exception>
+        /// <returns>New CodeLine which was generetad from line</returns>
         public ICodeLine Convert(string line)
         {
             string? FunctionName = "";
-            string? ReturnData = null;
+            string? ReturnData;
             List<string>? Args = null;
 
             line = line.Trim();
@@ -50,13 +56,6 @@ namespace VCPL.CodeConvertion
                 string argsString = line.Substring(openParenIndex + 1, closeParenIndex - openParenIndex - 1);
                 Args = GetArgsList(argsString);
             }
-
-            //var constructor = typeof(T).GetConstructor(System.Reflection.BindingFlags.Public, new Type[] { FunctionName.GetType(), Args.GetType(), ReturnData.GetType() });
-            //object? obj = constructor?.Invoke(new object[] { FunctionName, Args, ReturnData }) ?? null;
-            //if (obj is null) { throw new Exception("Can not create new object with T type"); }
-
-            //ICodeLine codeLine = (ICodeLine)obj;
-            //return codeLine;
 
             return new CodeLine(FunctionName, Args, ReturnData);
         }
