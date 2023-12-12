@@ -53,4 +53,19 @@ public struct Pointer
         this.pointerContextType = contextType;
         this.Position = position;
     }
+
+    public override readonly bool Equals(object? obj)
+    {
+        if (obj == null) return false;
+        if (obj is Pointer ptr)
+        {
+            return this == ptr;
+        }
+        return false;
+    }
+
+    public override readonly int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }

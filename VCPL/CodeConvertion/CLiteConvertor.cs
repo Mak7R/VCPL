@@ -16,9 +16,9 @@ namespace VCPL.CodeConvertion
         /// <returns>New CodeLine which was generetad from line</returns>
         public ICodeLine Convert(string line)
         {
-            string? FunctionName = "";
+            string FunctionName = "";
             string? ReturnData;
-            List<string>? Args = null;
+            List<string> Args;
 
             line = line.Trim();
 
@@ -42,13 +42,11 @@ namespace VCPL.CodeConvertion
             }
             else if ((openParenIndex == -1) != (closeParenIndex == -1))
             {
-                // if <-> else
-                // throw new SyntaxException -> new NoOpenParrenExcaption
-                // throw new SyntaxException -> new NoCloseParrenExcaption
+                throw new SyntaxException("No open parren excaption or no close parren excaption");
             }
             else if (openParenIndex > closeParenIndex)
             {
-                // throw new SyntaxException -> new NoOpenParrenExcaption
+                throw new SyntaxException("No open parren excaption");
             }
             else
             {

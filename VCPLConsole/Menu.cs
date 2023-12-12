@@ -134,7 +134,7 @@ public static class Menu
 
         try
         {
-            main = new Compilator().Compilate(codeLines, baseContext);
+            main = new Compilator_LBLFE_A().Compilate(codeLines, baseContext);
         }
         catch (CompilationException ce)
         {

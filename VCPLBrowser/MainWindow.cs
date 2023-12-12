@@ -97,7 +97,6 @@ public partial class MainWindow
                 Label console = (Label)container[args[0]].Get();
                 console.Content = (string)console.Content + container[args[1]].Get().ToString();
             });
-            return false;
         }));
         context.Push("WriteLine", new FunctionInstance((container, reference, args) =>
         {
@@ -105,7 +104,6 @@ public partial class MainWindow
                 Label console = (Label)container[args[0]].Get();
                 console.Content = (string)console.Content + container[args[1]].Get().ToString() + '\n';
             });
-            return false;
         }));
         
         context.Push("ReadLine", new FunctionInstance(((context, result, args) =>
@@ -137,7 +135,6 @@ public partial class MainWindow
             this.KeyDown -= Event;
             this.isEnter = false;
             if (result != Pointer.NULL) if (context[result] is IChangeable changeable) changeable.Set(Input);
-            return false;
         })));
         
         context.Push("Move", new FunctionInstance((container, reference, args) =>
@@ -183,7 +180,7 @@ public partial class MainWindow
                         });
                         break;
                     case Key.Escape:
-                        return false;
+                        return;
                     default: break;
                 }
             }
@@ -206,12 +203,13 @@ public partial class MainWindow
             });
             ((IChangeable)container[args[2]]).Set(acc);
             Thread.Sleep(100);
-            return false;
         }));
         context.Push("SetBackground", new FunctionInstance((container, reference, args) =>
         {
-            this.Dispatcher.Invoke(() => {((Panel)container[args[0]].Get()).Background = new SolidColorBrush(Color.FromRgb(Convert.ToByte(container[args[1]].Get()), Convert.ToByte(container[args[2]].Get()), Convert.ToByte(container[args[3]].Get())));});
-            return false;
+            this.Dispatcher.Invoke(
+                () => {
+                    ((Panel)container[args[0]].Get()).Background = new SolidColorBrush(Color.FromRgb(Convert.ToByte(container[args[1]].Get()), Convert.ToByte(container[args[2]].Get()), Convert.ToByte(container[args[3]].Get())));
+                });
         }));
         context.Push("Label", new FunctionInstance((container, reference, args) =>
         {
@@ -228,8 +226,6 @@ public partial class MainWindow
                 ((Canvas)container[args[0]].Get()).Children.Add(label);
                 container[reference] = new Variable(label);
             });
-            
-            return false;
         }));
         context.Push("Rect", new FunctionInstance((container, reference, args) =>
         {
@@ -237,8 +233,6 @@ public partial class MainWindow
                 Rectangle rect = new Rectangle();
                 container[reference] = new Variable(rect);
             });
-            
-            return false;
         }));
         context.Push("SetRectWHRGB", new FunctionInstance((container, reference, args) =>
             {
@@ -249,8 +243,6 @@ public partial class MainWindow
                     rect.Height = (int)container[args[2]].Get();
                     rect.Fill = new SolidColorBrush(Color.FromRgb(Convert.ToByte(container[args[3]].Get()), Convert.ToByte(container[args[4]].Get()), Convert.ToByte(container[args[5]].Get())));
                 });
-                
-                return false;
             }));
         context.Push("AddToCanvas", new FunctionInstance((container, reference, args) =>
             {
@@ -259,8 +251,6 @@ public partial class MainWindow
                     Canvas canvas = (Canvas)container[args[0]].Get();
                     canvas.Children.Add((UIElement)container[args[1]].Get());
                 });
-                
-                return false;
             }));
         context.Push("SetMargin", new FunctionInstance((container, reference, args) =>
         {
@@ -270,7 +260,6 @@ public partial class MainWindow
                 el.Margin = new Thickness((int)container[args[1]].Get(), (int)container[args[2]].Get(), (int)container[args[3]].Get(),
                     (int)container[args[4]].Get());
             });
-            return false;
         }));
         context.Push("SetOnClick", new FunctionInstance((container, reference, args) =>
         {
@@ -283,7 +272,6 @@ public partial class MainWindow
                         (byte)new Random().Next(255), (byte)new Random().Next(255)));
                 };
             });
-            return false;
         }));
         startContext = this.context.Pack();
     }

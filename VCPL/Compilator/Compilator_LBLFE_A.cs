@@ -9,17 +9,23 @@ using GlobalRealization;
 
 using VCPL.CodeConvertion;
 
-namespace VCPL;
+namespace VCPL.Compilator;
 
 // I need a new compilator with #directive first compilation
 
-
-public class Compilator : ICompilator
+/// <summary>
+/// Compilator Line By Line Functions in the End version A
+/// </summary>
+public class Compilator_LBLFE_A : ICompilator
 {
     public AssemblyLoadContext CompilatorAssemblyLoadContext { get; set; }
+    public void ReloadAssemblyLoadContext()
+    {
+        throw new NotImplementedException();
+    }
 
     public readonly string[] KeyWords = new string[] { "true", "false", "null", "#init", "#define", "#end", "#import", "#class" };
-    public Function Compilate(List<ICodeLine> codeLines, Context context, List<string> args = null)
+    public Function Compilate(List<ICodeLine> codeLines, Context context, List<string>? args = null)
     {
         List<Instruction> Program = new List<Instruction>();
         

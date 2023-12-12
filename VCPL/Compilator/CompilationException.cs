@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VCPL;
+namespace VCPL.Compilator;
 
 public class CompilationException : Exception
 {

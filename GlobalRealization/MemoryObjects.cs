@@ -6,24 +6,24 @@ namespace GlobalRealization;
 
 public class Variable : MemoryObject, IChangeable
 {
-    protected object Data;
+    protected object? Data;
 
     public Variable()
     {
         this.Data = null;
     }
     
-    public Variable(object value)
+    public Variable(object? value)
     {
         this.Data = value;
     }
 
-    public override object Get()
+    public override object? Get()
     {
         return Data;
     }
 
-    public void Set(object newValue)
+    public void Set(object? newValue)
     {
         this.Data = newValue;
     }
@@ -39,19 +39,19 @@ public class Variable : MemoryObject, IChangeable
 
 public class Constant : MemoryObject
 {
-    protected object Data;
+    protected object? Data;
 
     public Constant()
     {
         this.Data = null;
     }
     
-    public Constant(object value)
+    public Constant(object? value)
     {
         this.Data = value;
     }
 
-    public override object Get()
+    public override object? Get()
     {
         return Data;
     }
@@ -98,13 +98,17 @@ public class Function : MemoryObject
 
             for (int i = 0; i < Program.Length; i++)
             {
-                if (Program[i].Method.Invoke(currentContext, Program[i].Result, Program[i].Args))
+                try
+                {
+                    Program[i].Method.Invoke(currentContext, Program[i].Result, Program[i].Args);
+                }
+                catch (Return returnCall)
                 {
                     if (result == Pointer.NULL) { }
                     else if (currentContext[result] is IChangeable changeable)
                     {
-                        if (Program[i].Args.Length == 0) { changeable.Set(null); }
-                        else if (Program[i].Args.Length == 1) {  changeable.Set(currentContext[Program[i].Args[0]].Get()); }
+                        if (returnCall.Args.Length == 0) { changeable.Set(null); }
+                        else if (returnCall.Args.Length == 1) { changeable.Set(currentContext[returnCall.Args[0]].Get()); }
                     }
                     else
                     {
@@ -113,8 +117,6 @@ public class Function : MemoryObject
                     break;
                 }
             }
-
-            return false;
         }));
     }
 }
@@ -122,11 +124,6 @@ public class Function : MemoryObject
 public class FunctionInstance : MemoryObject, IExecutable
 {
     protected ElementaryFunction Function;
-
-    public FunctionInstance()
-    {
-        this.Function = null;
-    }
     
     public FunctionInstance(ElementaryFunction value)
     {
@@ -138,9 +135,9 @@ public class FunctionInstance : MemoryObject, IExecutable
         return Function;
     }
 
-    public bool Invoke(RuntimeContext context, Pointer result, Pointer[] args)
+    public void Invoke(RuntimeContext context, Pointer result, Pointer[] args)
     {
-        return this.Function.Invoke(context, result, args);
+        Function.Invoke(context, result, args);
     }
     
     public override FunctionInstance Clone()

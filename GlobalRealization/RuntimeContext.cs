@@ -10,8 +10,7 @@ public class RuntimeContext
     {
         get { return _parentContext; } 
         set {
-            if ((this._parentContext?.Size ?? 0) == (value?.Size ?? 0)) this._parentContext = value;
-            else throw new RuntimeException("Incorect context");
+            this._parentContext = value;
         } 
     }
     public int Size

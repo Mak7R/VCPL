@@ -7,12 +7,11 @@ using System.Threading;
 using BasicFunctions;
 using GlobalRealization;
 
-
-namespace VCPL;
+namespace VCPL.Compilator;
 
 public static class BasicContext
 {
-    public static List<(string name, MemoryObject value)> DeffaultContext = new List<(string name, MemoryObject value)>()
+    public readonly static List<(string name, MemoryObject value)> BasicContextList = new List<(string name, MemoryObject value)>()
     {
         ("null", new Constant(null)),
         ("true", new Constant(true)),
@@ -29,13 +28,10 @@ public static class BasicContext
             
             if (res is IChangeable change) change.Set(arg1.Get());
             else throw new RuntimeException("Cannot to change constant");
-
-            return false;
         })),
         ("return", new FunctionInstance((context, result, args) =>
         {
-            if (args.Length > 1) throw new RuntimeException($"return recieves 0 or 1 arguments but recieved {args.Length} args");
-            return true;
+            throw new Return(args);
         })),
         ("new", new FunctionInstance((context, result, args) =>
         {
@@ -52,8 +48,6 @@ public static class BasicContext
             
             if (res is IChangeable changeable) changeable.Set(BasicMath.Plus(arg1.Get(), arg2.Get()));
             else throw new RuntimeException("Cannot to change constsnt");
-            
-            return false;
         }))),
         ("-", new FunctionInstance(((context, result, args) =>
         {
@@ -65,8 +59,6 @@ public static class BasicContext
             
             if (res is IChangeable changeable) changeable.Set(BasicMath.Minus(arg1.Get(), arg2.Get()));
             else throw new RuntimeException("Cannot to change constsnt");
-            
-            return false;
         }))),
         ("*", new FunctionInstance(((context, result, args) =>
         {
@@ -78,8 +70,6 @@ public static class BasicContext
             
             if (res is IChangeable changeable) changeable.Set(BasicMath.Multiply(arg1.Get(), arg2.Get()));
             else throw new RuntimeException("Cannot to change constsnt");
-            
-            return false;
         }))),
         ("/", new FunctionInstance(((context, result, args) =>
         {
@@ -91,8 +81,6 @@ public static class BasicContext
             
             if (res is IChangeable changeable) changeable.Set(BasicMath.Divide(arg1.Get(), arg2.Get()));
             else throw new RuntimeException("Cannot to change constsnt");
-            
-            return false;
         }))),
         
         ("equal", new FunctionInstance(((context, result, args) =>
@@ -105,8 +93,6 @@ public static class BasicContext
             
             if (res is IChangeable changeable) changeable.Set(arg1.Get().Equals(arg2.Get()));
             else throw new RuntimeException("Cannot to change constsnt");
-            
-            return false;
         }))),
         ("disequal", new FunctionInstance(((context, result, args) =>
         {
@@ -118,8 +104,6 @@ public static class BasicContext
             
             if (res is IChangeable changeable) changeable.Set(!arg1.Get().Equals(arg2.Get()));
             else throw new RuntimeException("Cannot to change constsnt");
-            
-            return false;
         }))),
         
         (">", new FunctionInstance(((context, result, args) =>
@@ -132,8 +116,6 @@ public static class BasicContext
             
             if (res is IChangeable changeable) changeable.Set(((IComparable)arg1.Get()).CompareTo(arg2.Get()) == 1);
             else throw new RuntimeException("Cannot to change constsnt");
-            
-            return false;
         }))),
         (">=", new FunctionInstance(((context, result, args) =>
         {
@@ -145,8 +127,6 @@ public static class BasicContext
             
             if (res is IChangeable changeable) changeable.Set(((IComparable)arg1.Get()).CompareTo(arg2.Get()) != -1);
             else throw new RuntimeException("Cannot to change constsnt");
-            
-            return false;
         }))),
         
         ("<=", new FunctionInstance(((context, result, args) =>
@@ -159,8 +139,6 @@ public static class BasicContext
             
             if (res is IChangeable changeable) changeable.Set(((IComparable)arg1.Get()).CompareTo(arg2.Get()) != 1);
             else throw new RuntimeException("Cannot to change constsnt");
-            
-            return false;
         }))),
         ("<", new FunctionInstance(((context, result, args) =>
         {
@@ -172,8 +150,6 @@ public static class BasicContext
             
             if (res is IChangeable changeable) changeable.Set(((IComparable)arg1.Get()).CompareTo(arg2.Get()) == -1);
             else throw new RuntimeException("Cannot to change constsnt");
-            
-            return false;
         }))),
         
         ("if", new FunctionInstance(((context, result, args) =>
@@ -187,8 +163,6 @@ public static class BasicContext
             if (arg1.Get() is bool isTrue) 
                 (isTrue ? ((FunctionInstance)ifTrueF.Get()) : ((FunctionInstance)ifFalseF.Get()))
                     .Invoke(context, Pointer.NULL, Array.Empty<Pointer>());
-            
-            return false;
         }))),
         ("while", new FunctionInstance(((context, result, args) =>
         {
@@ -201,14 +175,12 @@ public static class BasicContext
             {
                 ((FunctionInstance)arg2.Get()).Invoke(context, Pointer.NULL, Array.Empty<Pointer>());
             }
-            return false;
         }))),
 
         ("Sleep", new FunctionInstance((context, result, args) =>
         {
             if (args.Length != 1) throw new RuntimeException("Incorrect args count");
             Thread.Sleep((int)context[args[0]].Get());
-            return false;
         })),
     };
 }

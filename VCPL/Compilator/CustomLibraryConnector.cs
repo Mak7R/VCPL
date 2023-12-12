@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using GlobalRealization;
 
-namespace VCPL;
+namespace VCPL.Compilator;
 
 public static class CustomLibraryConnector
 {

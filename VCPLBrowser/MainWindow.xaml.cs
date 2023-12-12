@@ -1,28 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using BasicFunctions;
 using GlobalRealization;
-using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 using FileController;
 using VCPL;
 using VCPL.CodeConvertion;
+using VCPL.Compilator;
 
 namespace VCPLBrowser
 {
@@ -34,7 +23,7 @@ namespace VCPLBrowser
         private string FilePath = null;
         private Function main = null;
         private Thread program = null;
-        private Context context = new Context(null, BasicContext.DeffaultContext);
+        private Context context = new Context(null, BasicContext.BasicContextList).NewContext();
         private RuntimeContext startContext;
         private bool runThread = false;
         private AssemblyLoadContext assemblyLoadContext = new AssemblyLoadContext("AssemblyContext", true);
@@ -162,11 +151,11 @@ namespace VCPLBrowser
                     return;
                 }
 
-                Compilator compilator = new Compilator();
+                ICompilator compilator = new Compilator_DF_A();
                 
                 try
                 {
-                    compilator.CompilatorAssemblyLoadContext = this.assemblyLoadContext;
+                    compilator.ReloadAssemblyLoadContext();
                     main = compilator.Compilate(codeLines, context);
                 }
                 catch (CompilationException ce)
