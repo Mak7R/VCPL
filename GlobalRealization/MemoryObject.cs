@@ -15,5 +15,5 @@ public interface IChangeable
 
 public interface IExecutable
 {
-    public void Invoke(RuntimeContext context, Pointer result, Pointer[] args);
+    public void Invoke(Pointer result, Pointer[] args);
 }

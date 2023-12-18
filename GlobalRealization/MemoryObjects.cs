@@ -90,30 +90,26 @@ public class Function : MemoryObject
     
     public override object Get()
     {
-        return new FunctionInstance(((context, result, args) =>
+        return new FunctionInstance(((result, args) =>
         {
             RuntimeContext currentContext = this._context.Copy(); // bad (copy context in runtime)
-            currentContext.ParentContext = context;
-            currentContext.Push(args);
+            for (int i = 0; i < args.Length; i++)
+            {
+                currentContext[i] = args[i].Get();
+            }
 
             for (int i = 0; i < Program.Length; i++)
             {
                 try
                 {
-                    Program[i].Method.Invoke(currentContext, Program[i].Result, Program[i].Args);
+                    Program[i].Method.Invoke(Program[i].Result, Program[i].Args);
                 }
                 catch (Return returnCall)
                 {
-                    if (result == Pointer.NULL) { }
-                    else if (currentContext[result] is IChangeable changeable)
-                    {
-                        if (returnCall.Args.Length == 0) { changeable.Set(null); }
-                        else if (returnCall.Args.Length == 1) { changeable.Set(currentContext[returnCall.Args[0]].Get()); }
-                    }
-                    else
-                    {
-                        throw new RuntimeException("Cannot to change constant");
-                    }
+                    if (result.Equals(Pointer.NULL)) { } // check nullptr
+                    else if (returnCall.Args.Length == 0) { result.Set(new Variable(null)); }
+                    else if (returnCall.Args.Length == 1) { returnCall.Args[0].MoveTo(result); }
+                    else { throw new RuntimeException("Incorrect args count"); }
                     break;
                 }
             }
@@ -135,9 +131,9 @@ public class FunctionInstance : MemoryObject, IExecutable
         return Function;
     }
 
-    public void Invoke(RuntimeContext context, Pointer result, Pointer[] args)
+    public void Invoke(Pointer result, Pointer[] args)
     {
-        Function.Invoke(context, result, args);
+        Function.Invoke(result, args);
     }
     
     public override FunctionInstance Clone()

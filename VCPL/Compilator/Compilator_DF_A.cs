@@ -92,8 +92,7 @@ public class Compilator_DF_A : ICompilator
                                 break;
                             case 2:
                                 if (BasicString.isVariable(codeLine.Args[1]) && !this.isKeyWord(codeLine.Args[1]))
-                                    context.Push(codeLine.Args[0],
-                                        (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
+                                    context.Push(codeLine.Args[0], (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
                                 else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
                                 break;
                             case 3:

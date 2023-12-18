@@ -91,24 +91,24 @@ public partial class MainWindow
         Page.Width = this.Width;
         
         context.Push("Page", new Constant(Page));
-        context.Push("Write", new FunctionInstance((container, reference, args) =>
+        context.Push("Write", new FunctionInstance((reference, args) =>
         {
             this.Dispatcher.Invoke(() => {
-                Label console = (Label)container[args[0]].Get();
-                console.Content = (string)console.Content + container[args[1]].Get().ToString();
+                Label console = (Label)args[0].Get().Get();
+                console.Content = (string)console.Content + args[1].Get().Get()?.ToString();
             });
         }));
-        context.Push("WriteLine", new FunctionInstance((container, reference, args) =>
+        context.Push("WriteLine", new FunctionInstance((reference, args) =>
         {
             this.Dispatcher.Invoke(() => {
-                Label console = (Label)container[args[0]].Get();
-                console.Content = (string)console.Content + container[args[1]].Get().ToString() + '\n';
+                Label console = (Label)args[0].Get().Get();
+                console.Content = (string)console.Content + args[1].Get().Get()?.ToString() + '\n';
             });
         }));
         
-        context.Push("ReadLine", new FunctionInstance(((context, result, args) =>
+        context.Push("ReadLine", new FunctionInstance(((result, args) =>
         {
-            Label console = (Label)context[args[0]].Get();
+            Label console = (Label)args[0].Get().Get();
             this.Input = "";
             System.Windows.Input.KeyEventHandler Event = (object sender, KeyEventArgs eventArgs) =>
             {
@@ -134,14 +134,14 @@ public partial class MainWindow
             });
             this.KeyDown -= Event;
             this.isEnter = false;
-            if (result != Pointer.NULL) if (context[result] is IChangeable changeable) changeable.Set(Input);
+            if (!result.Equals(Pointer.NULL)) result.Set(new Variable(Input));
         })));
         
-        context.Push("Move", new FunctionInstance((container, reference, args) =>
+        context.Push("Move", new FunctionInstance((reference, args) =>
         {
-            Canvas field = (Canvas)container[args[0]].Get();
-            Rectangle rect = (Rectangle)container[args[1]].Get();
-            object oacc = container[args[2]].Get();
+            Canvas field = (Canvas)args[0].Get().Get();
+            Rectangle rect = (Rectangle)args[1].Get().Get();
+            object oacc = args[2].Get().Get();
             double acc = oacc is int ? (double)(int)oacc : (double)oacc;
             foreach (var key in this.pressedKeys)
             {
@@ -201,17 +201,17 @@ public partial class MainWindow
                 }
                 
             });
-            ((IChangeable)container[args[2]]).Set(acc);
+            ((IChangeable)args[2].Get()).Set(acc);
             Thread.Sleep(100);
         }));
-        context.Push("SetBackground", new FunctionInstance((container, reference, args) =>
+        context.Push("SetBackground", new FunctionInstance((reference, args) =>
         {
             this.Dispatcher.Invoke(
                 () => {
-                    ((Panel)container[args[0]].Get()).Background = new SolidColorBrush(Color.FromRgb(Convert.ToByte(container[args[1]].Get()), Convert.ToByte(container[args[2]].Get()), Convert.ToByte(container[args[3]].Get())));
+                    ((Panel)args[0].Get().Get()).Background = new SolidColorBrush(Color.FromRgb(Convert.ToByte(args[1].Get().Get()), Convert.ToByte(args[2].Get().Get()), Convert.ToByte(args[3].Get().Get())));
                 });
         }));
-        context.Push("Label", new FunctionInstance((container, reference, args) =>
+        context.Push("Label", new FunctionInstance((reference, args) =>
         {
             this.Dispatcher.Invoke(() =>
             {
@@ -222,57 +222,57 @@ public partial class MainWindow
                 label.Width = 600;
                 label.Height = 400;
                 label.Margin = new Thickness(20, 20, 0, 0);
-                label.Content = container[args[1]].Get();
-                ((Canvas)container[args[0]].Get()).Children.Add(label);
-                container[reference] = new Variable(label);
+                label.Content = args[1].Get().Get();
+                ((Canvas)args[0].Get().Get()).Children.Add(label);
+                reference.Set(new Variable(label));
             });
         }));
-        context.Push("Rect", new FunctionInstance((container, reference, args) =>
-        {
-            this.Dispatcher.Invoke(() => { 
-                Rectangle rect = new Rectangle();
-                container[reference] = new Variable(rect);
-            });
-        }));
-        context.Push("SetRectWHRGB", new FunctionInstance((container, reference, args) =>
-            {
-                this.Dispatcher.Invoke(() => 
-                { 
-                    Rectangle rect = (Rectangle)container[args[0]].Get();
-                    rect.Width = (int)container[args[1]].Get();
-                    rect.Height = (int)container[args[2]].Get();
-                    rect.Fill = new SolidColorBrush(Color.FromRgb(Convert.ToByte(container[args[3]].Get()), Convert.ToByte(container[args[4]].Get()), Convert.ToByte(container[args[5]].Get())));
-                });
-            }));
-        context.Push("AddToCanvas", new FunctionInstance((container, reference, args) =>
-            {
-                this.Dispatcher.Invoke(() =>
-                {
-                    Canvas canvas = (Canvas)container[args[0]].Get();
-                    canvas.Children.Add((UIElement)container[args[1]].Get());
-                });
-            }));
-        context.Push("SetMargin", new FunctionInstance((container, reference, args) =>
-        {
-            this.Dispatcher.Invoke(() =>
-            {
-                FrameworkElement el = (FrameworkElement)container[args[0]].Get();
-                el.Margin = new Thickness((int)container[args[1]].Get(), (int)container[args[2]].Get(), (int)container[args[3]].Get(),
-                    (int)container[args[4]].Get());
-            });
-        }));
-        context.Push("SetOnClick", new FunctionInstance((container, reference, args) =>
-        {
-            Rectangle rectangle = (Rectangle)container[args[0]].Get();
-            this.Dispatcher.Invoke(() =>
-            {
-                rectangle.MouseDown += (sender, eventArgs) =>
-                {
-                    rectangle.Fill = new SolidColorBrush(Color.FromRgb((byte)new Random().Next(255),
-                        (byte)new Random().Next(255), (byte)new Random().Next(255)));
-                };
-            });
-        }));
+        //context.Push("Rect", new FunctionInstance((reference, args) =>
+        //{
+        //    this.Dispatcher.Invoke(() => { 
+        //        Rectangle rect = new Rectangle();
+        //        container[reference] = new Variable(rect);
+        //    });
+        //}));
+        //context.Push("SetRectWHRGB", new FunctionInstance((reference, args) =>
+        //    {
+        //        this.Dispatcher.Invoke(() => 
+        //        { 
+        //            Rectangle rect = (Rectangle)container[args[0]].Get();
+        //            rect.Width = (int)container[args[1]].Get();
+        //            rect.Height = (int)container[args[2]].Get();
+        //            rect.Fill = new SolidColorBrush(Color.FromRgb(Convert.ToByte(container[args[3]].Get()), Convert.ToByte(container[args[4]].Get()), Convert.ToByte(container[args[5]].Get())));
+        //        });
+        //    }));
+        //context.Push("AddToCanvas", new FunctionInstance((reference, args) =>
+        //    {
+        //        this.Dispatcher.Invoke(() =>
+        //        {
+        //            Canvas canvas = (Canvas)container[args[0]].Get();
+        //            canvas.Children.Add((UIElement)container[args[1]].Get());
+        //        });
+        //    }));
+        //context.Push("SetMargin", new FunctionInstance((reference, args) =>
+        //{
+        //    this.Dispatcher.Invoke(() =>
+        //    {
+        //        FrameworkElement el = (FrameworkElement)container[args[0]].Get();
+        //        el.Margin = new Thickness((int)container[args[1]].Get(), (int)container[args[2]].Get(), (int)container[args[3]].Get(),
+        //            (int)container[args[4]].Get());
+        //    });
+        //}));
+        //context.Push("SetOnClick", new FunctionInstance((reference, args) =>
+        //{
+        //    Rectangle rectangle = (Rectangle)container[args[0]].Get();
+        //    this.Dispatcher.Invoke(() =>
+        //    {
+        //        rectangle.MouseDown += (sender, eventArgs) =>
+        //        {
+        //            rectangle.Fill = new SolidColorBrush(Color.FromRgb((byte)new Random().Next(255),
+        //                (byte)new Random().Next(255), (byte)new Random().Next(255)));
+        //        };
+        //    });
+        //}));
         startContext = this.context.Pack();
     }
 }

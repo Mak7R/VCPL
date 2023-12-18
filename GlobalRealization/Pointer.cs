@@ -1,71 +1,63 @@
-﻿namespace GlobalRealization;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Dynamic;
 
-public enum ContextType
-{
-    Null = 0, 
-    Stack = 1,
-    Heap = 2
-}
+namespace GlobalRealization;
 
 public struct Pointer
 {
-    public static readonly Pointer NULL = new Pointer(ContextType.Null, -1);
+    private IMemory? memory;
+    private int position;
     
-    private ContextType pointerContextType;
-    private int Position;
-
-    public static bool operator ==(Pointer left, Pointer right)
+    public Pointer(IMemory? memory, int position)
     {
-        if (left.pointerContextType == right.pointerContextType && left.Position == right.Position)
+        this.memory = memory;
+        this.position = position;
+    }
+
+    public MemoryObject Get()
+    {
+        if (memory == null) throw new RuntimeException("Null reference");
+        return memory[position];
+    }
+
+    public T Get<T>() where T: MemoryObject
+    {
+        if (memory == null) throw new RuntimeException("Null reference");
+        if (memory[position] is T memObj)
         {
-            return true;
+            return memObj;
         }
         else
         {
-            return false;
+            throw new RuntimeException($"Impossible to cast from {memory[position].GetType()} to {typeof(T)}");
         }
-    }
-    
-    public static bool operator !=(Pointer left, Pointer right)
-    {
-        if (left.pointerContextType != right.pointerContextType || left.Position != right.Position)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-    
-    public ContextType GetContextType
-    {
-        get { return this.pointerContextType; }
-    }
-    
-    public int GetPosition
-    {
-        get { return this.Position; }
-    }
-    
-    public Pointer(ContextType contextType, int position)
-    {
-        this.pointerContextType = contextType;
-        this.Position = position;
     }
 
-    public override readonly bool Equals(object? obj)
+    public void Set(MemoryObject memoryObject)
     {
-        if (obj == null) return false;
-        if (obj is Pointer ptr)
+        if (memory == null) throw new RuntimeException("Null reference");
+        memory[position] = memoryObject;
+    }
+
+    public void Set(object? obj)
+    {
+        if (this.Get() is IChangeable changeable) changeable.Set(obj); 
+    }
+
+    public void MoveTo(Pointer pointer)
+    {
+        pointer.Set(Get());
+    }
+
+    public static readonly Pointer NULL = new Pointer(null, -1);
+
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        if (obj is Pointer pointer)
         {
-            return this == ptr;
+            return this.memory == pointer.memory && this.position == pointer.position;
         }
         return false;
-    }
-
-    public override readonly int GetHashCode()
-    {
-        return base.GetHashCode();
     }
 }

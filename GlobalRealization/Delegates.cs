@@ -1,4 +1,4 @@
 ﻿
 
 namespace GlobalRealization;
-public delegate void ElementaryFunction(RuntimeContext context, Pointer result, Pointer[] args);
+public delegate void ElementaryFunction(Pointer result, Pointer[] args);

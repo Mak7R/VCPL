@@ -175,7 +175,7 @@ namespace VCPLBrowser
                         try
                         {
                             FunctionInstance copyMain = (FunctionInstance)main.Get();
-                            copyMain.Invoke(context.Pack(), Pointer.NULL, new Pointer[0]); // think about args
+                            copyMain.Invoke(Pointer.NULL, new Pointer[0]); // think about args
                         }
                         catch (RuntimeException re)
                         {

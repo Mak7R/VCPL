@@ -19,168 +19,113 @@ public static class BasicContext
         ("temp", new Variable(null)),
         
         
-        ("", new FunctionInstance((context, result, args) =>
+        ("", new FunctionInstance((result, args) =>
         {
             if (args.Length != 1) throw new RuntimeException("Function '=' must to get one argument");
-            
-            MemoryObject res = context[result];
-            MemoryObject arg1 = context[args[0]];
-            
-            if (res is IChangeable change) change.Set(arg1.Get());
-            else throw new RuntimeException("Cannot to change constant");
+            result.Set(args[0].Get().Get());
         })),
-        ("return", new FunctionInstance((context, result, args) =>
+        ("return", new FunctionInstance((result, args) =>
         {
             throw new Return(args);
         })),
-        ("new", new FunctionInstance((context, result, args) =>
+        ("new", new FunctionInstance((result, args) =>
         {
             throw new NotImplementedException("'new' has not implemented");
         })),
         
-        ("+", new FunctionInstance(((context, result, args) =>
+        ("+", new FunctionInstance(((result, args) =>
         {
             if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
             
-            MemoryObject res = context[result];
-            MemoryObject arg1 = context[args[0]];
-            MemoryObject arg2 = context[args[1]];
-            
-            if (res is IChangeable changeable) changeable.Set(BasicMath.Plus(arg1.Get(), arg2.Get()));
-            else throw new RuntimeException("Cannot to change constsnt");
+            result.Set(new Variable(BasicMath.Plus(args[0].Get().Get(), args[1].Get().Get())));
         }))),
-        ("-", new FunctionInstance(((context, result, args) =>
+        ("-", new FunctionInstance(((result, args) =>
         {
             if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-            
-            MemoryObject res = context[result];
-            MemoryObject arg1 = context[args[0]];
-            MemoryObject arg2 = context[args[1]];
-            
-            if (res is IChangeable changeable) changeable.Set(BasicMath.Minus(arg1.Get(), arg2.Get()));
-            else throw new RuntimeException("Cannot to change constsnt");
-        }))),
-        ("*", new FunctionInstance(((context, result, args) =>
-        {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-            
-            MemoryObject res = context[result];
-            MemoryObject arg1 = context[args[0]];
-            MemoryObject arg2 = context[args[1]];
-            
-            if (res is IChangeable changeable) changeable.Set(BasicMath.Multiply(arg1.Get(), arg2.Get()));
-            else throw new RuntimeException("Cannot to change constsnt");
-        }))),
-        ("/", new FunctionInstance(((context, result, args) =>
-        {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-            
-            MemoryObject res = context[result];
-            MemoryObject arg1 = context[args[0]];
-            MemoryObject arg2 = context[args[1]];
-            
-            if (res is IChangeable changeable) changeable.Set(BasicMath.Divide(arg1.Get(), arg2.Get()));
-            else throw new RuntimeException("Cannot to change constsnt");
-        }))),
-        
-        ("equal", new FunctionInstance(((context, result, args) =>
-        {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-            
-            MemoryObject res = context[result];
-            MemoryObject arg1 = context[args[0]];
-            MemoryObject arg2 = context[args[1]];
-            
-            if (res is IChangeable changeable) changeable.Set(arg1.Get().Equals(arg2.Get()));
-            else throw new RuntimeException("Cannot to change constsnt");
-        }))),
-        ("disequal", new FunctionInstance(((context, result, args) =>
-        {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-            
-            MemoryObject res = context[result];
-            MemoryObject arg1 = context[args[0]];
-            MemoryObject arg2 = context[args[1]];
-            
-            if (res is IChangeable changeable) changeable.Set(!arg1.Get().Equals(arg2.Get()));
-            else throw new RuntimeException("Cannot to change constsnt");
-        }))),
-        
-        (">", new FunctionInstance(((context, result, args) =>
-        {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-            
-            MemoryObject res = context[result];
-            MemoryObject arg1 = context[args[0]];
-            MemoryObject arg2 = context[args[1]];
-            
-            if (res is IChangeable changeable) changeable.Set(((IComparable)arg1.Get()).CompareTo(arg2.Get()) == 1);
-            else throw new RuntimeException("Cannot to change constsnt");
-        }))),
-        (">=", new FunctionInstance(((context, result, args) =>
-        {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-            
-            MemoryObject res = context[result];
-            MemoryObject arg1 = context[args[0]];
-            MemoryObject arg2 = context[args[1]];
-            
-            if (res is IChangeable changeable) changeable.Set(((IComparable)arg1.Get()).CompareTo(arg2.Get()) != -1);
-            else throw new RuntimeException("Cannot to change constsnt");
-        }))),
-        
-        ("<=", new FunctionInstance(((context, result, args) =>
-        {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-            
-            MemoryObject res = context[result];
-            MemoryObject arg1 = context[args[0]];
-            MemoryObject arg2 = context[args[1]];
-            
-            if (res is IChangeable changeable) changeable.Set(((IComparable)arg1.Get()).CompareTo(arg2.Get()) != 1);
-            else throw new RuntimeException("Cannot to change constsnt");
-        }))),
-        ("<", new FunctionInstance(((context, result, args) =>
-        {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-            
-            MemoryObject res = context[result];
-            MemoryObject arg1 = context[args[0]];
-            MemoryObject arg2 = context[args[1]];
-            
-            if (res is IChangeable changeable) changeable.Set(((IComparable)arg1.Get()).CompareTo(arg2.Get()) == -1);
-            else throw new RuntimeException("Cannot to change constsnt");
-        }))),
-        
-        ("if", new FunctionInstance(((context, result, args) =>
-        {
-            if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
 
-            MemoryObject arg1 = context[args[0]];
-            Function ifTrueF = context[args[1]] is Function func1 ? func1 : throw new RuntimeException("Argument 2 must be a Function");
-            Function ifFalseF = context[args[2]] is Function func2 ? func2 : throw new RuntimeException("Argument 3 must be a Function");
-            
-            if (arg1.Get() is bool isTrue) 
-                (isTrue ? ((FunctionInstance)ifTrueF.Get()) : ((FunctionInstance)ifFalseF.Get()))
-                    .Invoke(context, Pointer.NULL, Array.Empty<Pointer>());
+            result.Set(new Variable(BasicMath.Minus(args[0].Get().Get(), args[1].Get().Get())));
         }))),
-        ("while", new FunctionInstance(((context, result, args) =>
+        ("*", new FunctionInstance(((result, args) =>
         {
             if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-            
-            MemoryObject arg1 = context[args[0]];
-            Function arg2 = context[args[1]] is Function func ? func : throw new RuntimeException("Argument 2 must be a Function");
-            
-            while ((bool)context[args[0]].Get())
-            {
-                ((FunctionInstance)arg2.Get()).Invoke(context, Pointer.NULL, Array.Empty<Pointer>());
-            }
-        }))),
 
-        ("Sleep", new FunctionInstance((context, result, args) =>
+            result.Set(new Variable(BasicMath.Multiply(args[0].Get().Get(), args[1].Get().Get())));
+        }))),
+        ("/", new FunctionInstance(((result, args) =>
+        {
+           if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
+
+            result.Set(new Variable(BasicMath.Divide(args[0].Get().Get(), args[1].Get().Get())));
+        }))),
+        
+        ("equal", new FunctionInstance(((result, args) =>
+        {
+            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
+
+            result.Set(new Variable(args[0].Get().Get().Equals(args[1].Get().Get())));
+        }))),
+        ("disequal", new FunctionInstance(((result, args) =>
+        {
+            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
+
+            result.Set(new Variable(!args[0].Get().Get().Equals(args[1].Get().Get())));
+        }))),
+        
+        (">", new FunctionInstance(((result, args) =>
+        {
+            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
+
+            result.Set(new Variable(((IComparable)args[0].Get().Get()).CompareTo(args[1].Get().Get()) == 1));
+        }))),
+        (">=", new FunctionInstance(((result, args) =>
+        {
+            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
+
+            result.Set(new Variable(((IComparable)args[0].Get().Get()).CompareTo(args[1].Get().Get()) != -1));
+        }))),
+        
+        ("<=", new FunctionInstance(((result, args) =>
+        {
+            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
+
+            result.Set(new Variable(((IComparable)args[0].Get().Get()).CompareTo(args[1].Get().Get()) != 1));
+        }))),
+        ("<", new FunctionInstance(((result, args) =>
+        {
+            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
+
+            result.Set(new Variable(((IComparable)args[0].Get().Get()).CompareTo(args[1].Get().Get()) == -1));
+        }))),
+        
+        //("if", new FunctionInstance(((result, args) =>
+        //{
+        //    if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
+
+        //    MemoryObject arg1 = context[args[0]];
+        //    Function ifTrueF = context[args[1]] is Function func1 ? func1 : throw new RuntimeException("Argument 2 must be a Function");
+        //    Function ifFalseF = context[args[2]] is Function func2 ? func2 : throw new RuntimeException("Argument 3 must be a Function");
+            
+        //    if (arg1.Get() is bool isTrue) 
+        //        (isTrue ? ((FunctionInstance)ifTrueF.Get()) : ((FunctionInstance)ifFalseF.Get()))
+        //            .Invoke(context, Pointer.NULL, Array.Empty<Pointer>());
+        //}))),
+        //("while", new FunctionInstance(((result, args) =>
+        //{
+        //    if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
+            
+        //    MemoryObject arg1 = context[args[0]];
+        //    Function arg2 = context[args[1]] is Function func ? func : throw new RuntimeException("Argument 2 must be a Function");
+            
+        //    while ((bool)context[args[0]].Get())
+        //    {
+        //        ((FunctionInstance)arg2.Get()).Invoke(context, Pointer.NULL, Array.Empty<Pointer>());
+        //    }
+        //}))),
+
+        ("Sleep", new FunctionInstance((result, args) =>
         {
             if (args.Length != 1) throw new RuntimeException("Incorrect args count");
-            Thread.Sleep((int)context[args[0]].Get());
+            Thread.Sleep((int)args[0].Get().Get());
         })),
     };
 }
