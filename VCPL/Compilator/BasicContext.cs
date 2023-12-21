@@ -119,5 +119,30 @@ public static class BasicContext
             if (args.Length != 1) throw new RuntimeException("Incorrect args count");
             Thread.Sleep(args[0].Get<int>());
         })),
+
+        ("GetFromArray", new FunctionInstance((args) =>
+        {
+            if (args.Length != 3) throw new RuntimeException("Incorrect args count");
+            try
+            {
+                args[2].Set(args[0].Get<object?[]>()[args[1].Get<int>()]);
+            }
+            catch(IndexOutOfRangeException) {
+                throw new RuntimeException("Index out of range");
+            }
+        })),
+
+        ("SetToArray", new FunctionInstance((args) =>
+        {
+            if (args.Length != 3) throw new RuntimeException("Incorrect args count");
+            try
+            {
+                args[0].Get<object?[]>()[args[1].Get<int>()] = args[2].Get();
+            }
+            catch(IndexOutOfRangeException)
+            {
+                throw new RuntimeException("Index out of range");
+            }
+        })),
     };
 }

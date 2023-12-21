@@ -92,32 +92,56 @@ public class Compilator_DF_A : ICompilator
                                 context.Push(codeLine.Args[0], new Variable(null));
                                 break;
                             case 2:
-                                if (BasicString.isVariable(codeLine.Args[1]))
-                                    context.Push(codeLine.Args[0], new Variable(context.PeekObject(codeLine.Args[1]).Get()));
-                                else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
+                                switch (codeLine.Args[1])
+                                {
+                                    case "var":
+                                        context.Push(codeLine.Args[0], new Variable(null));
+                                        break;
+                                    case "const":
+                                        throw new CompilationException("Constant was not inited");
+                                    case "array":
+                                        throw new CompilationException("List size was not inited");
+                                    default:
+                                        throw new CompilationException("Undefined variable state");
+                                }
                                 break;
+                                
                             case 3:
-                                if (codeLine.Args[2] == "const")
+                                switch (codeLine.Args[1])
                                 {
-                                    if (BasicString.isVariable(codeLine.Args[1]))
-                                    {
-                                        var obj = context.PeekObject(codeLine.Args[1]);
-                                        if (obj is IChangeable)
-                                            context.Push(codeLine.Args[0], new Constant(obj.Get()));
-                                        else context.Push(codeLine.Args[0], obj);
-                                    }
-                                    else context.Push(codeLine.Args[0], new Constant(ConstantConvertor(codeLine.Args[1])));
-                                }
-                                else if (codeLine.Args[2] == "var")
-                                {
-                                    if (BasicString.isVariable(codeLine.Args[1]))
-                                        context.Push(codeLine.Args[0],
-                                            (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
-                                    else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
-                                }
-                                else
-                                {
-                                    throw new CompilationException("Undefined variable state");
+                                    case "var":
+                                        if (BasicString.isVariable(codeLine.Args[2]))
+                                            context.Push(codeLine.Args[0],
+                                                (MemoryObject)context.PeekObject(codeLine.Args[2]).Clone());
+                                        else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[2])));
+                                        break;
+                                    case "const":
+                                        if (BasicString.isVariable(codeLine.Args[2]))
+                                        {
+                                            var obj = context.PeekObject(codeLine.Args[2]);
+                                            if (obj is IChangeable)
+                                                context.Push(codeLine.Args[0], new Constant(obj.Get()));
+                                            else context.Push(codeLine.Args[0], obj);
+                                        }
+                                        else context.Push(codeLine.Args[0], new Constant(ConstantConvertor(codeLine.Args[2])));
+                                        break;
+                                    case "array":
+                                        if (BasicString.isVariable(codeLine.Args[2]))
+                                        {
+                                            var obj = context.PeekObject(codeLine.Args[2]);
+                                            if (obj is VCPLArray)
+                                            {
+                                                context.Push(codeLine.Args[0], (MemoryObject)context.PeekObject(codeLine.Args[2]).Clone());
+                                            }
+                                            else
+                                            {
+                                                throw new RuntimeException("Cannot to change type of list to non list");
+                                            }
+                                        }   
+                                        else context.Push(codeLine.Args[0], new VCPLArray(Convert.ToInt32(codeLine.Args[2])));
+                                        break;
+                                    default:
+                                        throw new CompilationException("Undefined variable state");
                                 }
                                 break;
                             default: throw new CompilationException("#init has recived more than 3 args");
