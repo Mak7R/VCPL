@@ -4,14 +4,13 @@ namespace GlobalRealization;
 
 public class Instruction // may be struct
 {
-    public ElementaryFunction Method;
-    public Pointer Result;
-    public Pointer[] Args;
+    public ElementaryFunction Function { get; set; }
+    public Pointer[] Args { get; set; }
 
-    public Instruction(ElementaryFunction method, Pointer retDataId, Pointer[] argsIds)
+    public Instruction(ElementaryFunction function, Pointer[] args)
     {
-        this.Method = method;
-        this.Result = retDataId;
-        this.Args = argsIds;
+        this.Function = function;
+        this.Args = args;
     }
 }
+

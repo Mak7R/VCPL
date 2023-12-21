@@ -6,126 +6,118 @@ using System.Threading;
 
 using BasicFunctions;
 using GlobalRealization;
+using GlobalRealization.Memory;
 
 namespace VCPL.Compilator;
 
 public static class BasicContext
 {
-    public readonly static List<(string name, MemoryObject value)> BasicContextList = new List<(string name, MemoryObject value)>()
+    public readonly static List<(string? name, MemoryObject value)> BasicContextList = new List<(string? name, MemoryObject value)>()
     {
-        ("null", new Constant(null)),
-        ("true", new Constant(true)),
-        ("false", new Constant(false)),
         ("temp", new Variable(null)),
         
-        
-        ("", new FunctionInstance((result, args) =>
+        ("", new FunctionInstance((args) =>
         {
-            if (args.Length != 1) throw new RuntimeException("Function '=' must to get one argument");
-            result.Set(args[0].Get().Get());
+            if (args.Length != 2) throw new RuntimeException("Function '=' must to get 2 arguments");
+            args[1].Set(args[0].Get());
         })),
-        ("return", new FunctionInstance((result, args) =>
+        ("return", new FunctionInstance((args) =>
         {
-            throw new Return(args);
+            throw new Return();
         })),
-        ("new", new FunctionInstance((result, args) =>
+        ("new", new FunctionInstance((args) =>
         {
             throw new NotImplementedException("'new' has not implemented");
         })),
         
-        ("+", new FunctionInstance(((result, args) =>
+        ("+", new FunctionInstance(((args) =>
         {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-            
-            result.Set(new Variable(BasicMath.Plus(args[0].Get().Get(), args[1].Get().Get())));
+            if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
+            var arg1 = args[0].Get();
+            var arg2 = args[1].Get();
+            if (arg1 != null && arg2 != null) args[2].Set(BasicMath.Plus(arg1, arg2));
         }))),
-        ("-", new FunctionInstance(((result, args) =>
+        ("-", new FunctionInstance(((args) =>
         {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-
-            result.Set(new Variable(BasicMath.Minus(args[0].Get().Get(), args[1].Get().Get())));
+            if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
+            var arg1 = args[0].Get();
+            var arg2 = args[1].Get();
+            if (arg1 != null && arg2 != null) args[2].Set(BasicMath.Minus(arg1, arg2));
         }))),
-        ("*", new FunctionInstance(((result, args) =>
+        ("*", new FunctionInstance(((args) =>
         {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-
-            result.Set(new Variable(BasicMath.Multiply(args[0].Get().Get(), args[1].Get().Get())));
+            if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
+            var arg1 = args[0].Get();
+            var arg2 = args[1].Get();
+            if (arg1 != null && arg2 != null) args[2].Set(BasicMath.Multiply(arg1, arg2));
         }))),
-        ("/", new FunctionInstance(((result, args) =>
+        ("/", new FunctionInstance(((args) =>
         {
-           if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-
-            result.Set(new Variable(BasicMath.Divide(args[0].Get().Get(), args[1].Get().Get())));
-        }))),
-        
-        ("equal", new FunctionInstance(((result, args) =>
-        {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-
-            result.Set(new Variable(args[0].Get().Get().Equals(args[1].Get().Get())));
-        }))),
-        ("disequal", new FunctionInstance(((result, args) =>
-        {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-
-            result.Set(new Variable(!args[0].Get().Get().Equals(args[1].Get().Get())));
+           if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
+            var arg1 = args[0].Get();
+            var arg2 = args[1].Get();
+            if (arg1 != null && arg2 != null) args[2].Set(BasicMath.Divide(arg1, arg2));
         }))),
         
-        (">", new FunctionInstance(((result, args) =>
+        ("equal", new FunctionInstance(((args) =>
         {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-
-            result.Set(new Variable(((IComparable)args[0].Get().Get()).CompareTo(args[1].Get().Get()) == 1));
+            if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
+            var arg1 = args[0].Get();
+            var arg2 = args[1].Get();
+            args[2].Set(arg1 == null ? arg2 == null : arg1.Equals(arg2));
         }))),
-        (">=", new FunctionInstance(((result, args) =>
+        ("not", new FunctionInstance(((args) =>
         {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-
-            result.Set(new Variable(((IComparable)args[0].Get().Get()).CompareTo(args[1].Get().Get()) != -1));
-        }))),
-        
-        ("<=", new FunctionInstance(((result, args) =>
-        {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-
-            result.Set(new Variable(((IComparable)args[0].Get().Get()).CompareTo(args[1].Get().Get()) != 1));
-        }))),
-        ("<", new FunctionInstance(((result, args) =>
-        {
-            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-
-            result.Set(new Variable(((IComparable)args[0].Get().Get()).CompareTo(args[1].Get().Get()) == -1));
+            if (args.Length != 1) throw new RuntimeException("Incorect arguments count");
+            bool arg = args[0].Get<bool>();
+            args[0].Set(!arg);
         }))),
         
-        //("if", new FunctionInstance(((result, args) =>
-        //{
-        //    if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
+        (">", new FunctionInstance(((args) =>
+        {
+            if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
 
-        //    MemoryObject arg1 = context[args[0]];
-        //    Function ifTrueF = context[args[1]] is Function func1 ? func1 : throw new RuntimeException("Argument 2 must be a Function");
-        //    Function ifFalseF = context[args[2]] is Function func2 ? func2 : throw new RuntimeException("Argument 3 must be a Function");
-            
-        //    if (arg1.Get() is bool isTrue) 
-        //        (isTrue ? ((FunctionInstance)ifTrueF.Get()) : ((FunctionInstance)ifFalseF.Get()))
-        //            .Invoke(context, Pointer.NULL, Array.Empty<Pointer>());
-        //}))),
-        //("while", new FunctionInstance(((result, args) =>
-        //{
-        //    if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
-            
-        //    MemoryObject arg1 = context[args[0]];
-        //    Function arg2 = context[args[1]] is Function func ? func : throw new RuntimeException("Argument 2 must be a Function");
-            
-        //    while ((bool)context[args[0]].Get())
-        //    {
-        //        ((FunctionInstance)arg2.Get()).Invoke(context, Pointer.NULL, Array.Empty<Pointer>());
-        //    }
-        //}))),
+            args[2].Set(args[0].Get<IComparable>().CompareTo(args[1].Get()) == 1);
+        }))),
+        (">=", new FunctionInstance(((args) =>
+        {
+            if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
 
-        ("Sleep", new FunctionInstance((result, args) =>
+            args[2].Set(args[0].Get<IComparable>().CompareTo(args[1].Get()) != -1);
+        }))),
+        
+        ("<=", new FunctionInstance(((args) =>
+        {
+            if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
+
+            args[2].Set(args[0].Get<IComparable>().CompareTo(args[1].Get()) != 1);
+        }))),
+        ("<", new FunctionInstance(((args) =>
+        {
+            if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
+
+            args[2].Set(args[0].Get<IComparable>().CompareTo(args[1].Get()) == -1);
+        }))),
+
+        ("if", new FunctionInstance(((args) =>
+        {
+            if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
+
+            if (args[0].Get<bool>())
+                args[1].Get<FunctionInstance>().Invoke(Array.Empty<Pointer>());
+            else args[2].Get<FunctionInstance>().Invoke(Array.Empty<Pointer>());
+        }))),
+        ("while", new FunctionInstance(((args) =>
+        {
+            if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
+
+            while (args[0].Get<bool>()) args[1].Get<FunctionInstance>().Invoke(Array.Empty<Pointer>());
+        }))),
+
+        ("Sleep", new FunctionInstance((args) =>
         {
             if (args.Length != 1) throw new RuntimeException("Incorrect args count");
-            Thread.Sleep((int)args[0].Get().Get());
+            Thread.Sleep(args[0].Get<int>());
         })),
     };
 }

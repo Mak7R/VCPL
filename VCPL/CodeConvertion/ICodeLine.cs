@@ -8,10 +8,8 @@ namespace VCPL.CodeConvertion
 {
     public interface ICodeLine
     {
-        public string FunctionName { get; set; }
+        public string FunctionName { get; init; }
 
-        public List<string> Args { get; set; }
-
-        public string? ReturnData { get; set; }
+        public List<string> Args { get; init; }
     }
 }

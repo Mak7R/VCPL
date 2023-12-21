@@ -12,6 +12,7 @@ using FileController;
 using VCPL;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
+using GlobalRealization.Memory;
 
 namespace VCPLBrowser
 {
@@ -20,13 +21,11 @@ namespace VCPLBrowser
     /// </summary>
     public partial class MainWindow : Window
     {
-        private string FilePath = null;
-        private Function main = null;
-        private Thread program = null;
-        private Context context = new Context(null, BasicContext.BasicContextList).NewContext();
-        private RuntimeContext startContext;
+        private string FilePath = "";
+        private Function? main;
+        private Thread? program;
+        private Context context = new(null, BasicContext.BasicContextList);
         private bool runThread = false;
-        private AssemblyLoadContext assemblyLoadContext = new AssemblyLoadContext("AssemblyContext", true);
         private ICodeConvertor _codeConvertor = new CLiteConvertor();
         
         public MainWindow()
@@ -76,7 +75,7 @@ namespace VCPLBrowser
             }
             else
             {
-                OnSaveAsClick(this, null);
+                OnSaveAsClick(this, e);
             }
         }
         
@@ -170,12 +169,13 @@ namespace VCPLBrowser
 
                 program = new Thread((object? obj) =>
                 {
+                    if (obj == null) throw new ArgumentNullException(nameof(obj));
                     try
                     {
                         try
                         {
-                            FunctionInstance copyMain = (FunctionInstance)main.Get();
-                            copyMain.Invoke(Pointer.NULL, new Pointer[0]); // think about args
+                            FunctionInstance copyMain = main.Get();
+                            copyMain.Invoke(Array.Empty<Pointer>()); // think about args
                         }
                         catch (RuntimeException re)
                         {

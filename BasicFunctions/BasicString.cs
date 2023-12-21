@@ -100,6 +100,9 @@ public static class BasicString
     public static bool isVariable(string arg)
     {
         if (arg == string.Empty) return false;
+        if (arg == "true") return false;
+        if (arg == "false") return false;
+        if (arg == "null") return false;
         if (isNumber(arg)) return false;
         if (isSpcialSymbol(arg[0])) return false;
         return true;
@@ -122,7 +125,7 @@ public static class BasicString
 
     public static string GetNameFromPath(string path)
     {
-        if (path == null || path == String.Empty) return path;
+        if (path == String.Empty) return path;
         for (int i = path.Length - 1; i >= 0; i--)
         {
             if (path[i] == '\\') return path.Substring(i + 1);

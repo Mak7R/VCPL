@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
+using GlobalRealization.Memory;
 
 namespace GlobalRealization;
 
@@ -8,6 +9,8 @@ public struct Pointer
 {
     private IMemory? memory;
     private int position;
+
+    private string Info { get { return $"{(this.memory as RuntimeContext)?.id}[{position}]: {this.Get()?.ToString() ?? "NULL"}" ; } }
     
     public Pointer(IMemory? memory, int position)
     {
@@ -15,39 +18,30 @@ public struct Pointer
         this.position = position;
     }
 
-    public MemoryObject Get()
+    public object? Get()
     {
-        if (memory == null) throw new RuntimeException("Null reference");
-        return memory[position];
+        if (memory == null) throw new RuntimeException("Null Reference Exception");
+        return memory[position].Get();
     }
 
-    public T Get<T>() where T: MemoryObject
+    public T Get<T>()
     {
-        if (memory == null) throw new RuntimeException("Null reference");
-        if (memory[position] is T memObj)
-        {
-            return memObj;
-        }
-        else
-        {
-            throw new RuntimeException($"Impossible to cast from {memory[position].GetType()} to {typeof(T)}");
-        }
-    }
-
-    public void Set(MemoryObject memoryObject)
-    {
-        if (memory == null) throw new RuntimeException("Null reference");
-        memory[position] = memoryObject;
+        var obj = Get();
+        if (obj is T tObj) return tObj;
+        else throw new RuntimeException($"Impossible to cast from {obj?.GetType().ToString() ?? "null"} to {typeof(T).ToString()}");
     }
 
     public void Set(object? obj)
     {
-        if (this.Get() is IChangeable changeable) changeable.Set(obj); 
-    }
-
-    public void MoveTo(Pointer pointer)
-    {
-        pointer.Set(Get());
+        if (memory == null) throw new RuntimeException("Null Reference Exception");
+        try
+        {
+            memory[position].As<IChangeable>().Set(obj);
+        }
+        catch (RuntimeException)
+        {
+            throw new RuntimeException("Cannot to change constant");
+        }
     }
 
     public static readonly Pointer NULL = new Pointer(null, -1);

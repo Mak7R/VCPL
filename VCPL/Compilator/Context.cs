@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using GlobalRealization;
+using GlobalRealization.Memory;
 
 
 namespace VCPL.Compilator;
@@ -53,7 +54,7 @@ public class Context
         for (int i = 0; i < DataContext.Count; i++) 
             if (DataContext[i].name == name) 
                 return new Pointer(packedContext, i);
-        return this.ParentContext?.Peek(name) ?? throw new CompilationException("Variable was not found");
+        return this.ParentContext?.Peek(name) ?? throw new CompilationException($"Variable ({name}) was not found");
     }
 
     public MemoryObject PeekObject(string name)
@@ -62,7 +63,7 @@ public class Context
         for (int i = 0; i < DataContext.Count; i++)
             if (DataContext[i].name == name)
                 return DataContext[i].value;
-        return this.ParentContext?.PeekObject(name) ?? throw new CompilationException("Variable was not found");
+        return this.ParentContext?.PeekObject(name) ?? throw new CompilationException($"Variable ({name}) was not found");
     }
 
     public Context NewContext() => new Context(this);

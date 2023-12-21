@@ -1,5 +1,6 @@
 ﻿using BasicFunctions;
 using GlobalRealization;
+using GlobalRealization.Memory;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -56,7 +57,7 @@ public class Compilator_DF_A : ICompilator
         public static string[] ToArray { get { return list; } }
     }
 
-    public readonly static string[] KeyWords = (string[])BasicValues.ToArray.Concat(BasicFunctions.ToArray).Concat(Directives.ToArray);
+    public readonly static string[] KeyWords = BasicValues.ToArray.Concat(BasicFunctions.ToArray).Concat(Directives.ToArray).ToArray();
 
     public Function Compilate(List<ICodeLine> codeLines, Context context, List<string>? args = null)
     {
@@ -91,16 +92,20 @@ public class Compilator_DF_A : ICompilator
                                 context.Push(codeLine.Args[0], new Variable(null));
                                 break;
                             case 2:
-                                if (BasicString.isVariable(codeLine.Args[1]) && !this.isKeyWord(codeLine.Args[1]))
-                                    context.Push(codeLine.Args[0], (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
+                                if (BasicString.isVariable(codeLine.Args[1]))
+                                    context.Push(codeLine.Args[0], new Variable(context.PeekObject(codeLine.Args[1]).Get()));
                                 else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
                                 break;
                             case 3:
                                 if (codeLine.Args[2] == "const")
                                 {
                                     if (BasicString.isVariable(codeLine.Args[1]))
-                                        context.Push(codeLine.Args[0],
-                                            new Constant(((MemoryObject)context.PeekObject(codeLine.Args[1]).Clone()).Get()));
+                                    {
+                                        var obj = context.PeekObject(codeLine.Args[1]);
+                                        if (obj is IChangeable)
+                                            context.Push(codeLine.Args[0], new Constant(obj.Get()));
+                                        else context.Push(codeLine.Args[0], obj);
+                                    }
                                     else context.Push(codeLine.Args[0], new Constant(ConstantConvertor(codeLine.Args[1])));
                                 }
                                 else if (codeLine.Args[2] == "var")
@@ -166,7 +171,7 @@ public class Compilator_DF_A : ICompilator
             MemoryObject memoryObject = context.PeekObject(codeLine.FunctionName);
             FunctionInstance? functionInstance = null;
             if (memoryObject is FunctionInstance) functionInstance = (FunctionInstance)memoryObject;
-            if (memoryObject is Function Func && Func.Get() is FunctionInstance func) functionInstance = func;
+            else if (memoryObject is Function Func && Func.Get() is FunctionInstance func) functionInstance = func; // if func should do something
 
             if (functionInstance == null) throw new CompilationException($"Unknown function: {codeLine.FunctionName}");
             else
@@ -183,12 +188,7 @@ public class Compilator_DF_A : ICompilator
                                 ? context.Peek(codeLine.Args[i])
                                 : context.Push(null, new Constant(ConstantConvertor(codeLine.Args[i])));
                     }
-                    program.Add(
-                        new Instruction(
-                            function,
-                            codeLine.ReturnData == null ? Pointer.NULL : context.Peek(codeLine.ReturnData),
-                            args)
-                    );
+                    program.Add(new Instruction(function, args));
                 }
             }
         }

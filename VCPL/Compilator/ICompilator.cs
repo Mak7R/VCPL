@@ -1,4 +1,4 @@
-﻿using GlobalRealization;
+﻿using GlobalRealization.Memory;
 using System.Collections.Generic;
 using VCPL.CodeConvertion;
 

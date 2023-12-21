@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GlobalRealization
+namespace GlobalRealization.Memory
 {
-    /// <summary>
-    /// Realize a return call
-    /// </summary>
-    public class Return : Exception
+    public interface IChangeable
     {
+        public void Set(object? newValue);
     }
 }

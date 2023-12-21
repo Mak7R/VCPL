@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using BasicFunctions;
 using FileController;
 using GlobalRealization;
+using GlobalRealization.Memory;
 using VCPL;
 using VCPL.CodeConvertion;
+using VCPL.Compilator;
 
 namespace VCPLConsole;
 
@@ -13,32 +15,26 @@ public static class Menu
     public static List<string> code = new List<string>(){""};
     private static Function main = null;
     private static ICodeConvertor _codeConvertor = new CLiteConvertor();
-    
-    static Context baseContext = new Context(null, BasicContext.DeffaultContext);
+
+    private static Context baseContext = new Context(null, BasicContext.BasicContextList).NewContext();
 
     static Menu()
     {
-        baseContext.Push("print", new FunctionInstance((context, result, args) =>
+        baseContext.Push("print", new FunctionInstance((args) =>
         {
-            if (result != Pointer.NULL) context[result] = null;
-
-            foreach (var arg in args) Console.Write(context[arg].Get()?.ToString());
-
-            return false;
+            foreach (var arg in args) Console.Write(arg.Get()?.ToString());
         }));
-        baseContext.Push("read", new FunctionInstance((context, result, args) =>
+        baseContext.Push("read", new FunctionInstance((args) =>
         {
-            string value = Console.ReadLine();
-            if (result != Pointer.NULL)
-                if (context[result] is IChangeable changeable)
-                    changeable.Set(value);
-            return false;
+            string? value = Console.ReadLine();
+            if (args.Length == 0) return;
+            else if (args.Length == 1) args[0].Set(value);
+            else throw new RuntimeException("Incorrect arguments count");
         }));
 
-        baseContext.Push("endl", new FunctionInstance((context, result, args) =>
+        baseContext.Push("endl", new FunctionInstance((args) =>
         {
             Console.WriteLine();
-            return false;
         }));
     }
 
@@ -134,7 +130,7 @@ public static class Menu
 
         try
         {
-            main = new Compilator_LBLFE_A().Compilate(codeLines, baseContext);
+            main = new Compilator_DF_A().Compilate(codeLines, baseContext);
         }
         catch (CompilationException ce)
         {
@@ -178,7 +174,7 @@ public static class Menu
     {
         try
         {
-            ((IExecutable)main.Get()).Invoke(baseContext.Pack(), Pointer.NULL, Array.Empty<Pointer>());
+            main.Get().Invoke(Array.Empty<Pointer>());
         }
         catch (RuntimeException re)
         {

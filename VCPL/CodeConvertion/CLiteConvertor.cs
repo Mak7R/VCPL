@@ -30,7 +30,7 @@ namespace VCPL.CodeConvertion
             else
             {
                 ReturnData = line.Substring(0, equalsIndex).Trim();
-                // if (ReturnGetter == "") -> SyntaxException -> MissedReturnGetterException
+                if (ReturnData == "") throw new SyntaxException("Missed return getter");
                 line = line.Substring(equalsIndex + 1).Trim();
             }
 
@@ -54,8 +54,9 @@ namespace VCPL.CodeConvertion
                 string argsString = line.Substring(openParenIndex + 1, closeParenIndex - openParenIndex - 1);
                 Args = GetArgsList(argsString);
             }
-
-            return new CodeLine(FunctionName, Args, ReturnData);
+            
+            if (ReturnData != null) { Args.Add(ReturnData); }
+            return new CodeLine(FunctionName, Args);
         }
 
         private static List<string> GetArgsList(string argsString)

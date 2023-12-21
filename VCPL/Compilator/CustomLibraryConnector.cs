@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Loader;
-using GlobalRealization;
+using GlobalRealization.Memory;
 
 namespace VCPL.Compilator;
 
@@ -31,7 +31,7 @@ public static class CustomLibraryConnector
     {
         if (ContainsAssembly(loadContext, assemblyName)) return;
         
-        Assembly dependent = null;
+        Assembly dependent;
         try { dependent = loadContext.LoadFromAssemblyName(assemblyName); }
         catch
         {
@@ -71,7 +71,7 @@ public static class CustomLibraryConnector
         FieldInfo Context = MethodContainer.GetField("Context", BindingFlags.Public | BindingFlags.Static)
                             ?? throw new CompilationException("Field Context was not found");
 
-        if (Context.GetValue(null) is List<(string name, MemoryObject value)> objects) context.Push(objects);
+        if (Context.GetValue(null) is List<(string? name, MemoryObject value)> objects) context.Push(objects);
         else
             throw new CompilationException(
                 $"Cannot convert {context.GetType()} to {typeof(Dictionary<string, MemoryObject>)}");

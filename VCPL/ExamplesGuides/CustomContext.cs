@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using GlobalRealization;
+using GlobalRealization.Memory;
 
 // Namespace name must have same name with name of .dll
 namespace Example;
@@ -16,6 +17,6 @@ public static class CustomContext
     public static List<(string name, MemoryObject value)> Context  = new List<(string name, MemoryObject value)>()
     {
         ("VariableName", new Variable("Some data")),
-        ("MethodName", new FunctionInstance((Pointer result, Pointer[] args) => {  })),
+        ("MethodName", new FunctionInstance((Pointer[] args) => {  })),
     };
 }
