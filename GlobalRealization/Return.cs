@@ -11,5 +11,13 @@ namespace GlobalRealization
     /// </summary>
     public class Return : Exception
     {
+        private static Pointer? _returnedArg;
+
+        public Return() { _returnedArg = null; }
+        public Return(Pointer arg) { 
+            _returnedArg = arg;
+        }
+
+        public static Pointer? Get() { return _returnedArg; }
     }
 }

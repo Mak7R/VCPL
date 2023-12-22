@@ -24,7 +24,7 @@ namespace VCPLBrowser
         private string FilePath = "";
         private Function? main;
         private Thread? program;
-        private Context context = new(null, BasicContext.BasicContextList);
+        private Context context = BasicContext.Get().NewContext();
         private bool runThread = false;
         private ICodeConvertor _codeConvertor = new CLiteConvertor();
         
@@ -155,17 +155,17 @@ namespace VCPLBrowser
                 try
                 {
                     compilator.ReloadAssemblyLoadContext();
-                    main = compilator.Compilate(codeLines, context);
+                    main = compilator.Compilate(codeLines, context); // can put args here
                 }
                 catch (CompilationException ce)
                 {
                     this.Dispatcher.Invoke(() =>
                     {
-                        MessageBox.Show(this, ce.Message, "CompilationException", MessageBoxButton.OK,
-                            MessageBoxImage.Error);
+                        MessageBox.Show(this, ce.Message, "CompilationException", MessageBoxButton.OK, MessageBoxImage.Error);
                     });
                     return;
                 }
+
 
                 program = new Thread((object? obj) =>
                 {
@@ -174,8 +174,7 @@ namespace VCPLBrowser
                     {
                         try
                         {
-                            FunctionInstance copyMain = main.Get();
-                            copyMain.Invoke(Array.Empty<Pointer>()); // think about args
+                            main.Invoke(Array.Empty<Pointer>()); // think about args
                         }
                         catch (RuntimeException re)
                         {

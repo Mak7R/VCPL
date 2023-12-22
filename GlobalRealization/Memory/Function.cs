@@ -1,14 +1,21 @@
 ﻿
 
+using System.Threading.Tasks.Dataflow;
+
 namespace GlobalRealization.Memory;
 
-public class Function : MemoryObject
+public class Function : MemoryObject, IExecutable
 {
-    private FunctionInstance functionInstance;
+    private ElementaryFunction _function;
+
+    public Function(ElementaryFunction function)
+    {
+        _function = function;
+    }
 
     public Function(RuntimeContext context, Instruction[] program)
     {
-        functionInstance = new FunctionInstance((args) =>
+        _function = (args) =>
         {
             for (int i = 0; i < args.Length; i++) context[i].As<IChangeable>().Set(args[i].Get());
 
@@ -20,10 +27,24 @@ public class Function : MemoryObject
                 }
                 catch (Return)
                 {
-                    break;
+                    Pointer? returnedValue = Return.Get();
+                    if (returnedValue == null)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        args[args.Length - 1].Set(((Pointer)returnedValue).Get());
+                        break;
+                    }
                 }
             }
-        });
+        };
+    }
+
+    public void Invoke(Pointer[] args)
+    {
+        this._function.Invoke(args);
     }
 
     public override Function Clone()
@@ -31,8 +52,8 @@ public class Function : MemoryObject
         return this;
     }
 
-    public override FunctionInstance Get()
+    public override ElementaryFunction Get()
     {
-        return functionInstance;
+        return _function;
     }
 }

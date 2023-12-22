@@ -20,6 +20,7 @@ using System.Windows.Threading;
 using BasicFunctions;
 using GlobalRealization;
 using GlobalRealization.Memory;
+using VCPL.Compilator;
 
 namespace VCPLBrowser;
 
@@ -88,20 +89,21 @@ public partial class MainWindow
     private string? Input;
     private void Init()
     {
-        context.Pack();
-        context = context.NewContext();
+        CompilerCodeConvertor.AddCodeConvertor("CLite", _codeConvertor);
+        CompilerCodeConvertor.SplitCode = (string code) => { return code.Split("\r\n"); }; 
+
         Page.Height = this.Height - 65;
         Page.Width = this.Width;
         
         context.Push("Page", new Constant(Page));
-        context.Push("Write", new FunctionInstance((args) =>
+        context.Push("Write", new Function((args) =>
         {
             this.Dispatcher.Invoke(() => {
                 Label console = args[0].Get<Label>();
                 console.Content = (string)console.Content + args[1].Get()?.ToString();
             });
         }));
-        context.Push("WriteLine", new FunctionInstance((args) =>
+        context.Push("WriteLine", new Function((args) =>
         {
             this.Dispatcher.Invoke(() => {
                 Label console = args[0].Get<Label>();
@@ -109,7 +111,7 @@ public partial class MainWindow
             });
         }));
         
-        context.Push("ReadLine", new FunctionInstance(((args) =>
+        context.Push("ReadLine", new Function(((args) =>
         {
             Label console = args[0].Get<Label>();
             this.Input = "";
@@ -141,7 +143,7 @@ public partial class MainWindow
             if (args.Length == 2) args[1].Set(Input);
         })));
         
-        context.Push("Move", new FunctionInstance((args) =>
+        context.Push("Move", new Function((args) =>
         {
             Canvas field = args[0].Get<Canvas>();
             Rectangle rect = args[1].Get<Rectangle>();
@@ -208,14 +210,14 @@ public partial class MainWindow
             args[2].Set(acc);
             Thread.Sleep(100);
         }));
-        context.Push("SetBackground", new FunctionInstance((args) =>
+        context.Push("SetBackground", new Function((args) =>
         {
             this.Dispatcher.Invoke(
                 () => {
                     args[0].Get<Panel>().Background = new SolidColorBrush(Color.FromRgb(Convert.ToByte(args[1].Get()), Convert.ToByte(args[2].Get()), Convert.ToByte(args[3].Get())));
                 });
         }));
-        context.Push("Label", new FunctionInstance((args) =>
+        context.Push("Label", new Function((args) =>
         {
             this.Dispatcher.Invoke(() =>
             {
@@ -231,7 +233,7 @@ public partial class MainWindow
                 args[2].Set(label);
             });
         }));
-        context.Push("Rect", new FunctionInstance((args) =>
+        context.Push("Rect", new Function((args) =>
         {
             this.Dispatcher.Invoke(() =>
             {
@@ -239,7 +241,7 @@ public partial class MainWindow
                 args[0].Set(rect);
             });
         }));
-        context.Push("SetRectWHRGB", new FunctionInstance((args) =>
+        context.Push("SetRectWHRGB", new Function((args) =>
             {
                 this.Dispatcher.Invoke(() =>
                 {
@@ -249,7 +251,7 @@ public partial class MainWindow
                     rect.Fill = new SolidColorBrush(Color.FromRgb(Convert.ToByte(args[3].Get()), Convert.ToByte(args[4].Get()), Convert.ToByte(args[5].Get())));
                 });
             }));
-        context.Push("AddToCanvas", new FunctionInstance((args) =>
+        context.Push("AddToCanvas", new Function((args) =>
             {
                 this.Dispatcher.Invoke(() =>
                 {
@@ -257,7 +259,7 @@ public partial class MainWindow
                     canvas.Children.Add(args[1].Get<UIElement>());
                 });
             }));
-        context.Push("SetMargin", new FunctionInstance((args) =>
+        context.Push("SetMargin", new Function((args) =>
         {
             this.Dispatcher.Invoke(() =>
             {
@@ -265,7 +267,7 @@ public partial class MainWindow
                 el.Margin = new Thickness(args[1].Get<int>(), args[2].Get<int>(), args[3].Get<int>(), args[4].Get<int>());
             });
         }));
-        context.Push("SetOnClick", new FunctionInstance((args) =>
+        context.Push("SetOnClick", new Function((args) =>
         {
             Rectangle rectangle = args[0].Get<Rectangle>();
             this.Dispatcher.Invoke(() =>

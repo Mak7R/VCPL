@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
@@ -92,53 +93,42 @@ public class Compilator_DF_A : ICompilator
                                 context.Push(codeLine.Args[0], new Variable(null));
                                 break;
                             case 2:
-                                switch (codeLine.Args[1])
+                                if (BasicString.isVariable(codeLine.Args[1]))
                                 {
-                                    case "var":
-                                        context.Push(codeLine.Args[0], new Variable(null));
-                                        break;
-                                    case "const":
-                                        throw new CompilationException("Constant was not inited");
-                                    case "array":
-                                        throw new CompilationException("List size was not inited");
-                                    default:
-                                        throw new CompilationException("Undefined variable state");
+                                    context.Push(codeLine.Args[0], (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
+                                }
+                                else
+                                {
+                                    context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
                                 }
                                 break;
                                 
                             case 3:
-                                switch (codeLine.Args[1])
+                                switch (codeLine.Args[2])
                                 {
                                     case "var":
-                                        if (BasicString.isVariable(codeLine.Args[2]))
+                                        if (BasicString.isVariable(codeLine.Args[1]))
                                             context.Push(codeLine.Args[0],
-                                                (MemoryObject)context.PeekObject(codeLine.Args[2]).Clone());
-                                        else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[2])));
+                                                (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
+                                        else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
                                         break;
                                     case "const":
-                                        if (BasicString.isVariable(codeLine.Args[2]))
+                                        if (BasicString.isVariable(codeLine.Args[1]))
                                         {
-                                            var obj = context.PeekObject(codeLine.Args[2]);
+                                            var obj = context.PeekObject(codeLine.Args[1]);
                                             if (obj is IChangeable)
                                                 context.Push(codeLine.Args[0], new Constant(obj.Get()));
                                             else context.Push(codeLine.Args[0], obj);
                                         }
-                                        else context.Push(codeLine.Args[0], new Constant(ConstantConvertor(codeLine.Args[2])));
+                                        else context.Push(codeLine.Args[0], new Constant(ConstantConvertor(codeLine.Args[1])));
                                         break;
                                     case "array":
-                                        if (BasicString.isVariable(codeLine.Args[2]))
+                                        if (BasicString.isVariable(codeLine.Args[1]))
                                         {
-                                            var obj = context.PeekObject(codeLine.Args[2]);
-                                            if (obj is VCPLArray)
-                                            {
-                                                context.Push(codeLine.Args[0], (MemoryObject)context.PeekObject(codeLine.Args[2]).Clone());
-                                            }
-                                            else
-                                            {
-                                                throw new RuntimeException("Cannot to change type of list to non list");
-                                            }
+                                            context.Push(codeLine.Args[0],
+                                                (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
                                         }   
-                                        else context.Push(codeLine.Args[0], new VCPLArray(Convert.ToInt32(codeLine.Args[2])));
+                                        else context.Push(codeLine.Args[0], new Variable(new object?[Convert.ToInt32(codeLine.Args[1])]));
                                         break;
                                     default:
                                         throw new CompilationException("Undefined variable state");
@@ -153,16 +143,28 @@ public class Compilator_DF_A : ICompilator
                     }
                     break;
                 case Directives.Import:
-                    if (codeLine.Args.Count != 1) throw new CompilationException("Incorect args count");
-
+                    if (codeLine.Args.Count == 0) throw new CompilationException("Incorect args count");
                     string lib = codeLine.Args[0];
                     if (lib.EndsWith(".vcpl"))
                     {
-                        throw new NotImplementedException();
+                        if (codeLine.Args.Count != 2) throw new CompilationException("Incorect args count");
+                        try
+                        {
+                            using(StreamReader sr = new StreamReader(lib)) {
+                                string code = sr.ReadToEnd();
+                                var libCodeLines = CompilerCodeConvertor.Convert(code, codeLine.Args[1]);
+                                CompilateDirectives(libCodeLines, context);
+                            }
+                        }
+                        catch
+                        {
+                            throw new CompilationException("Lib import Error");
+                        }
                     }
                     else if (lib.EndsWith(".dll"))
                     {
-                        CustomLibraryConnector.Import(ref context, _compilatorAssemblyLoadContext, codeLine.Args[0]);
+                        if (codeLine.Args.Count != 1) throw new CompilationException("Incorect args count");
+                        CustomLibraryConnector.Import(context, _compilatorAssemblyLoadContext, codeLine.Args[0]);
                     }
                     else throw new CompilationException("Incorect name of library. Now supports .dll and .vcpl libraries only");
                     break;
@@ -192,15 +194,9 @@ public class Compilator_DF_A : ICompilator
     {
         foreach (ICodeLine codeLine in codeLines)
         {
-            MemoryObject memoryObject = context.PeekObject(codeLine.FunctionName);
-            FunctionInstance? functionInstance = null;
-            if (memoryObject is FunctionInstance) functionInstance = (FunctionInstance)memoryObject;
-            else if (memoryObject is Function Func && Func.Get() is FunctionInstance func) functionInstance = func; // if func should do something
-
-            if (functionInstance == null) throw new CompilationException($"Unknown function: {codeLine.FunctionName}");
-            else
+            if (context.PeekObject(codeLine.FunctionName) is Function function)
             {
-                if (functionInstance.Get() is ElementaryFunction function)
+                if (function.Get() is ElementaryFunction elementaryFunction)
                 {
                     Pointer[] args;
                     if (codeLine.Args == null || codeLine.Args.Count == 0) args = Array.Empty<Pointer>();
@@ -212,9 +208,10 @@ public class Compilator_DF_A : ICompilator
                                 ? context.Peek(codeLine.Args[i])
                                 : context.Push(null, new Constant(ConstantConvertor(codeLine.Args[i])));
                     }
-                    program.Add(new Instruction(function, args));
+                    program.Add(new Instruction(elementaryFunction, args));
                 }
             }
+            else throw new CompilationException($"Unknown function: {codeLine.FunctionName}");
         }
     }
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using GlobalRealization.Memory;
 
 namespace GlobalRealization;
@@ -37,20 +36,5 @@ public class RuntimeContext : IMemory
             if (this.container?[position] is IChangeable) this.container[position] = value;
             else throw new RuntimeException("Cannot change constant");
         }
-    }
-
-    public RuntimeContext Copy()
-    {
-        RuntimeContext copy = new RuntimeContext();
-        if (container == null)
-        {
-            return copy;
-        }
-        copy.InitializeContainer(container.Length);
-        for (int i = 0; i < container.Length; i++)
-        {
-            copy.container[i] = (MemoryObject)container[i].Clone();
-        }
-        return copy;
     }
 }

@@ -16,15 +16,15 @@ public static class Menu
     private static Function main = null;
     private static ICodeConvertor _codeConvertor = new CLiteConvertor();
 
-    private static Context baseContext = new Context(null, BasicContext.BasicContextList).NewContext();
+    private static Context baseContext = BasicContext.Get().NewContext();
 
     static Menu()
     {
-        baseContext.Push("print", new FunctionInstance((args) =>
+        baseContext.Push("print", new Function((args) =>
         {
             foreach (var arg in args) Console.Write(arg.Get()?.ToString());
         }));
-        baseContext.Push("read", new FunctionInstance((args) =>
+        baseContext.Push("read", new Function((args) =>
         {
             string? value = Console.ReadLine();
             if (args.Length == 0) return;
@@ -32,7 +32,7 @@ public static class Menu
             else throw new RuntimeException("Incorrect arguments count");
         }));
 
-        baseContext.Push("endl", new FunctionInstance((args) =>
+        baseContext.Push("endl", new Function((args) =>
         {
             Console.WriteLine();
         }));
@@ -174,7 +174,7 @@ public static class Menu
     {
         try
         {
-            main.Get().Invoke(Array.Empty<Pointer>());
+            main.Invoke(Array.Empty<Pointer>());
         }
         catch (RuntimeException re)
         {

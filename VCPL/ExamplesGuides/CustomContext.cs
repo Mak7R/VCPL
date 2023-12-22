@@ -17,6 +17,6 @@ public static class CustomContext
     public static List<(string name, MemoryObject value)> Context  = new List<(string name, MemoryObject value)>()
     {
         ("VariableName", new Variable("Some data")),
-        ("MethodName", new FunctionInstance((Pointer[] args) => {  })),
+        ("MethodName", new Function((Pointer[] args) => {  })),
     };
 }
