@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Loader;
-using GlobalRealization.Memory;
+using VCPL.Compilator.Contexts;
 
 namespace VCPL.Compilator;
 
@@ -10,7 +10,7 @@ public static class CustomLibraryConnector
 {
     public static string LibrariesDomain = AppDomain.CurrentDomain.BaseDirectory;
     public const string FileFormat = ".dll";
-    public static bool ContainsAssembly(AssemblyLoadContext context, AssemblyName assemblyName)
+    private static bool ContainsAssembly(AssemblyLoadContext context, AssemblyName assemblyName)
     {
         var loadedAssemblies = context.Assemblies;
         foreach (Assembly assembly in loadedAssemblies)
@@ -18,7 +18,7 @@ public static class CustomLibraryConnector
                 return true;
         return false;
     }
-    public static bool ContainsAssembly(AssemblyLoadContext loadContext, string assemblyName)
+    private static bool ContainsAssembly(AssemblyLoadContext loadContext, string assemblyName)
     {
         var loadedAssemblies = loadContext.Assemblies;
         foreach (Assembly assembly in loadedAssemblies)
@@ -27,7 +27,7 @@ public static class CustomLibraryConnector
         return false;
     }
     
-    public static void LoadDependencies(AssemblyLoadContext loadContext, AssemblyName assemblyName)
+    private static void LoadDependencies(AssemblyLoadContext loadContext, AssemblyName assemblyName)
     {
         if (ContainsAssembly(loadContext, assemblyName)) return;
         
@@ -42,8 +42,9 @@ public static class CustomLibraryConnector
         AssemblyName[] dependencies = dependent.GetReferencedAssemblies();
         foreach (var dep in dependencies) LoadDependencies(loadContext, dep);
     }
-    public static void Import(Context context, AssemblyLoadContext loadContext, string assemblyName)
+    public static void Import(AbstractContext context, AssemblyLoadContext loadContext, string assemblyName)
     {
+        throw new NotImplementedException();
         Assembly lib;
         if (!ContainsAssembly(loadContext, assemblyName))
         {
@@ -71,13 +72,13 @@ public static class CustomLibraryConnector
         FieldInfo Context = MethodContainer.GetField("Context", BindingFlags.Public | BindingFlags.Static)
                             ?? throw new CompilationException("Field Context was not found");
 
-        if (Context.GetValue(null) is List<(string? name, MemoryObject value)> objects)
-        {
-            context = context.NewContext();
-            foreach (var item in objects)
-                context.Push(item.name, item.value);
-        }
-        else throw new CompilationException($"Cannot convert {Context.GetType()} to {typeof(List<(string?, MemoryObject)>)}");
+        //if (Context.GetValue(null) is List<(string? name, object value)> objects)
+        //{
+        //    context = new Context(context);
+        //    foreach (var item in objects)
+        //        context.Push(item.name, item.value);
+        //}
+        //else throw new CompilationException($"Cannot convert {Context.GetType()} to {typeof(List<(string?, MemoryObject)>)}");
     }
 
 }

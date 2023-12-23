@@ -7,6 +7,7 @@ using GlobalRealization.Memory;
 using VCPL;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
+using VCPL.Compilator.Contexts;
 
 namespace VCPLConsole;
 
@@ -16,26 +17,25 @@ public static class Menu
     private static Function main = null;
     private static ICodeConvertor _codeConvertor = new CLiteConvertor();
 
-    private static Context baseContext = BasicContext.Get().NewContext();
+    private static GlobalContext baseContext = new GlobalContext(BasicContext.Get());
 
     static Menu()
     {
-        baseContext.Push("print", new Function((args) =>
+        baseContext.Push(new ContextItem("print", new Function((args) =>
         {
             foreach (var arg in args) Console.Write(arg.Get()?.ToString());
-        }));
-        baseContext.Push("read", new Function((args) =>
+        }), Modificator.Function));
+        baseContext.Push(new ContextItem("read", new Function((args) =>
         {
             string? value = Console.ReadLine();
             if (args.Length == 0) return;
             else if (args.Length == 1) args[0].Set(value);
             else throw new RuntimeException("Incorrect arguments count");
-        }));
-
-        baseContext.Push("endl", new Function((args) =>
+        }), Modificator.Function));
+        baseContext.Push(new ContextItem("endl", new Function((args) =>
         {
             Console.WriteLine();
-        }));
+        }), Modificator.Function));
     }
 
     public static void Draw()

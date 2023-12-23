@@ -14,9 +14,9 @@ public static class CustomContext
     /// <summary>
     /// This is a necessary field.
     /// </summary>
-    public static List<(string name, MemoryObject value)> Context  = new List<(string name, MemoryObject value)>()
-    {
-        ("VariableName", new Variable("Some data")),
-        ("MethodName", new Function((Pointer[] args) => {  })),
-    };
+    //public static List<(string name, MemoryObject value)> Context  = new List<(string name, MemoryObject value)>()
+    //{
+    //    ("VariableName", new Variable("Some data")),
+    //    ("MethodName", new Function((Pointer[] args) => {  })),
+    //};
 }

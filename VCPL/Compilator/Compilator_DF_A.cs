@@ -3,15 +3,12 @@ using GlobalRealization;
 using GlobalRealization.Memory;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
-using System.Text;
-using System.Threading.Tasks;
 using VCPL.CodeConvertion;
+using VCPL.Compilator.Contexts;
 
 namespace VCPL.Compilator;
 
@@ -60,21 +57,21 @@ public class Compilator_DF_A : ICompilator
 
     public readonly static string[] KeyWords = BasicValues.ToArray.Concat(BasicFunctions.ToArray).Concat(Directives.ToArray).ToArray();
 
-    public Function Compilate(List<ICodeLine> codeLines, Context context, List<string>? args = null)
+    public Function Compilate(List<ICodeLine> codeLines, AbstractContext context, List<string>? args = null)
     {
         List<Instruction> Program = new List<Instruction>();
 
         // context up
-        context = context.NewContext(); 
+        context = new Context(context); 
 
-        if (args != null) foreach (string arg in args) context.Push(arg, new Variable(null));
+        if (args != null) foreach (string arg in args) context.Push(new ContextItem(arg, null, Modificator.Variable));
         CompilateDirectives(codeLines, context);
         CompilateCodeLines(codeLines, Program, context);
 
         return new Function(context.Pack(), Program.ToArray());
     }
 
-    private void CompilateDirectives(List<ICodeLine> codeLines, Context context)
+    private void CompilateDirectives(List<ICodeLine> codeLines, AbstractContext context)
     {
         List<ICodeLine> compiledCodeLines = new List<ICodeLine>();
         for (int i = 0; i < codeLines.Count; i++)
@@ -88,53 +85,24 @@ public class Compilator_DF_A : ICompilator
                     {
                         switch (codeLine.Args.Count)
                         {
-                            case 0: throw new CompilationException("Reqired argument missed");
+                            case 0: throw new CompilationException("Incorrect arguments count");
                             case 1:
-                                context.Push(codeLine.Args[0], new Variable(null));
+                                context.Push(new ContextItem(codeLine.Args[0], null, Modificator.Variable));
                                 break;
                             case 2:
-                                if (BasicString.isVariable(codeLine.Args[1]))
+                                switch(codeLine.Args[1])
                                 {
-                                    context.Push(codeLine.Args[0], (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
-                                }
-                                else
-                                {
-                                    context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
-                                }
-                                break;
-                                
-                            case 3:
-                                switch (codeLine.Args[2])
-                                {
-                                    case "var":
-                                        if (BasicString.isVariable(codeLine.Args[1]))
-                                            context.Push(codeLine.Args[0],
-                                                (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
-                                        else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
+                                    case "var": 
+                                        context.Push(new ContextItem(codeLine.Args[0], null, Modificator.Variable));
                                         break;
                                     case "const":
-                                        if (BasicString.isVariable(codeLine.Args[1]))
-                                        {
-                                            var obj = context.PeekObject(codeLine.Args[1]);
-                                            if (obj is IChangeable)
-                                                context.Push(codeLine.Args[0], new Constant(obj.Get()));
-                                            else context.Push(codeLine.Args[0], obj);
-                                        }
-                                        else context.Push(codeLine.Args[0], new Constant(ConstantConvertor(codeLine.Args[1])));
-                                        break;
-                                    case "array":
-                                        if (BasicString.isVariable(codeLine.Args[1]))
-                                        {
-                                            context.Push(codeLine.Args[0],
-                                                (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
-                                        }   
-                                        else context.Push(codeLine.Args[0], new Variable(new object?[Convert.ToInt32(codeLine.Args[1])]));
+                                        context.Push(new ContextItem(codeLine.Args[0], null, Modificator.Constant));
                                         break;
                                     default:
-                                        throw new CompilationException("Undefined variable state");
+                                        throw new CompilationException("Incorrect modificator");
                                 }
                                 break;
-                            default: throw new CompilationException("#init has recived more than 3 args");
+                            default: throw new CompilationException("#init has recived more than 2 args");
                         }
                     }
                     else
@@ -176,7 +144,7 @@ public class Compilator_DF_A : ICompilator
                         funcCodeLines.Add(codeLines[j]);
                         compiledCodeLines.Add(codeLines[j]);
                     }
-                    context.Push(codeLine.Args[0], Compilate(funcCodeLines, context, codeLine.Args.GetRange(1, codeLine.Args.Count - 1)));
+                    context.Push(new ContextItem(codeLine.Args[0], Compilate(funcCodeLines, context, codeLine.Args.GetRange(1, codeLine.Args.Count - 1)), Modificator.Function));
                     
                     // adding to delete directive '#end'
                     compiledCodeLines.Add(codeLines[j]);
@@ -190,26 +158,23 @@ public class Compilator_DF_A : ICompilator
         foreach (ICodeLine compiledCodeLine in compiledCodeLines) codeLines.Remove(compiledCodeLine);
     }
 
-    private void CompilateCodeLines(List<ICodeLine> codeLines, List<Instruction> program, Context context)
+    private void CompilateCodeLines(List<ICodeLine> codeLines, List<Instruction> program, AbstractContext context)
     {
         foreach (ICodeLine codeLine in codeLines)
         {
             if (context.PeekObject(codeLine.FunctionName) is Function function)
             {
-                if (function.Get() is ElementaryFunction elementaryFunction)
+                Pointer[] args;
+                if (codeLine.Args == null || codeLine.Args.Count == 0) args = Array.Empty<Pointer>();
+                else
                 {
-                    Pointer[] args;
-                    if (codeLine.Args == null || codeLine.Args.Count == 0) args = Array.Empty<Pointer>();
-                    else
-                    {
-                        args = new Pointer[codeLine.Args.Count];
-                        for (int i = 0; i < codeLine.Args.Count; i++)
-                            args[i] = BasicString.isVariable(codeLine.Args[i])
-                                ? context.Peek(codeLine.Args[i])
-                                : context.Push(null, new Constant(ConstantConvertor(codeLine.Args[i])));
-                    }
-                    program.Add(new Instruction(elementaryFunction, args));
+                    args = new Pointer[codeLine.Args.Count];
+                    for (int i = 0; i < codeLine.Args.Count; i++)
+                        args[i] = BasicString.isVariable(codeLine.Args[i])
+                            ? context.Peek(codeLine.Args[i])
+                            : context.Push(new ContextItem(null, ConstantConvertor(codeLine.Args[i]), Modificator.Constant));
                 }
+                program.Add(new Instruction(function.Invoke, args));
             }
             else throw new CompilationException($"Unknown function: {codeLine.FunctionName}");
         }

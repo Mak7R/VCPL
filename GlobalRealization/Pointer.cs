@@ -7,12 +7,15 @@ namespace GlobalRealization;
 
 public struct Pointer
 {
-    private IMemory? memory;
+    private IMemory memory;
     private int position;
 
-    private string Info { get { return $"{(this.memory as RuntimeContext)?.id}[{position}]: {this.Get()?.ToString() ?? "NULL"}" ; } }
-    
-    public Pointer(IMemory? memory, int position)
+    /// <summary>
+    /// Debug info
+    /// </summary>
+    private string Info { get { return $"{memory?.GetHashCode() ?? -1}[{position}]: {this.Get()?.ToString() ?? "NULL"}"; } }
+
+    public Pointer(IMemory memory, int position)
     {
         this.memory = memory;
         this.position = position;
@@ -20,8 +23,7 @@ public struct Pointer
 
     public object? Get()
     {
-        if (memory == null) throw new RuntimeException("Null Reference Exception");
-        return memory[position].Get();
+        return memory[position];
     }
 
     public T Get<T>()
@@ -33,25 +35,32 @@ public struct Pointer
 
     public void Set(object? obj)
     {
-        if (memory == null) throw new RuntimeException("Null Reference Exception");
         try
         {
-            memory[position].As<IChangeable>().Set(obj);
+            ((LocalContext)memory)[position] = obj;
         }
-        catch (RuntimeException)
+        catch(Exception e)
         {
-            throw new RuntimeException("Cannot to change constant");
+            throw new RuntimeException(e.Message);
         }
     }
 
-    public static readonly Pointer NULL = new Pointer(null, -1);
-
-    public override bool Equals([NotNullWhen(true)] object? obj)
+    internal void TrySetContext()
     {
-        if (obj is Pointer pointer)
+        if (memory is UninitedLocalContext uninited)
         {
-            return this.memory == pointer.memory && this.position == pointer.position;
+            foreach (var con in LocalContext.LocalContexts)
+            {
+                if (con.Id == uninited.Id)
+                {
+                    memory = con;
+                    return;
+                }
+            }
+            throw new RuntimeException("Contexts exception");
         }
-        return false;
+            
     }
+
+    public static readonly Pointer NULL = new Pointer(new UninitedLocalContext(), -1);
 }

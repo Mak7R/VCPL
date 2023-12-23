@@ -1,28 +1,32 @@
 ﻿
 
-using System.Threading.Tasks.Dataflow;
-
 namespace GlobalRealization.Memory;
 
-public class Function : MemoryObject, IExecutable
+public class Function
 {
-    private ElementaryFunction _function;
+    private readonly ElementaryFunction _function;
 
     public Function(ElementaryFunction function)
     {
         _function = function;
     }
 
-    public Function(RuntimeContext context, Instruction[] program)
+    public Function(UninitedLocalContext context, Instruction[] program)
     {
         _function = (args) =>
         {
-            for (int i = 0; i < args.Length; i++) context[i].As<IChangeable>().Set(args[i].Get());
+            LocalContext localContext = new LocalContext(context.Id, context.Size);
+            LocalContext.LocalContexts.Push(localContext);
+
+            for (int i = 0; i < args.Length; i++) localContext[i] = args[i].Get();
 
             for (int i = 0; i < program.Length; i++)
             {
                 try
                 {
+                    for(int j = 0; j < program[i].Args.Length; j++) {
+                        program[i].Args[j].TrySetContext(); //// dengerous
+                    }
                     program[i].Function.Invoke(program[i].Args);
                 }
                 catch (Return)
@@ -39,21 +43,9 @@ public class Function : MemoryObject, IExecutable
                     }
                 }
             }
+            LocalContext.LocalContexts.Pop();
         };
     }
 
-    public void Invoke(Pointer[] args)
-    {
-        this._function.Invoke(args);
-    }
-
-    public override Function Clone()
-    {
-        return this;
-    }
-
-    public override ElementaryFunction Get()
-    {
-        return _function;
-    }
+    public void Invoke(Pointer[] args) { this._function.Invoke(args); }
 }

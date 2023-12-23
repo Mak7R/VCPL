@@ -13,6 +13,7 @@ using VCPL;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
 using GlobalRealization.Memory;
+using VCPL.Compilator.Contexts;
 
 namespace VCPLBrowser
 {
@@ -24,7 +25,7 @@ namespace VCPLBrowser
         private string FilePath = "";
         private Function? main;
         private Thread? program;
-        private Context context = BasicContext.Get().NewContext();
+        private GlobalContext context = new GlobalContext(BasicContext.Get());
         private bool runThread = false;
         private ICodeConvertor _codeConvertor = new CLiteConvertor();
         
@@ -156,6 +157,7 @@ namespace VCPLBrowser
                 {
                     compilator.ReloadAssemblyLoadContext();
                     main = compilator.Compilate(codeLines, context); // can put args here
+                    UninitedLocalContext.counter = 0;
                 }
                 catch (CompilationException ce)
                 {
