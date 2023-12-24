@@ -174,6 +174,8 @@ namespace VCPLBrowser
                         try
                         {
                             var rtStack = context.Pack();
+                            GC.Collect();
+                            GC.WaitForPendingFinalizers();
                             main.Get().Invoke(rtStack, Array.Empty<IPointer>()); // think about args
                             rtStack.Clear();
                         }

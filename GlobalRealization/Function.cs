@@ -15,10 +15,7 @@ public class Function
     {
         _function = (stack, args) =>
         {
-            stack.Up(size);
-            var current = stack.Peek();
-            for (int i = 0; i < args.Length; i++) current[i] = args[i].Get(); 
-
+            stack.Push(size, args);
             for (int i = 0; i < program.Length; i++)
             {
                 try
@@ -39,7 +36,7 @@ public class Function
                     }
                 }
             }
-            stack.Down();
+            stack.Pop();
         };
     }
 

@@ -1,110 +1,99 @@
 ﻿using System;
+using System.Drawing;
 
 namespace GlobalRealization;
 
-public class RuntimeStack : IndexableStack<object?[]>
+public class RuntimeStack
 {
-    public object?[] Constants = Array.Empty<object?>();
-    public void Up(int size)
-    {
-        Push(new object?[size]);
-    }
-
-    public void Down()
-    {
-        Pop();
-    }
-
-    public object? this[int level, int position] 
-    { 
-        get
-        {
-            return this[level][position];
-        }
-        set
-        {
-            this[level][position] = value;
-        }
-    }
-
-    public new void Clear()
-    {
-        Constants = Array.Empty<object?>();
-        base.Clear();
-    }
-}
-
-
-public class RuntimeStack2
-{
-    private object?[][] _array;
     private int _size;
+    private object?[][] _array;
+    public object?[] Constants = Array.Empty<object?>();
 
     private const int _defaultCapacity = 10;
 
-    public RuntimeStack2()
+    public RuntimeStack()
     {
         _array = new object?[_defaultCapacity][];
         _size = 0;
     }
 
-    protected object?[] this[int index]
-    {
-        get { return _array[index]; }
-    }
     public object? this[int level, int position]
     {
-        get
-        {
-            return this[level][position];
-        }
-        set
-        {
-            this[level][position] = value;
-        }
+        get => _array[level][position];
+        set => _array[level][position] = value;
     }
-
     public int Count { get { return _size; } }
-    public object? Peek()
+
+    public object?[] Peek()
     {
         if (_size == 0)
-            throw new InvalidOperationException("Stack is empety");
+            throw new InvalidOperationException("Stack is empty");
 
         return _array[_size - 1];
     }
-    protected object?[] Pop()
+    public void/*object?[]*/ Pop()
     {
-        if (_size == 0)
-            throw new InvalidOperationException("Stack is empety");
+        _size--;
+        //if (_size == 0)
+            //throw new InvalidOperationException("Stack is empety");
 
-        object?[] obj = _array[--_size];
-        _array[_size] = default!;     // Free memory quicker. ?????????? think about caching
-        return obj;
+        //object?[] obj = _array[--_size];
+        //_array[_size] = default!;     // Free memory quicker. ?????????? think about caching
+        //return obj;
     }
-    protected void Push(object?[] obj)
+    public void Push(int size)
     {
         if (_size == _array.Length)
         {
             object?[][] newArray = new object?[_array.Length + _defaultCapacity][];
-            Array.Copy(_array, newArray, _size);
+            Array.Copy(_array, newArray, _size); // ????
+            _array = newArray;
+            _array[_size++] = new object?[size];
+        }
+        else
+        {
+            if (_array[_size] != null && _array[_size].Length == size)
+            {
+                for (int i = 0; i < _array[_size].Length; i++) _array[_size][i] = null;
+            }
+            else
+            {
+                _array[_size] = new object?[size];
+            }
+            _size++;
+        }
+    }
+    public void Push(int size, IPointer[] args)
+    {
+        if (_size == _array.Length)
+        {
+            object?[][] newArray = new object?[_array.Length + _defaultCapacity][];
+            Array.Copy(_array, newArray, _size); // ?????
             _array = newArray;
         }
-        _array[_size++] = obj;
+        else if(_array[_size] != null && _array[_size].Length == size)
+        {
+            int i = 0;
+            for (; i < args.Length; i++)
+            {
+                _array[_size][i] = args[i].Get();
+            }
+            for (; i < _array[_size].Length; i++)
+            {
+
+                _array[_size][i] = null;
+            }
+            _size++;
+            return;
+        }
+        _array[_size] = new object?[size];
+        for (int i = 0; i < args.Length; i++) _array[_size][i] = args[i].Get();
+        _size++;
     }
     public void Clear()
     {
         Constants = Array.Empty<object?>();
         _array = new object?[_defaultCapacity][];
-    }
-
-    public object?[] Constants = Array.Empty<object?>();
-    public void Up(int size)
-    {
-        Push(new object?[size]);
-    }
-
-    public void Down()
-    {
-        Pop();
+        _size = 0;
     }
 }

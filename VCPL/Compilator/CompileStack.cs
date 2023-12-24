@@ -94,7 +94,7 @@ public class CompileStack : IndexableStack<ContextLevel>
         for(int i = 0; i < Count; i++)
         {
             ContextLevel level = this[i];
-            _rtStack.Up(level.Variables.Count);
+            _rtStack.Push(level.Variables.Count);
         }
         return _rtStack;
     }
