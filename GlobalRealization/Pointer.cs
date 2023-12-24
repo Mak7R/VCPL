@@ -18,16 +18,14 @@ public interface IPointer
 
 public struct ConstantPointer : IPointer
 {
-    private readonly RuntimeStack _stack;
-    private readonly int _position;
+    private readonly object? _value;
 
-    public ConstantPointer(RuntimeStack stack, int position)
+    public ConstantPointer(object? value)
     {
-        _stack = stack;
-        this._position = position;
+        _value = value;
     }
 
-    public object? Get() { return _stack.Constants[_position]; }
+    public object? Get() { return _value; }
     public void Set(object? value)
     {
         throw new RuntimeException("Cannot to change constant");

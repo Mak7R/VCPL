@@ -23,7 +23,7 @@ public class CompileStack : IndexableStack<ContextLevel>
 {
     private readonly RuntimeStack _rtStack = new RuntimeStack();
 
-    private readonly List<object?> constants = new List<object?>() { null };
+    private readonly List<ConstantPointer> constants = new List<ConstantPointer>() { new ConstantPointer(null) };
     public void AddVar(string name) { 
         for(int i = 0; i < Count; i++)
             if (this[i].Contains(name)) 
@@ -31,31 +31,33 @@ public class CompileStack : IndexableStack<ContextLevel>
         Peek().Variables.Add(name);
     }
     public IPointer AddConst(string? name, object? value) {
+        (ConstantPointer ptr, int i) AddConstant(object? val)
+        {
+            if (val == null) return (constants[0], 0);
+            else
+            {
+                for (int i = 0; i < constants.Count; i++)
+                    if (val.Equals(constants[i].Get()))
+                        return (constants[i], i);
+            }
+            var ptr = new ConstantPointer(val);
+            constants.Add(ptr);
+            return (ptr, constants.Count - 1);
+        }
         var current = Peek();
         if (name != null)
         {
-            for(int i = 0; i < Count; i++)
+            for (int i = 0; i < Count; i++)
                 if (this[i].Contains(name))
                     throw new CompilationException("This variable already exist");
-            constants.Add(value);
-            current.Constants.Add(name, constants.Count - 1);
-            return new ConstantPointer(_rtStack, constants.Count - 1);
+            (var ptr, var index) = AddConstant(value);
+            current.Constants.Add(name, index);
+            return ptr;
         }
         else
         {
-            if (value == null) return new ConstantPointer(_rtStack, 0);
-            else
-            {
-                for(int i = 0; i < constants.Count; i++)
-                {
-                    if (value.Equals(constants[i]))
-                    {
-                        return new ConstantPointer(_rtStack, i);
-                    }
-                }
-            }
-            constants.Add(value);
-            return new ConstantPointer(_rtStack, constants.Count - 1);
+            (var ptr, _) = AddConstant(value);
+            return ptr;
         }
     }
     public IPointer PeekPtr(string name) {
@@ -69,7 +71,7 @@ public class CompileStack : IndexableStack<ContextLevel>
             }
             foreach(var constant in this[lvl].Constants)
             {
-                if (constant.Key == name) return new ConstantPointer(_rtStack, constant.Value);
+                if (constant.Key == name) return constants[constant.Value];
             }
         }
         throw new CompilationException("Variable was not found");
@@ -77,7 +79,7 @@ public class CompileStack : IndexableStack<ContextLevel>
     public object? PeekVal(string name) {
         for (int i = 0; i < Count; i++)
             if (this[i].Constants.TryGetValue(name, out int ptr)) 
-                return constants[ptr];
+                return constants[ptr].Get();
         throw new CompilationException("Variable was not found");   
     }
     public void Up() { Push(new ContextLevel()); }
@@ -90,7 +92,6 @@ public class CompileStack : IndexableStack<ContextLevel>
     public RuntimeStack Pack()
     {
         _rtStack.Clear();
-        _rtStack.Constants = constants.ToArray();
         for(int i = 0; i < Count; i++)
         {
             ContextLevel level = this[i];
