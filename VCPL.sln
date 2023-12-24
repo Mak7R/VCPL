@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VCPLBrowser", "VCPLBrowser\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VCPLConsole", "VCPLConsole\VCPLConsole.csproj", "{F608C68A-7446-409D-9A39-FEC306C6F8E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileController", "FileController\FileController.csproj", "{6250DE32-6EF9-45E1-9D0E-CBBAE721EE75}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileController", "FileController\FileController.csproj", "{6250DE32-6EF9-45E1-9D0E-CBBAE721EE75}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{A8E776F1-929E-4C8A-BD91-35FB689DF640}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{6250DE32-6EF9-45E1-9D0E-CBBAE721EE75}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6250DE32-6EF9-45E1-9D0E-CBBAE721EE75}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6250DE32-6EF9-45E1-9D0E-CBBAE721EE75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8E776F1-929E-4C8A-BD91-35FB689DF640}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8E776F1-929E-4C8A-BD91-35FB689DF640}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8E776F1-929E-4C8A-BD91-35FB689DF640}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8E776F1-929E-4C8A-BD91-35FB689DF640}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,6 +1,5 @@
 ﻿using BasicFunctions;
 using GlobalRealization;
-using GlobalRealization.Memory;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -60,21 +59,28 @@ public class Compilator_DF_A : ICompilator
 
     public readonly static string[] KeyWords = BasicValues.ToArray.Concat(BasicFunctions.ToArray).Concat(Directives.ToArray).ToArray();
 
-    public Function Compilate(List<ICodeLine> codeLines, Context context, List<string>? args = null)
+    public Function Compilate(List<ICodeLine> codeLines, CompileStack stack, string[] args)
     {
         List<Instruction> Program = new List<Instruction>();
 
-        // context up
-        context = context.NewContext(); 
+        stack.Up();
+        try
+        {
+            foreach (string arg in args) stack.AddVar(arg);
 
-        if (args != null) foreach (string arg in args) context.Push(arg, new Variable(null));
-        CompilateDirectives(codeLines, context);
-        CompilateCodeLines(codeLines, Program, context);
+            CompilateDirectives(codeLines, stack);
+            CompilateCodeLines(codeLines, Program, stack);
 
-        return new Function(context.Pack(), Program.ToArray());
+            (int size, var consts) = stack.Down();
+            return new Function(Program.ToArray(), size, consts);
+        }catch
+        {
+            stack.Down(); // can to write stack trace
+            throw;
+        }
     }
 
-    private void CompilateDirectives(List<ICodeLine> codeLines, Context context)
+    private void CompilateDirectives(List<ICodeLine> codeLines, CompileStack stack)
     {
         List<ICodeLine> compiledCodeLines = new List<ICodeLine>();
         for (int i = 0; i < codeLines.Count; i++)
@@ -84,57 +90,26 @@ public class Compilator_DF_A : ICompilator
             switch (codeLine.FunctionName)
             {
                 case Directives.Init:
+                    if (codeLine.Args.Count == 0) throw new CompilationException("Incorrect args count");
+                    if (isKeyWord(codeLine.Args[0])) throw new CompilationException("Key word cannot be a variable name");
                     if (BasicString.isVariable(codeLine.Args[0]))
                     {
                         switch (codeLine.Args.Count)
                         {
-                            case 0: throw new CompilationException("Reqired argument missed");
                             case 1:
-                                context.Push(codeLine.Args[0], new Variable(null));
+                                stack.AddVar(codeLine.Args[0]);
                                 break;
                             case 2:
-                                if (BasicString.isVariable(codeLine.Args[1]))
+                                if (!BasicString.isVariable(codeLine.Args[1]))
                                 {
-                                    context.Push(codeLine.Args[0], (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
+                                    stack.AddConst(codeLine.Args[0], ConstantConvertor(codeLine.Args[1]));
                                 }
                                 else
                                 {
-                                    context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
+                                    throw new CompilationException("Constant can be inited only with value constan");
                                 }
                                 break;
-                                
-                            case 3:
-                                switch (codeLine.Args[2])
-                                {
-                                    case "var":
-                                        if (BasicString.isVariable(codeLine.Args[1]))
-                                            context.Push(codeLine.Args[0],
-                                                (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
-                                        else context.Push(codeLine.Args[0], new Variable(ConstantConvertor(codeLine.Args[1])));
-                                        break;
-                                    case "const":
-                                        if (BasicString.isVariable(codeLine.Args[1]))
-                                        {
-                                            var obj = context.PeekObject(codeLine.Args[1]);
-                                            if (obj is IChangeable)
-                                                context.Push(codeLine.Args[0], new Constant(obj.Get()));
-                                            else context.Push(codeLine.Args[0], obj);
-                                        }
-                                        else context.Push(codeLine.Args[0], new Constant(ConstantConvertor(codeLine.Args[1])));
-                                        break;
-                                    case "array":
-                                        if (BasicString.isVariable(codeLine.Args[1]))
-                                        {
-                                            context.Push(codeLine.Args[0],
-                                                (MemoryObject)context.PeekObject(codeLine.Args[1]).Clone());
-                                        }   
-                                        else context.Push(codeLine.Args[0], new Variable(new object?[Convert.ToInt32(codeLine.Args[1])]));
-                                        break;
-                                    default:
-                                        throw new CompilationException("Undefined variable state");
-                                }
-                                break;
-                            default: throw new CompilationException("#init has recived more than 3 args");
+                            default: throw new CompilationException("#init has recived more than 2 args");
                         }
                     }
                     else
@@ -153,7 +128,7 @@ public class Compilator_DF_A : ICompilator
                             using(StreamReader sr = new StreamReader(lib)) {
                                 string code = sr.ReadToEnd();
                                 var libCodeLines = CompilerCodeConvertor.Convert(code, codeLine.Args[1]);
-                                CompilateDirectives(libCodeLines, context);
+                                CompilateDirectives(libCodeLines, stack);
                             }
                         }
                         catch
@@ -164,7 +139,7 @@ public class Compilator_DF_A : ICompilator
                     else if (lib.EndsWith(".dll"))
                     {
                         if (codeLine.Args.Count != 1) throw new CompilationException("Incorect args count");
-                        CustomLibraryConnector.Import(context, _compilatorAssemblyLoadContext, codeLine.Args[0]);
+                        CustomLibraryConnector.Import(stack, _compilatorAssemblyLoadContext, codeLine.Args[0]);
                     }
                     else throw new CompilationException("Incorect name of library. Now supports .dll and .vcpl libraries only");
                     break;
@@ -176,7 +151,8 @@ public class Compilator_DF_A : ICompilator
                         funcCodeLines.Add(codeLines[j]);
                         compiledCodeLines.Add(codeLines[j]);
                     }
-                    context.Push(codeLine.Args[0], Compilate(funcCodeLines, context, codeLine.Args.GetRange(1, codeLine.Args.Count - 1)));
+                    stack.AddConst(codeLine.Args[0], 
+                        Compilate(funcCodeLines, stack, codeLine.Args.GetRange(1, codeLine.Args.Count - 1).ToArray()));
                     
                     // adding to delete directive '#end'
                     compiledCodeLines.Add(codeLines[j]);
@@ -190,11 +166,11 @@ public class Compilator_DF_A : ICompilator
         foreach (ICodeLine compiledCodeLine in compiledCodeLines) codeLines.Remove(compiledCodeLine);
     }
 
-    private void CompilateCodeLines(List<ICodeLine> codeLines, List<Instruction> program, Context context)
+    private void CompilateCodeLines(List<ICodeLine> codeLines, List<Instruction> program, CompileStack stack)
     {
         foreach (ICodeLine codeLine in codeLines)
         {
-            if (context.PeekObject(codeLine.FunctionName) is Function function)
+            if (stack.PeekVal(codeLine.FunctionName) is Function function)
             {
                 if (function.Get() is ElementaryFunction elementaryFunction)
                 {
@@ -204,9 +180,16 @@ public class Compilator_DF_A : ICompilator
                     {
                         args = new Pointer[codeLine.Args.Count];
                         for (int i = 0; i < codeLine.Args.Count; i++)
-                            args[i] = BasicString.isVariable(codeLine.Args[i])
-                                ? context.Peek(codeLine.Args[i])
-                                : context.Push(null, new Constant(ConstantConvertor(codeLine.Args[i])));
+                        {
+                            if (BasicString.isVariable(codeLine.Args[i]))
+                            {
+                                args[i] = stack.PeekPtr(codeLine.Args[i]);
+                            }
+                            else
+                            {
+                                args[i] = stack.AddConst(null, ConstantConvertor(codeLine.Args[i]));
+                            }
+                        }
                     }
                     program.Add(new Instruction(elementaryFunction, args));
                 }

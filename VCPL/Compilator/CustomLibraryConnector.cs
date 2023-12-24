@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Loader;
-using GlobalRealization.Memory;
 
 namespace VCPL.Compilator;
 
@@ -42,8 +41,9 @@ public static class CustomLibraryConnector
         AssemblyName[] dependencies = dependent.GetReferencedAssemblies();
         foreach (var dep in dependencies) LoadDependencies(loadContext, dep);
     }
-    public static void Import(Context context, AssemblyLoadContext loadContext, string assemblyName)
+    public static void Import(CompileStack stack, AssemblyLoadContext loadContext, string assemblyName)
     {
+        throw new NotImplementedException();
         Assembly lib;
         if (!ContainsAssembly(loadContext, assemblyName))
         {
@@ -71,13 +71,13 @@ public static class CustomLibraryConnector
         FieldInfo Context = MethodContainer.GetField("Context", BindingFlags.Public | BindingFlags.Static)
                             ?? throw new CompilationException("Field Context was not found");
 
-        if (Context.GetValue(null) is List<(string? name, MemoryObject value)> objects)
-        {
-            context = context.NewContext();
-            foreach (var item in objects)
-                context.Push(item.name, item.value);
-        }
-        else throw new CompilationException($"Cannot convert {Context.GetType()} to {typeof(List<(string?, MemoryObject)>)}");
+        //if (Context.GetValue(null) is List<(string? name, MemoryObject value)> objects)
+        //{
+        //    context = context.NewContext();
+        //    foreach (var item in objects)
+        //        context.Push(item.name, item.value);
+        //}
+        //else throw new CompilationException($"Cannot convert {Context.GetType()} to {typeof(List<(string?, MemoryObject)>)}");
     }
 
 }

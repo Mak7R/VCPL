@@ -1,10 +1,8 @@
-﻿
+﻿using System;
 
-using System.Threading.Tasks.Dataflow;
+namespace GlobalRealization;
 
-namespace GlobalRealization.Memory;
-
-public class Function : MemoryObject, IExecutable
+public class Function
 {
     private ElementaryFunction _function;
 
@@ -13,17 +11,18 @@ public class Function : MemoryObject, IExecutable
         _function = function;
     }
 
-    public Function(RuntimeContext context, Instruction[] program)
+    public Function(Instruction[] program, int size, object?[] constants)
     {
-        _function = (args) =>
+        _function = (stack, args) =>
         {
-            for (int i = 0; i < args.Length; i++) context[i].As<IChangeable>().Set(args[i].Get());
+            stack.Up(new object?[size], constants);
+            for (int i = 0; i < args.Length; i++) stack.Peek().Variables[i] = stack[args[i]]; 
 
             for (int i = 0; i < program.Length; i++)
             {
                 try
                 {
-                    program[i].Function.Invoke(program[i].Args);
+                    program[i].Function.Invoke(stack, program[i].Args);
                 }
                 catch (Return)
                 {
@@ -34,25 +33,16 @@ public class Function : MemoryObject, IExecutable
                     }
                     else
                     {
-                        args[args.Length - 1].Set(((Pointer)returnedValue).Get());
+                        stack[args[args.Length - i]] = stack[returnedValue];
                         break;
                     }
                 }
             }
+            stack.Down();
         };
     }
 
-    public void Invoke(Pointer[] args)
-    {
-        this._function.Invoke(args);
-    }
-
-    public override Function Clone()
-    {
-        return this;
-    }
-
-    public override ElementaryFunction Get()
+    public ElementaryFunction Get()
     {
         return _function;
     }

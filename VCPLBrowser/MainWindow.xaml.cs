@@ -12,7 +12,6 @@ using FileController;
 using VCPL;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
-using GlobalRealization.Memory;
 
 namespace VCPLBrowser
 {
@@ -24,7 +23,7 @@ namespace VCPLBrowser
         private string FilePath = "";
         private Function? main;
         private Thread? program;
-        private Context context = BasicContext.Get().NewContext();
+        private CompileStack context = BasicContext.Get();
         private bool runThread = false;
         private ICodeConvertor _codeConvertor = new CLiteConvertor();
         
@@ -155,7 +154,7 @@ namespace VCPLBrowser
                 try
                 {
                     compilator.ReloadAssemblyLoadContext();
-                    main = compilator.Compilate(codeLines, context); // can put args here
+                    main = compilator.Compilate(codeLines, context, Array.Empty<string>()); // can put args here
                 }
                 catch (CompilationException ce)
                 {
@@ -174,7 +173,7 @@ namespace VCPLBrowser
                     {
                         try
                         {
-                            main.Invoke(Array.Empty<Pointer>()); // think about args
+                            main.Get().Invoke(context.ToRuntimeStack(), Array.Empty<Pointer>()); // think about args
                         }
                         catch (RuntimeException re)
                         {

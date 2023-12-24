@@ -19,7 +19,6 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using BasicFunctions;
 using GlobalRealization;
-using GlobalRealization.Memory;
 using VCPL.Compilator;
 
 namespace VCPLBrowser;
@@ -95,129 +94,8 @@ public partial class MainWindow
         Page.Height = this.Height - 65;
         Page.Width = this.Width;
         
-        context.Push("Page", new Constant(Page));
-        context.Push("Write", new Function((args) =>
-        {
-            this.Dispatcher.Invoke(() => {
-                Label console = args[0].Get<Label>();
-                console.Content = (string)console.Content + args[1].Get()?.ToString();
-            });
-        }));
-        context.Push("WriteLine", new Function((args) =>
-        {
-            this.Dispatcher.Invoke(() => {
-                Label console = args[0].Get<Label>();
-                console.Content = (string)console.Content + args[1].Get()?.ToString() + '\n';
-            });
-        }));
-        
-        context.Push("ReadLine", new Function(((args) =>
-        {
-            Label console = args[0].Get<Label>();
-            this.Input = "";
-            System.Windows.Input.KeyEventHandler Event = (object sender, KeyEventArgs eventArgs) =>
-            {
-                if (eventArgs.Key == Key.Enter) { this.isEnter = true; return; }
-
-                if (eventArgs.Key == Key.Back)
-                {
-                    if (this.Input != string.Empty && this.Input.Length > 0)
-                    {
-                        this.Input = this.Input.Substring(0, this.Input.Length - 1);
-                        console.Content = ((string)console.Content).Substring(0, ((string)console.Content).Length-1);
-                    }
-                    return;
-                }
-                char key = Tools.GetCharFromKey(eventArgs.Key);
-                console.Content = (string)console.Content + key;
-                this.Input += key;
-            };
-            this.KeyDown += Event;
-            while (!isEnter) ;
-            this.Dispatcher.Invoke(() => {
-                console.Content = (string)console.Content + '\n';
-            });
-            this.KeyDown -= Event;
-            this.isEnter = false;
-
-            if (args.Length == 2) args[1].Set(Input);
-        })));
-        
-        context.Push("Move", new Function((args) =>
-        {
-            Canvas field = args[0].Get<Canvas>();
-            Rectangle rect = args[1].Get<Rectangle>();
-            object oacc = args[2].Get<object>();
-            double acc = oacc is int ? (double)(int)oacc : (double)oacc;
-            foreach (var key in this.pressedKeys)
-            {
-                switch (key)
-                {
-                    case Key.A:
-                        this.Dispatcher.Invoke(() =>
-                        {
-                            rect.Margin = new Thickness(
-                                rect.Margin.Left - 20,
-                                rect.Margin.Top,
-                                rect.Margin.Right,
-                                rect.Margin.Bottom);
-                        });
-                        break;
-                    case Key.D:
-                        this.Dispatcher.Invoke(() =>
-                        {
-                            rect.Margin = new Thickness(rect.Margin.Left + 20, rect.Margin.Top,
-                                rect.Margin.Right,
-                                rect.Margin.Bottom);
-                            
-                        });
-                        break;
-                    case Key.Space:
-                        this.Dispatcher.Invoke(() =>
-                        {
-                            if (rect.Margin.Top + rect.Height < field.Height)
-                            {
-                                return;
-                            }
-                            else
-                            {
-                                acc -= 50;
-                            }
-                        });
-                        break;
-                    case Key.Escape:
-                        return;
-                    default: break;
-                }
-            }
-
-            this.Dispatcher.Invoke(() => { 
-                rect.Margin = new Thickness(rect.Margin.Left, rect.Margin.Top + acc, rect.Margin.Right,
-                    rect.Margin.Bottom);
-                    
-                if (rect.Margin.Top + rect.Height >= field.Height)
-                {
-                    rect.Margin = new Thickness(rect.Margin.Left, field.Height - rect.Height, rect.Margin.Right,
-                        rect.Margin.Bottom);
-                    acc = 0;
-                }
-                else
-                {
-                    acc += 10;
-                }
-                
-            });
-            args[2].Set(acc);
-            Thread.Sleep(100);
-        }));
-        context.Push("SetBackground", new Function((args) =>
-        {
-            this.Dispatcher.Invoke(
-                () => {
-                    args[0].Get<Panel>().Background = new SolidColorBrush(Color.FromRgb(Convert.ToByte(args[1].Get()), Convert.ToByte(args[2].Get()), Convert.ToByte(args[3].Get())));
-                });
-        }));
-        context.Push("Label", new Function((args) =>
+        context.AddConst("Page", Page);
+        context.AddConst("Label", new Function((stack, args) =>
         {
             this.Dispatcher.Invoke(() =>
             {
@@ -228,57 +106,177 @@ public partial class MainWindow
                 label.Width = 600;
                 label.Height = 400;
                 label.Margin = new Thickness(20, 20, 0, 0);
-                label.Content = args[1].Get();
-                args[0].Get<Canvas>().Children.Add(label);
-                args[2].Set(label);
+                label.Content = stack[args[1]];
+                stack.Get<Canvas>(args[0]).Children.Add(label);
+                stack[args[2]] = label;
             });
         }));
-        context.Push("Rect", new Function((args) =>
+        context.AddConst("Write", new Function((stack, args) =>
         {
-            this.Dispatcher.Invoke(() =>
-            {
-                Rectangle rect = new Rectangle();
-                args[0].Set(rect);
+            this.Dispatcher.Invoke(() => {
+                Label console = stack.Get<Label>(args[0]);
+                console.Content = (string)console.Content + stack[args[1]]?.ToString();
             });
         }));
-        context.Push("SetRectWHRGB", new Function((args) =>
-            {
-                this.Dispatcher.Invoke(() =>
-                {
-                    Rectangle rect = args[0].Get<Rectangle>();
-                    rect.Width = args[1].Get<int>();
-                    rect.Height = args[2].Get<int>();
-                    rect.Fill = new SolidColorBrush(Color.FromRgb(Convert.ToByte(args[3].Get()), Convert.ToByte(args[4].Get()), Convert.ToByte(args[5].Get())));
-                });
-            }));
-        context.Push("AddToCanvas", new Function((args) =>
-            {
-                this.Dispatcher.Invoke(() =>
-                {
-                    Canvas canvas = args[0].Get<Canvas>();
-                    canvas.Children.Add(args[1].Get<UIElement>());
-                });
-            }));
-        context.Push("SetMargin", new Function((args) =>
+        context.AddConst("WriteLine", new Function((stack, args) =>
         {
-            this.Dispatcher.Invoke(() =>
-            {
-                FrameworkElement el = args[0].Get<FrameworkElement>();
-                el.Margin = new Thickness(args[1].Get<int>(), args[2].Get<int>(), args[3].Get<int>(), args[4].Get<int>());
+            this.Dispatcher.Invoke(() => {
+                Label console = stack.Get<Label>(args[0]);
+                console.Content = (string)console.Content + stack[args[1]]?.ToString() + '\n';
             });
         }));
-        context.Push("SetOnClick", new Function((args) =>
-        {
-            Rectangle rectangle = args[0].Get<Rectangle>();
-            this.Dispatcher.Invoke(() =>
-            {
-                rectangle.MouseDown += (sender, eventArgs) =>
-                {
-                    rectangle.Fill = new SolidColorBrush(Color.FromRgb((byte)new Random().Next(255),
-                        (byte)new Random().Next(255), (byte)new Random().Next(255)));
-                };
-            });
-        }));
-        this.context.Pack();
+
+        //context.Push("ReadLine", new Function(((stack, args) =>
+        //{
+        //    Label console = args[0].Get<Label>();
+        //    this.Input = "";
+        //    System.Windows.Input.KeyEventHandler Event = (object sender, KeyEventArgs eventArgs) =>
+        //    {
+        //        if (eventArgs.Key == Key.Enter) { this.isEnter = true; return; }
+
+        //        if (eventArgs.Key == Key.Back)
+        //        {
+        //            if (this.Input != string.Empty && this.Input.Length > 0)
+        //            {
+        //                this.Input = this.Input.Substring(0, this.Input.Length - 1);
+        //                console.Content = ((string)console.Content).Substring(0, ((string)console.Content).Length-1);
+        //            }
+        //            return;
+        //        }
+        //        char key = Tools.GetCharFromKey(eventArgs.Key);
+        //        console.Content = (string)console.Content + key;
+        //        this.Input += key;
+        //    };
+        //    this.KeyDown += Event;
+        //    while (!isEnter) ;
+        //    this.Dispatcher.Invoke(() => {
+        //        console.Content = (string)console.Content + '\n';
+        //    });
+        //    this.KeyDown -= Event;
+        //    this.isEnter = false;
+
+        //    if (args.Length == 2) args[1].Set(Input);
+        //})));
+
+        //context.Push("Move", new Function((stack, args) =>
+        //{
+        //    Canvas field = args[0].Get<Canvas>();
+        //    Rectangle rect = args[1].Get<Rectangle>();
+        //    object oacc = args[2].Get<object>();
+        //    double acc = oacc is int ? (double)(int)oacc : (double)oacc;
+        //    foreach (var key in this.pressedKeys)
+        //    {
+        //        switch (key)
+        //        {
+        //            case Key.A:
+        //                this.Dispatcher.Invoke(() =>
+        //                {
+        //                    rect.Margin = new Thickness(
+        //                        rect.Margin.Left - 20,
+        //                        rect.Margin.Top,
+        //                        rect.Margin.Right,
+        //                        rect.Margin.Bottom);
+        //                });
+        //                break;
+        //            case Key.D:
+        //                this.Dispatcher.Invoke(() =>
+        //                {
+        //                    rect.Margin = new Thickness(rect.Margin.Left + 20, rect.Margin.Top,
+        //                        rect.Margin.Right,
+        //                        rect.Margin.Bottom);
+
+        //                });
+        //                break;
+        //            case Key.Space:
+        //                this.Dispatcher.Invoke(() =>
+        //                {
+        //                    if (rect.Margin.Top + rect.Height < field.Height)
+        //                    {
+        //                        return;
+        //                    }
+        //                    else
+        //                    {
+        //                        acc -= 50;
+        //                    }
+        //                });
+        //                break;
+        //            case Key.Escape:
+        //                return;
+        //            default: break;
+        //        }
+        //    }
+
+        //    this.Dispatcher.Invoke(() => { 
+        //        rect.Margin = new Thickness(rect.Margin.Left, rect.Margin.Top + acc, rect.Margin.Right,
+        //            rect.Margin.Bottom);
+
+        //        if (rect.Margin.Top + rect.Height >= field.Height)
+        //        {
+        //            rect.Margin = new Thickness(rect.Margin.Left, field.Height - rect.Height, rect.Margin.Right,
+        //                rect.Margin.Bottom);
+        //            acc = 0;
+        //        }
+        //        else
+        //        {
+        //            acc += 10;
+        //        }
+
+        //    });
+        //    args[2].Set(acc);
+        //    Thread.Sleep(100);
+        //}));
+        //context.Push("SetBackground", new Function((stack, args) =>
+        //{
+        //    this.Dispatcher.Invoke(
+        //        () => {
+        //            args[0].Get<Panel>().Background = new SolidColorBrush(Color.FromRgb(Convert.ToByte(args[1].Get()), Convert.ToByte(args[2].Get()), Convert.ToByte(args[3].Get())));
+        //        });
+        //}));
+        //context.Push("Rect", new Function((stack, args) =>
+        //{
+        //    this.Dispatcher.Invoke(() =>
+        //    {
+        //        Rectangle rect = new Rectangle();
+        //        args[0].Set(rect);
+        //    });
+        //}));
+        //context.Push("SetRectWHRGB", new Function((stack, args) =>
+        //    {
+        //        this.Dispatcher.Invoke(() =>
+        //        {
+        //            Rectangle rect = args[0].Get<Rectangle>();
+        //            rect.Width = args[1].Get<int>();
+        //            rect.Height = args[2].Get<int>();
+        //            rect.Fill = new SolidColorBrush(Color.FromRgb(Convert.ToByte(args[3].Get()), Convert.ToByte(args[4].Get()), Convert.ToByte(args[5].Get())));
+        //        });
+        //    }));
+        //context.Push("AddToCanvas", new Function((stack, args) =>
+        //    {
+        //        this.Dispatcher.Invoke(() =>
+        //        {
+        //            Canvas canvas = args[0].Get<Canvas>();
+        //            canvas.Children.Add(args[1].Get<UIElement>());
+        //        });
+        //    }));
+        //context.Push("SetMargin", new Function((stack, args) =>
+        //{
+        //    this.Dispatcher.Invoke(() =>
+        //    {
+        //        FrameworkElement el = args[0].Get<FrameworkElement>();
+        //        el.Margin = new Thickness(args[1].Get<int>(), args[2].Get<int>(), args[3].Get<int>(), args[4].Get<int>());
+        //    });
+        //}));
+        //context.Push("SetOnClick", new Function((stack, args) =>
+        //{
+        //    Rectangle rectangle = args[0].Get<Rectangle>();
+        //    this.Dispatcher.Invoke(() =>
+        //    {
+        //        rectangle.MouseDown += (sender, eventArgs) =>
+        //        {
+        //            rectangle.Fill = new SolidColorBrush(Color.FromRgb((byte)new Random().Next(255),
+        //                (byte)new Random().Next(255), (byte)new Random().Next(255)));
+        //        };
+        //    });
+        //}));
     }
 }

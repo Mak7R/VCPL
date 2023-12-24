@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using BasicFunctions;
 using FileController;
 using GlobalRealization;
-using GlobalRealization.Memory;
 using VCPL;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
@@ -16,7 +15,7 @@ public static class Menu
     private static Function main = null;
     private static ICodeConvertor _codeConvertor = new CLiteConvertor();
 
-    private static Context baseContext = BasicContext.Get().NewContext();
+    private static VariableContext baseContext = BasicContext.Get().NewContext();
 
     static Menu()
     {
