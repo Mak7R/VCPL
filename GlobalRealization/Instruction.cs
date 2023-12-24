@@ -2,5 +2,5 @@
 
 namespace GlobalRealization;
 
-public record Instruction(ElementaryFunction Function, Pointer[] Args);
+public record Instruction(ElementaryFunction Function, IPointer[] Args);
 

@@ -11,12 +11,13 @@ public class Function
         _function = function;
     }
 
-    public Function(Instruction[] program, int size, object?[] constants)
+    public Function(Instruction[] program, int size)
     {
         _function = (stack, args) =>
         {
-            stack.Up(new object?[size], constants);
-            for (int i = 0; i < args.Length; i++) stack.Peek().Variables[i] = stack[args[i]]; 
+            stack.Up(size);
+            var current = stack.Peek();
+            for (int i = 0; i < args.Length; i++) current[i] = args[i].Get(); 
 
             for (int i = 0; i < program.Length; i++)
             {
@@ -26,14 +27,14 @@ public class Function
                 }
                 catch (Return)
                 {
-                    Pointer? returnedValue = Return.Get();
+                    IPointer? returnedValue = Return.Get();
                     if (returnedValue == null)
                     {
                         break;
                     }
                     else
                     {
-                        stack[args[args.Length - i]] = stack[returnedValue];
+                        args[args.Length - i].Set(returnedValue.Get());
                         break;
                     }
                 }

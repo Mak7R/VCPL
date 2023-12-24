@@ -3,105 +3,99 @@ using System.Collections.Generic;
 
 namespace VCPL.Compilator;
 
-public record class Constant
-{
-    public string? Name;
-    public object? Value;
-
-    public Constant(string? name, object? value)
-    {
-        Name = name;
-        Value = value;
-    }
-}
-public class Constants : List<Constant>
-{
-    public object?[] GetArray()
-    {
-        object?[] array = new object?[this.Count];
-
-        for (int i = 0; i < this.Count; i++)
-        {
-            array[i] = this[i].Value;
-        }
-
-        return array;
-    }
-}
-
 public struct ContextLevel {
     public readonly List<string> Variables;
-    public readonly Constants Constants;
+    public readonly Dictionary<string, int> Constants;
 
     public ContextLevel()
     {
         Variables = new List<string>();
-        Constants = new Constants();
+        Constants = new Dictionary<string, int>();
+    }
+
+    public bool Contains(string name)
+    {
+        return Variables.Contains(name) || Constants.ContainsKey(name);
     }
 }
 
 public class CompileStack : IndexableStack<ContextLevel>
 {
+    private readonly RuntimeStack _rtStack = new RuntimeStack();
+
+    private readonly List<object?> constants = new List<object?>() { null };
     public void AddVar(string name) { 
         for(int i = 0; i < Count; i++)
-            if (this[i].Variables.Contains(name) && this[i].Constants.Find(i => i.Name == name) != null) 
+            if (this[i].Contains(name)) 
                 throw new CompilationException("This variable already exist");
         Peek().Variables.Add(name);
     }
-    public Pointer AddConst(string? name, object? value) {
+    public IPointer AddConst(string? name, object? value) {
+        var current = Peek();
         if (name != null)
         {
-            for (int i = 0; i < Count; i++)
-                if (this[i].Variables.Contains(name) || this[i].Constants.Find(i => i.Name == name) != null)
+            for(int i = 0; i < Count; i++)
+                if (this[i].Contains(name))
                     throw new CompilationException("This variable already exist");
+            constants.Add(value);
+            current.Constants.Add(name, constants.Count - 1);
+            return new ConstantPointer(_rtStack, constants.Count - 1);
         }
-        var current = Peek();
-        current.Constants.Add(new Constant(name, value));
-        return new Pointer(MemoryType.Constant, current.Constants.Count - 1, Count - 1);
-    }
-    public Pointer PeekPtr(string name) {
-        for (int i = 0; i < Count; i++)
+        else
         {
-            for (int j = 0; j < this[i].Variables.Count; j++) { 
-                if (this[i].Variables[j] == name)
+            if (value == null) return new ConstantPointer(_rtStack, 0);
+            else
+            {
+                for(int i = 0; i < constants.Count; i++)
                 {
-                    return new Pointer(MemoryType.Variable, j, i);
+                    if (value.Equals(constants[i]))
+                    {
+                        return new ConstantPointer(_rtStack, i);
+                    }
                 }
             }
-            for(int j = 0; j < this[i].Constants.Count; j++)
-            {
-                if (this[i].Constants[j].Name == name)
+            constants.Add(value);
+            return new ConstantPointer(_rtStack, constants.Count - 1);
+        }
+    }
+    public IPointer PeekPtr(string name) {
+        for (int lvl = 0; lvl < Count; lvl++)
+        {
+            for (int pos = 0; pos < this[lvl].Variables.Count; pos++) { 
+                if (this[lvl].Variables[pos] == name)
                 {
-                    return new Pointer(MemoryType.Constant, j, i);
+                    return new VariablePointer(_rtStack, lvl, pos);
                 }
+            }
+            foreach(var constant in this[lvl].Constants)
+            {
+                if (constant.Key == name) return new ConstantPointer(_rtStack, constant.Value);
             }
         }
         throw new CompilationException("Variable was not found");
     }
     public object? PeekVal(string name) {
         for (int i = 0; i < Count; i++)
-        {
-            Constant? item = this[i].Constants.Find(i => i.Name == name);
-            if (item != null) return item.Value;
-        }
+            if (this[i].Constants.TryGetValue(name, out int ptr)) 
+                return constants[ptr];
         throw new CompilationException("Variable was not found");   
     }
     public void Up() { Push(new ContextLevel()); }
 
-    public (int size, object?[] consts) Down()
+    public int Down()
     {
-        var contextLevel = Pop();
-        return (contextLevel.Variables.Count, contextLevel.Constants.GetArray());
+        return Pop().Variables.Count;
     }
 
-    public RuntimeStack ToRuntimeStack()
+    public RuntimeStack Pack()
     {
-        RuntimeStack stack = new RuntimeStack();
+        _rtStack.Clear();
+        _rtStack.Constants = constants.ToArray();
         for(int i = 0; i < Count; i++)
         {
             ContextLevel level = this[i];
-            stack.Up(new object?[level.Variables.Count], level.Constants.GetArray());
+            _rtStack.Up(level.Variables.Count);
         }
-        return stack;
+        return _rtStack;
     }
 }

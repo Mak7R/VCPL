@@ -1,28 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GlobalRealization;
 
-public readonly struct StackLevel // ????????????????? struct or class
+public class RuntimeStack : IndexableStack<object?[]>
 {
-    public readonly object?[] Variables;
-    public readonly object?[] Constants;
-    public StackLevel(object?[] variables, object?[] constants)
+    public object?[] Constants = Array.Empty<object?>();
+    public void Up(int size)
     {
-        Variables = variables;
-        Constants = constants;
-    }
-}
-
-public class RuntimeStack : IndexableStack<StackLevel>
-{
-    public void Up(object?[] variables, object?[] constants)
-    {
-        Push(new StackLevel(variables, constants));
+        Push(new object?[size]);
     }
 
     public void Down()
@@ -30,41 +15,96 @@ public class RuntimeStack : IndexableStack<StackLevel>
         Pop();
     }
 
-    public new StackLevel Peek()
-    {
-        return base.Peek();
-    }
-
-    public object? this[Pointer ptr]
-    {
-        get {
-            switch (ptr.MemType)
-            {
-                case MemoryType.Variable:
-                    return this[ptr.Level].Variables[ptr.Position];
-                case MemoryType.Constant:
-                    return this[ptr.Level].Constants[ptr.Position];
-                default:
-                    throw new RuntimeException("Undefined memory type");
-            }
+    public object? this[int level, int position] 
+    { 
+        get
+        {
+            return this[level][position];
         }
         set
         {
-            if (ptr.MemType == MemoryType.Constant) throw new RuntimeException("Cannot to change constant");
-            switch (ptr.MemType)
-            {
-                case MemoryType.Variable:
-                    this[ptr.Level].Variables[ptr.Position] = value;
-                    return;
-                default:
-                    throw new RuntimeException("Undefined memory type");
-            }
+            this[level][position] = value;
         }
     }
 
-    public T Get<T>(Pointer ptr) {
-        object? value = this[ptr];
-        if (value is T tValue) return tValue;
-        else throw new RuntimeException($"Imposible to cast {value?.GetType().ToString() ?? "null"} to {typeof(T)}");
+    public new void Clear()
+    {
+        Constants = Array.Empty<object?>();
+        base.Clear();
+    }
+}
+
+
+public class RuntimeStack2
+{
+    private object?[][] _array;
+    private int _size;
+
+    private const int _defaultCapacity = 10;
+
+    public RuntimeStack2()
+    {
+        _array = new object?[_defaultCapacity][];
+        _size = 0;
+    }
+
+    protected object?[] this[int index]
+    {
+        get { return _array[index]; }
+    }
+    public object? this[int level, int position]
+    {
+        get
+        {
+            return this[level][position];
+        }
+        set
+        {
+            this[level][position] = value;
+        }
+    }
+
+    public int Count { get { return _size; } }
+    public object? Peek()
+    {
+        if (_size == 0)
+            throw new InvalidOperationException("Stack is empety");
+
+        return _array[_size - 1];
+    }
+    protected object?[] Pop()
+    {
+        if (_size == 0)
+            throw new InvalidOperationException("Stack is empety");
+
+        object?[] obj = _array[--_size];
+        _array[_size] = default!;     // Free memory quicker. ?????????? think about caching
+        return obj;
+    }
+    protected void Push(object?[] obj)
+    {
+        if (_size == _array.Length)
+        {
+            object?[][] newArray = new object?[_array.Length + _defaultCapacity][];
+            Array.Copy(_array, newArray, _size);
+            _array = newArray;
+        }
+        _array[_size++] = obj;
+    }
+    public void Clear()
+    {
+        Constants = Array.Empty<object?>();
+        _array = new object?[_defaultCapacity][];
+    }
+
+    public object?[] Constants = Array.Empty<object?>();
+    public void Up(int size)
+    {
+        Push(new object?[size]);
+    }
+
+    public void Down()
+    {
+        Pop();
     }
 }

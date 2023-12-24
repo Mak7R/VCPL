@@ -4,12 +4,12 @@
     {
         static void Main(string[] args)
         {
-            object objA = 10;
-            object objB = objA;
+            object a = (int)1;
+            object b = (int)1;
 
-            objB = 21;
+            object c = (char)1;
 
-            Console.WriteLine(objA);
+            Console.WriteLine(b == a);
         }
     }
 }

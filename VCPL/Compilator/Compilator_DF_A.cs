@@ -21,9 +21,13 @@ public class Compilator_DF_A : ICompilator
 {
     private AssemblyLoadContext _compilatorAssemblyLoadContext = new AssemblyLoadContext(null, isCollectible: true);
 
-    public void ReloadAssemblyLoadContext() { 
+    private void ReloadAssemblyLoadContext() { 
         _compilatorAssemblyLoadContext.Unload();
         _compilatorAssemblyLoadContext = new AssemblyLoadContext(null, isCollectible: true);
+    }
+
+    public void CompilateAllIncludes(List<ICodeLine> codeLines, CompileStack stack) { 
+        ReloadAssemblyLoadContext();
     }
 
     public static class Directives
@@ -71,15 +75,13 @@ public class Compilator_DF_A : ICompilator
             CompilateDirectives(codeLines, stack);
             CompilateCodeLines(codeLines, Program, stack);
 
-            (int size, var consts) = stack.Down();
-            return new Function(Program.ToArray(), size, consts);
+            return new Function(Program.ToArray(), stack.Down());
         }catch
         {
             stack.Down(); // can to write stack trace
             throw;
         }
     }
-
     private void CompilateDirectives(List<ICodeLine> codeLines, CompileStack stack)
     {
         List<ICodeLine> compiledCodeLines = new List<ICodeLine>();
@@ -174,11 +176,11 @@ public class Compilator_DF_A : ICompilator
             {
                 if (function.Get() is ElementaryFunction elementaryFunction)
                 {
-                    Pointer[] args;
-                    if (codeLine.Args == null || codeLine.Args.Count == 0) args = Array.Empty<Pointer>();
+                    IPointer[] args;
+                    if (codeLine.Args == null || codeLine.Args.Count == 0) args = Array.Empty<IPointer>();
                     else
                     {
-                        args = new Pointer[codeLine.Args.Count];
+                        args = new IPointer[codeLine.Args.Count];
                         for (int i = 0; i < codeLine.Args.Count; i++)
                         {
                             if (BasicString.isVariable(codeLine.Args[i]))

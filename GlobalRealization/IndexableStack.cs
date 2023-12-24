@@ -20,14 +20,8 @@ public abstract class IndexableStack<T>
         get { return _array[index]; }
     }
 
-    protected int Count
-    {
-        get
-        {
-            return _size;
-        }
-    }
-    protected T Peek()
+    protected int Count { get { return _size; } }
+    public T Peek()
     {
         if (_size == 0)
             throw new InvalidOperationException("Stack is empety");
@@ -40,7 +34,7 @@ public abstract class IndexableStack<T>
             throw new InvalidOperationException("Stack is empety");
 
         T obj = _array[--_size];
-        _array[_size] = default!;     // Free memory quicker.
+        _array[_size] = default!;     // Free memory quicker. ?????????? think about caching
         return obj;
     }
     protected void Push(T obj)
@@ -53,4 +47,12 @@ public abstract class IndexableStack<T>
         }
         _array[_size++] = obj;
     }
+    protected void Clear() // can be better
+    {
+        while(_size > 0)
+        {
+            Pop();
+        }
+    }
 }
+

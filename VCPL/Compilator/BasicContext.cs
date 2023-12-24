@@ -23,7 +23,7 @@ public static class BasicContext
         basicContext.AddConst("", new Function((stack, args) =>
         {
             if (args.Length != 2) throw new RuntimeException("Function '=' must to get 2 arguments");
-            stack[args[1]] = stack[args[0]];
+            args[1].Set(args[0].Get());
         }));
 
         basicContext.AddConst("return", new Function((stack, args) =>
@@ -43,98 +43,97 @@ public static class BasicContext
         basicContext.AddConst("+", new Function((stack, args) =>
         {
             if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
-            var arg1 = stack[args[0]];
-            var arg2 = stack[args[1]];
-            if (arg1 != null && arg2 != null) stack[args[2]] = BasicMath.Plus(arg1, arg2);
+            var arg1 = args[0].Get();
+            var arg2 = args[1].Get();
+            if (arg1 != null && arg2 != null) args[2].Set(BasicMath.Plus(arg1, arg2));
         }));
 
         basicContext.AddConst("-", new Function((stack, args) =>
         {
             if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
-            var arg1 = stack[args[0]];
-            var arg2 = stack[args[1]];
-            if (arg1 != null && arg2 != null) stack[args[2]] = BasicMath.Minus(arg1, arg2);
+            var arg1 = args[0].Get();
+            var arg2 = args[1].Get();
+            if (arg1 != null && arg2 != null) args[2].Set(BasicMath.Minus(arg1, arg2));
         }));
 
         basicContext.AddConst("*", new Function((stack, args) =>
         {
             if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
-            var arg1 = stack[args[0]];
-            var arg2 = stack[args[1]];
-            if (arg1 != null && arg2 != null) stack[args[2]] = BasicMath.Multiply(arg1, arg2);
+            var arg1 = args[0].Get();
+            var arg2 = args[1].Get();
+            if (arg1 != null && arg2 != null) args[2].Set(BasicMath.Multiply(arg1, arg2));
         }));
 
         basicContext.AddConst("/", new Function((stack, args) =>
         {
             if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
-            var arg1 = stack[args[0]];
-            var arg2 = stack[args[1]];
-            if (arg1 != null && arg2 != null) stack[args[2]] = BasicMath.Divide(arg1, arg2);
+            var arg1 = args[0].Get();
+            var arg2 = args[1].Get();
+            if (arg1 != null && arg2 != null) args[2].Set(BasicMath.Divide(arg1, arg2));
         }));
 
         basicContext.AddConst("equal", new Function((stack, args) =>
         {
             if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
-            var arg1 = stack[args[0]];
-            var arg2 = stack[args[1]];
-            stack[args[2]] = arg1 == null ? arg2 == null : arg1.Equals(arg2);
+            var arg1 = args[0].Get();
+            var arg2 = args[1].Get();
+            args[2].Set(arg1 == null ? arg2 == null : arg1.Equals(arg2));
         }));
 
         basicContext.AddConst("not", new Function((stack, args) =>
         {
             if (args.Length != 1) throw new RuntimeException("Incorect arguments count");
-            bool arg = stack.Get<bool>(args[0]);
-            stack[args[0]] = !arg;
+            args[0].Set(!args[0].Get<bool>());
         }));
 
         basicContext.AddConst(">", new Function((stack, args) =>
         {
             if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
 
-            stack[args[2]] = stack.Get<IComparable>(args[0]).CompareTo(stack[args[1]]) == 1;
+            args[2].Set(args[0].Get<IComparable>().CompareTo(args[1].Get()) == 1);
         }));
 
         basicContext.AddConst(">=", new Function((stack, args) =>
         {
             if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
 
-            stack[args[2]] = stack.Get<IComparable>(args[0]).CompareTo(stack[args[1]]) != -1;
+            args[2].Set(args[0].Get<IComparable>().CompareTo(args[1].Get()) != -1);
         }));
 
         basicContext.AddConst("<=", new Function((stack, args) =>
         {
             if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
 
-            stack[args[2]] = stack.Get<IComparable>(args[0]).CompareTo(stack[args[1]]) != 1;
+            args[2].Set(args[0].Get<IComparable>().CompareTo(args[1].Get()) != 1);
         }));
 
         basicContext.AddConst("<", new Function((stack, args) =>
         {
             if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
 
-            stack[args[2]] = stack.Get<IComparable>(args[0]).CompareTo(stack[args[1]]) == -1;
+            args[2].Set(args[0].Get<IComparable>().CompareTo(args[1].Get()) == -1);
         }));
 
         basicContext.AddConst("if", new Function((stack, args) =>
         {
             if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
 
-            if (stack.Get<bool>(args[0]))
-                stack.Get<Function>(args[1]).Get().Invoke(stack, Array.Empty<Pointer>());
-            else stack.Get<Function>(args[2]).Get().Invoke(stack, Array.Empty<Pointer>());
+            if (args[0].Get<bool>())
+                args[1].Get<Function>().Get().Invoke(stack, Array.Empty<IPointer>());
+            else args[2].Get<Function>().Get().Invoke(stack, Array.Empty<IPointer>());
         }));
 
         basicContext.AddConst("while", new Function((stack, args) =>
         {
             if (args.Length != 2) throw new RuntimeException("Incorect arguments count");
 
-            while (stack.Get<bool>(args[0])) stack.Get<Function>(args[1]).Get().Invoke(stack, Array.Empty<Pointer>());
+            while (args[0].Get<bool>()) args[1].Get<Function>().Get().Invoke(stack, Array.Empty<IPointer>());
         }));
 
         basicContext.AddConst("Sleep", new Function((stack, args) =>
         {
             if (args.Length != 1) throw new RuntimeException("Incorrect args count");
-            Thread.Sleep(stack.Get<int>(args[0]));
+            Thread.Sleep(args[0].Get<int>());
         }));
 
         //basicContext.AddConst("GetFromArray", new Function((stack, args) =>
@@ -167,23 +166,23 @@ public static class BasicContext
         {
             if (args.Length != 1) throw new RuntimeException("Incorrect args count");
             Stopwatch stopwatch = new Stopwatch();
-            stack[args[0]] = stopwatch;
+            args[0].Set(stopwatch);
 
         }));
 
         basicContext.AddConst("StopwatchStart", new Function((stack, args) =>
         {
             if (args.Length != 1) throw new RuntimeException("Incorrect args count");
-            Stopwatch stopwatch = stack.Get<Stopwatch>(args[0]);
+            Stopwatch stopwatch = args[0].Get<Stopwatch>();
             stopwatch.Start();
         }));
 
         basicContext.AddConst("GetDeltaTime", new Function((stack, args) =>
         {
             if (args.Length != 2) throw new RuntimeException("Incorrect args count");
-            Stopwatch stopwatch = stack.Get<Stopwatch>(args[0]);
+            Stopwatch stopwatch = args[0].Get<Stopwatch>();
             stopwatch.Stop();
-            stack[args[1]] = stopwatch.ElapsedMilliseconds;
+            args[1].Set(stopwatch.ElapsedMilliseconds);
         }));
 
         basicContext.Up();

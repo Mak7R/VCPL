@@ -4,24 +4,56 @@ using System.Dynamic;
 
 namespace GlobalRealization;
 
-public enum MemoryType
+public interface IPointer
 {
-    Constant,
-    Variable
+    public object? Get();
+    public void Set(object? value);
+    public T Get<T>()
+    {
+        var obj = Get();
+        if (obj is T tObj) return tObj;
+        else throw new RuntimeException($"Imposible to cast from {obj?.GetType().ToString() ?? "null"} to {typeof(T)}");
+    }
 }
 
-public record Pointer
+public struct ConstantPointer : IPointer
 {
-    public MemoryType MemType;
-    public int Position;
-    public int Level;
+    private readonly RuntimeStack _stack;
+    private readonly int _position;
 
-    public Pointer(MemoryType type, int position, int level){
-        MemType = type;
-        Position = position;
-        Level = level;
+    public ConstantPointer(RuntimeStack stack, int position)
+    {
+        _stack = stack;
+        this._position = position;
     }
 
-    private static readonly Pointer nullptr = new Pointer(MemoryType.Constant, -1, -1);
-    public static Pointer NULL { get => nullptr; }
+    public object? Get() { return _stack.Constants[_position]; }
+    public void Set(object? value)
+    {
+        throw new RuntimeException("Cannot to change constant");
+    }
+}
+
+public struct VariablePointer : IPointer
+{
+    private readonly RuntimeStack _stack;
+    private readonly int _level;
+    private readonly int _position;
+
+    public VariablePointer(RuntimeStack stack, int level, int position)
+    {
+        _stack = stack;
+        _level = level;
+        _position = position;
+    }
+
+    public object? Get()
+    {
+        return _stack[_level, _position];
+    }
+
+    public void Set(object? value)
+    {
+        _stack[_level, _position] = value;
+    }
 }

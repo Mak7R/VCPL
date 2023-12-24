@@ -128,7 +128,7 @@ namespace VCPLBrowser
             if (isRun) program.Interrupt();
             else
             {
-                /// compilation should goes in new thread
+                /// compilation should goes in new thread ???
 
                 List<ICodeLine> codeLines = new List<ICodeLine>();
                 try
@@ -141,7 +141,7 @@ namespace VCPLBrowser
                 }
                 catch(SyntaxException se)
                 {
-                    this.Dispatcher.Invoke(() =>
+                    Dispatcher.Invoke(() =>
                     {
                         MessageBox.Show(this, se.Message, "SyntaxException", MessageBoxButton.OK,
                             MessageBoxImage.Error);
@@ -153,12 +153,12 @@ namespace VCPLBrowser
                 
                 try
                 {
-                    compilator.ReloadAssemblyLoadContext();
+                    compilator.CompilateAllIncludes(codeLines, context); // should to change to CompilateMain
                     main = compilator.Compilate(codeLines, context, Array.Empty<string>()); // can put args here
                 }
                 catch (CompilationException ce)
                 {
-                    this.Dispatcher.Invoke(() =>
+                    Dispatcher.Invoke(() =>
                     {
                         MessageBox.Show(this, ce.Message, "CompilationException", MessageBoxButton.OK, MessageBoxImage.Error);
                     });
@@ -173,11 +173,13 @@ namespace VCPLBrowser
                     {
                         try
                         {
-                            main.Get().Invoke(context.ToRuntimeStack(), Array.Empty<Pointer>()); // think about args
+                            var rtStack = context.Pack();
+                            main.Get().Invoke(rtStack, Array.Empty<IPointer>()); // think about args
+                            rtStack.Clear();
                         }
                         catch (RuntimeException re)
                         {
-                            this.Dispatcher.Invoke(() =>
+                            Dispatcher.Invoke(() =>
                             {
                                 MessageBox.Show(this, re.Message, "RuntimeException", MessageBoxButton.OK,
                                     MessageBoxImage.Error);
