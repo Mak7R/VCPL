@@ -48,10 +48,18 @@ public static class CustomLibraryConnector
         {
             try
             {
-                lib = loadContext.LoadFromAssemblyPath(LibrariesDomain + assemblyName + FileFormat);
+                lib = loadContext.LoadFromAssemblyPath(assemblyName + FileFormat);
             }
             catch
             {
+                try
+                {
+                    lib = loadContext.LoadFromAssemblyPath(LibrariesDomain + assemblyName + FileFormat);
+                }
+                catch
+                {
+                    throw new CompilationException("Cannot to load a library");
+                }
                 throw new CompilationException("Cannot to load a library");
             }
 
@@ -62,8 +70,10 @@ public static class CustomLibraryConnector
         {
             lib = loadContext.LoadFromAssemblyName(new AssemblyName(assemblyName));
         }
-        
-        Type Library = lib.GetType(assemblyName + ".Library")
+
+        var pathPoints = assemblyName.Split("\\");
+        string shortAsmName = pathPoints[pathPoints.Length - 1];
+        Type Library = lib.GetType(shortAsmName + ".Library")
                                ?? throw new CompilationException(
                                    "In assembly was not found class Library");
 
@@ -72,9 +82,9 @@ public static class CustomLibraryConnector
         object? value = Items.GetValue(null);
         if (value is ICollection<(string? name, object? value)> items)
         {
-            stack.AddConst(namespaceName ?? assemblyName, $"Namespace: {namespaceName ?? assemblyName}");
+            stack.AddConst(namespaceName ?? shortAsmName, $"Namespace: {namespaceName ?? shortAsmName}");
             foreach (var item in items)
-                stack.AddConst($"{namespaceName ?? assemblyName}.{item.name}", item.value);
+                stack.AddConst($"{namespaceName ?? shortAsmName}.{item.name}", item.value);
             stack.Up();
         }
         else throw new CompilationException($"Cannot convert {value?.GetType().ToString() ?? "null"} to {typeof(ICollection<(string?, object?)>)}");
