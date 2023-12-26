@@ -1,5 +1,6 @@
 ﻿using GlobalRealization;
 using System.Collections.Generic;
+using VCPL.Compilator.Pointers;
 
 namespace VCPL.Compilator;
 

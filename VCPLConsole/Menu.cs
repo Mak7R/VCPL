@@ -14,27 +14,28 @@ public static class Menu
     public static List<string> code = new List<string>(){""};
     private static Function main = null;
     private static ICodeConvertor _codeConvertor = new CLiteConvertor();
+    private static CompileStack cStack;
 
-    private static VariableContext baseContext = BasicContext.Get().NewContext();
-
-    static Menu()
+    private static CompileStack GetBasicStack()
     {
-        baseContext.Push("print", new Function((args) =>
+        CompileStack basicStack = BasicStack.Get();
+        basicStack.AddConst("print", new Function((stack, args) =>
         {
             foreach (var arg in args) Console.Write(arg.Get()?.ToString());
         }));
-        baseContext.Push("read", new Function((args) =>
+        basicStack.AddConst("read", new Function((stack, args) =>
         {
             string? value = Console.ReadLine();
             if (args.Length == 0) return;
             else if (args.Length == 1) args[0].Set(value);
             else throw new RuntimeException("Incorrect arguments count");
         }));
-
-        baseContext.Push("endl", new Function((args) =>
+        basicStack.AddConst("endl", new Function((stack, args) =>
         {
             Console.WriteLine();
         }));
+        basicStack.Up();
+        return basicStack;
     }
 
     public static void Draw()
@@ -110,7 +111,7 @@ public static class Menu
         
         
         Console.Clear();
-        List<ICodeLine> codeLines = new List<ICodeLine>();
+        List<CodeLine> codeLines = new List<CodeLine>();
         try
         {
             foreach (var line in code)
@@ -127,9 +128,13 @@ public static class Menu
             ReadOption();
         }
 
+        ICompilator compilator = new Compilator_IIDL();
+        cStack = GetBasicStack();
         try
         {
-            main = new Compilator_DF_A().Compilate(codeLines, baseContext);
+            compilator.ImportAll(codeLines, null);
+            compilator.IncludeAll(codeLines, cStack); // should to change to CompilateMain
+            main = compilator.Compilate(codeLines, cStack, Array.Empty<string>()); // can put args here
         }
         catch (CompilationException ce)
         {
@@ -139,7 +144,7 @@ public static class Menu
             ReadOption();
         }
         
-        Console.WriteLine("Compilation was successfule");
+        Console.WriteLine("Compilation was successful");
 
         while (true)
         {
@@ -173,7 +178,7 @@ public static class Menu
     {
         try
         {
-            main.Invoke(Array.Empty<Pointer>());
+            main.Get().Invoke(cStack.Pack(), Array.Empty<IPointer>());
         }
         catch (RuntimeException re)
         {

@@ -86,16 +86,13 @@ public partial class MainWindow
 {
     private bool isEnter = false;
     private string? Input;
-    private void Init()
-    {
-        CompilerCodeConvertor.AddCodeConvertor("CLite", _codeConvertor);
-        CompilerCodeConvertor.SplitCode = (string code) => { return code.Split("\r\n"); }; 
 
-        Page.Height = this.Height - 65;
-        Page.Width = this.Width;
-        
-        context.AddConst("Page", Page);
-        context.AddConst("Label", new Function((stack, args) =>
+    private CompileStack CreateBasicStack()
+    {
+        CompileStack basicStack = BasicStack.Get();
+
+        basicStack.AddConst("Page", Page);
+        basicStack.AddConst("Label", new Function((stack, args) =>
         {
             this.Dispatcher.Invoke(() =>
             {
@@ -111,14 +108,14 @@ public partial class MainWindow
                 args[2].Set(label);
             });
         }));
-        context.AddConst("Write", new Function((stack, args) =>
+        basicStack.AddConst("Write", new Function((stack, args) =>
         {
             this.Dispatcher.Invoke(() => {
                 Label console = args[0].Get<Label>();
                 console.Content = (string)console.Content + args[1].Get()?.ToString();
             });
         }));
-        context.AddConst("WriteLine", new Function((stack, args) =>
+        basicStack.AddConst("WriteLine", new Function((stack, args) =>
         {
             this.Dispatcher.Invoke(() => {
                 Label console = args[0].Get<Label>();
@@ -126,7 +123,7 @@ public partial class MainWindow
             });
         }));
 
-        //context.Push("ReadLine", new Function(((stack, args) =>
+        //basicStack.Push("ReadLine", new Function(((stack, args) =>
         //{
         //    Label console = args[0].Get<Label>();
         //    this.Input = "";
@@ -158,7 +155,7 @@ public partial class MainWindow
         //    if (args.Length == 2) args[1].Set(Input);
         //})));
 
-        //context.Push("Move", new Function((stack, args) =>
+        //basicStack.Push("Move", new Function((stack, args) =>
         //{
         //    Canvas field = args[0].Get<Canvas>();
         //    Rectangle rect = args[1].Get<Rectangle>();
@@ -225,14 +222,14 @@ public partial class MainWindow
         //    args[2].Set(acc);
         //    Thread.Sleep(100);
         //}));
-        //context.Push("SetBackground", new Function((stack, args) =>
+        //basicStack.Push("SetBackground", new Function((stack, args) =>
         //{
         //    this.Dispatcher.Invoke(
         //        () => {
         //            args[0].Get<Panel>().Background = new SolidColorBrush(Color.FromRgb(Convert.ToByte(args[1].Get()), Convert.ToByte(args[2].Get()), Convert.ToByte(args[3].Get())));
         //        });
         //}));
-        //context.Push("Rect", new Function((stack, args) =>
+        //basicStack.Push("Rect", new Function((stack, args) =>
         //{
         //    this.Dispatcher.Invoke(() =>
         //    {
@@ -240,7 +237,7 @@ public partial class MainWindow
         //        args[0].Set(rect);
         //    });
         //}));
-        //context.Push("SetRectWHRGB", new Function((stack, args) =>
+        //basicStack.Push("SetRectWHRGB", new Function((stack, args) =>
         //    {
         //        this.Dispatcher.Invoke(() =>
         //        {
@@ -250,7 +247,7 @@ public partial class MainWindow
         //            rect.Fill = new SolidColorBrush(Color.FromRgb(Convert.ToByte(args[3].Get()), Convert.ToByte(args[4].Get()), Convert.ToByte(args[5].Get())));
         //        });
         //    }));
-        //context.Push("AddToCanvas", new Function((stack, args) =>
+        //basicStack.Push("AddToCanvas", new Function((stack, args) =>
         //    {
         //        this.Dispatcher.Invoke(() =>
         //        {
@@ -258,7 +255,7 @@ public partial class MainWindow
         //            canvas.Children.Add(args[1].Get<UIElement>());
         //        });
         //    }));
-        //context.Push("SetMargin", new Function((stack, args) =>
+        //basicStack.Push("SetMargin", new Function((stack, args) =>
         //{
         //    this.Dispatcher.Invoke(() =>
         //    {
@@ -266,7 +263,7 @@ public partial class MainWindow
         //        el.Margin = new Thickness(args[1].Get<int>(), args[2].Get<int>(), args[3].Get<int>(), args[4].Get<int>());
         //    });
         //}));
-        //context.Push("SetOnClick", new Function((stack, args) =>
+        //basicStack.Push("SetOnClick", new Function((stack, args) =>
         //{
         //    Rectangle rectangle = args[0].Get<Rectangle>();
         //    this.Dispatcher.Invoke(() =>
@@ -278,5 +275,16 @@ public partial class MainWindow
         //        };
         //    });
         //}));
+        basicStack.Up();
+        return basicStack;
+    }
+
+    private void Init()
+    {
+        CompilerCodeConvertor.AddCodeConvertor("CLite", _codeConvertor);
+        CompilerCodeConvertor.SplitCode = (string code) => { return code.Split("\r\n"); }; 
+
+        Page.Height = this.Height - 65;
+        Page.Width = this.Width;
     }
 }

@@ -1,4 +1,6 @@
-﻿Syntax: CLite
+﻿!!!!! OUTDATED !!!!!
+
+Syntax: CLite
 
 y = f(x1, ...,xn)
 f(x1, ..., xn)
@@ -12,7 +14,6 @@ false => set true to variable
 null => set null to variable
 
 #init => creates new place in stack
-#import => imports dll with context
 #define => creates new custom function
 #end => end of custom function
 

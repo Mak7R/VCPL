@@ -11,12 +11,11 @@ using GlobalRealization;
 
 namespace VCPL.Compilator;
 
-public static class BasicContext
+public static class BasicStack
 {
-    private static readonly CompileStack basicContext = new CompileStack();
-
-    static BasicContext()
+    public static CompileStack Get()
     {
+        CompileStack basicContext = new CompileStack();
         basicContext.Up();
         basicContext.AddVar("temp");
 
@@ -167,7 +166,6 @@ public static class BasicContext
             if (args.Length != 1) throw new RuntimeException("Incorrect args count");
             Stopwatch stopwatch = new Stopwatch();
             args[0].Set(stopwatch);
-
         }));
 
         basicContext.AddConst("StopwatchStart", new Function((stack, args) =>
@@ -186,10 +184,6 @@ public static class BasicContext
         }));
 
         basicContext.Up();
-    }
-
-    public static CompileStack Get()
-    {
         return basicContext;
     }
 }

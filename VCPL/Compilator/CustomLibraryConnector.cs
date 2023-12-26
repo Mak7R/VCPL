@@ -41,9 +41,8 @@ public static class CustomLibraryConnector
         AssemblyName[] dependencies = dependent.GetReferencedAssemblies();
         foreach (var dep in dependencies) LoadDependencies(loadContext, dep);
     }
-    public static void Import(CompileStack stack, AssemblyLoadContext loadContext, string assemblyName)
+    public static void Include(CompileStack stack, AssemblyLoadContext loadContext, string assemblyName, string? namespaceName = null)
     {
-        throw new NotImplementedException();
         Assembly lib;
         if (!ContainsAssembly(loadContext, assemblyName))
         {
@@ -64,20 +63,21 @@ public static class CustomLibraryConnector
             lib = loadContext.LoadFromAssemblyName(new AssemblyName(assemblyName));
         }
         
-        Type MethodContainer = lib.GetType(assemblyName + ".CustomContext")
+        Type Library = lib.GetType(assemblyName + ".Library")
                                ?? throw new CompilationException(
-                                   "In assembly was not found class CustomContext");
+                                   "In assembly was not found class Library");
 
-        FieldInfo Context = MethodContainer.GetField("Context", BindingFlags.Public | BindingFlags.Static)
-                            ?? throw new CompilationException("Field Context was not found");
-
-        //if (Context.GetValue(null) is List<(string? name, MemoryObject value)> objects)
-        //{
-        //    context = context.NewContext();
-        //    foreach (var item in objects)
-        //        context.Push(item.name, item.value);
-        //}
-        //else throw new CompilationException($"Cannot convert {Context.GetType()} to {typeof(List<(string?, MemoryObject)>)}");
+        FieldInfo Items = Library.GetField("Items", BindingFlags.Public | BindingFlags.Static)
+                            ?? throw new CompilationException("Field Items was not found");
+        object? value = Items.GetValue(null);
+        if (value is ICollection<(string? name, object? value)> items)
+        {
+            stack.AddConst(namespaceName ?? assemblyName, $"Namespace: {namespaceName ?? assemblyName}");
+            foreach (var item in items)
+                stack.AddConst($"{namespaceName ?? assemblyName}.{item.name}", item.value);
+            stack.Up();
+        }
+        else throw new CompilationException($"Cannot convert {value?.GetType().ToString() ?? "null"} to {typeof(ICollection<(string?, object?)>)}");
     }
 
 }

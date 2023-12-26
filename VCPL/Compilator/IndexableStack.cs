@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GlobalRealization;
+namespace VCPL.Compilator;
 
 public abstract class IndexableStack<T>
 {

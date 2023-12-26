@@ -12,6 +12,7 @@ using FileController;
 using VCPL;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
+using System.Collections;
 
 namespace VCPLBrowser
 {
@@ -23,7 +24,6 @@ namespace VCPLBrowser
         private string FilePath = "";
         private Function? main;
         private Thread? program;
-        private CompileStack context = BasicContext.Get();
         private bool runThread = false;
         private ICodeConvertor _codeConvertor = new CLiteConvertor();
         
@@ -130,7 +130,7 @@ namespace VCPLBrowser
             {
                 /// compilation should goes in new thread ???
 
-                List<ICodeLine> codeLines = new List<ICodeLine>();
+                List<CodeLine> codeLines = new List<CodeLine>();
                 try
                 {
                     foreach (string line in CodeInput.Text.Split("\r\n"))
@@ -149,12 +149,13 @@ namespace VCPLBrowser
                     return;
                 }
 
-                ICompilator compilator = new Compilator_DF_A();
-                
+                ICompilator compilator = new Compilator_IIDL();
+                CompileStack cStack = CreateBasicStack();
                 try
                 {
-                    compilator.CompilateAllIncludes(codeLines, context); // should to change to CompilateMain
-                    main = compilator.Compilate(codeLines, context, Array.Empty<string>()); // can put args here
+                    compilator.ImportAll(codeLines, null);
+                    compilator.IncludeAll(codeLines, cStack);// should to change to CompilateMain
+                    main = compilator.Compilate(codeLines, cStack, Array.Empty<string>()); // can put args here
                 }
                 catch (CompilationException ce)
                 {
@@ -173,7 +174,7 @@ namespace VCPLBrowser
                     {
                         try
                         {
-                            var rtStack = context.Pack();
+                            var rtStack = cStack.Pack();
                             GC.Collect();
                             GC.WaitForPendingFinalizers();
                             main.Get().Invoke(rtStack, Array.Empty<IPointer>()); // think about args

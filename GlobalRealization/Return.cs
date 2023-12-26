@@ -9,7 +9,7 @@ namespace GlobalRealization
     /// <summary>
     /// Realize a return call
     /// </summary>
-    public class Return : Exception
+    public sealed class Return : Exception
     {
         private static IPointer? _returnedArg;
 

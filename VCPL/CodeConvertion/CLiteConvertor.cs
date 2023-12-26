@@ -14,7 +14,7 @@ namespace VCPL.CodeConvertion
         /// <param name="line">String line which should be converted to CodeLine</param>
         /// <exception cref="SyntaxException">If is any error with line parsing it can throw new SyntaxException</exception>
         /// <returns>New CodeLine which was generetad from line</returns>
-        public ICodeLine Convert(string line)
+        public CodeLine Convert(string line)
         {
             string FunctionName = "";
             string? ReturnData;

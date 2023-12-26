@@ -3,20 +3,20 @@ using VCPL.CodeConvertion;
 
 namespace VCPL.CodeConvertion;
 
-public struct CodeLine : ICodeLine
+public class CodeLine
 {
     /// <summary>
     /// Name of the function
     /// </summary>
-    public string FunctionName { get; init; }
+    public string FunctionName { get; set; }
     /// <summary>
     /// List of arguments
     /// </summary>
-    public List<string> Args { get; init; }
+    public List<string> Args { get; set; }
 
     public CodeLine(string functionName, List<string> args)
     {
-        this.FunctionName = functionName;
-        this.Args = args;
+        FunctionName = functionName;
+        Args = args;
     }
 }

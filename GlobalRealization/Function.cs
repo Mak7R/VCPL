@@ -31,7 +31,7 @@ public class Function
                     }
                     else
                     {
-                        args[args.Length - i].Set(returnedValue.Get());
+                        args[args.Length - 1].Set(returnedValue.Get());
                         break;
                     }
                 }

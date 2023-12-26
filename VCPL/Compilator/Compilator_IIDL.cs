@@ -2,22 +2,19 @@
 using GlobalRealization;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
-using System.Text;
-using System.Threading.Tasks;
 using VCPL.CodeConvertion;
+
 
 namespace VCPL.Compilator;
 
 /// <summary>
-/// Compilator Directives First version A
+/// Compilator Import Include Directives Lines
 /// </summary>
-public class Compilator_DF_A : ICompilator
+public class Compilator_IIDL : ICompilator
 {
     private AssemblyLoadContext _compilatorAssemblyLoadContext = new AssemblyLoadContext(null, isCollectible: true);
 
@@ -26,14 +23,117 @@ public class Compilator_DF_A : ICompilator
         _compilatorAssemblyLoadContext = new AssemblyLoadContext(null, isCollectible: true);
     }
 
-    public void CompilateAllIncludes(List<ICodeLine> codeLines, CompileStack stack) { 
+    private List<CodeLine> Import(string fileName, string syntaxName, string namespaceName)
+    {
+        try
+        {
+            using StreamReader sr = new StreamReader(fileName + FileFormat);
+            string code = sr.ReadToEnd();
+            var importCode = CompilerCodeConvertor.Convert(code, syntaxName);
+            List<string> currentNames = new List<string>();
+            foreach (var line in importCode) { 
+                if (line.FunctionName == Directives.Init)
+                {
+                    currentNames.Add(line.Args[0]);
+                }
+                else if (line.FunctionName == Directives.Define)
+                {
+                    foreach (var arg in line.Args) currentNames.Add(arg);
+                }
+            }
+            foreach (var line in importCode)
+            {
+                if (currentNames.Contains(line.FunctionName))
+                {
+                    line.FunctionName = $"{namespaceName}.{line.FunctionName}";
+                }
+                for(int i = 0; i < line.Args.Count; i++)
+                {
+                    if (currentNames.Contains(line.Args[i]))
+                    {
+                        line.Args[i] = $"{namespaceName}.{line.Args[i]}";
+                    }
+                }
+            }
+            return importCode;
+        }
+        catch
+        {
+            throw new CompilationException("Lib import Error");
+        }
+    }
+
+    private const string FileFormat = ".vcpl";
+    public void ImportAll(List<CodeLine> codeLines, List<string>? importedLibs = null)
+    {
+        importedLibs ??= new List<string>();
+        for (int i = 0; i < codeLines.Count; )
+        {
+            var codeLine = codeLines[i];
+            if (codeLine.FunctionName == Directives.Import)
+            {
+                codeLines.RemoveAt(i);
+                if (codeLine.Args.Count < 1) throw new CompilationException("Incorrect args count");
+                if (!importedLibs.Contains(codeLine.Args[0])) // can be diferent name but one file // will fixed with enviriment update
+                {
+                    importedLibs.Add(codeLine.Args[0]);
+                    List<CodeLine> importCode;
+                    if (codeLine.Args.Count == 2) 
+                    {
+                        importCode = this.Import(codeLine.Args[0], codeLine.Args[1], codeLine.Args[0]);
+                    }
+                    else if (codeLine.Args.Count == 3)
+                    {
+                        importCode = this.Import(codeLine.Args[0], codeLine.Args[1], codeLine.Args[2]);
+                    }
+                    else
+                    {
+                        throw new CompilationException("Incorrect args count");
+                    }
+                    ImportAll(importCode, importedLibs);
+                    codeLines.InsertRange(i, importCode);
+                    i += importCode.Count;
+                }
+            }
+            else
+            {
+                i++;
+            }
+        }
+    }
+
+    public void IncludeAll(List<CodeLine> codeLines, CompileStack stack)
+    {
         ReloadAssemblyLoadContext();
+        List<CodeLine> includes = new List<CodeLine>();
+        for (int i = 0; i < codeLines.Count; i++)
+        {
+            if (codeLines[i].FunctionName == Directives.Include)
+            {
+                includes.Add(codeLines[i]);
+            }
+        }
+        List<CodeLine> included = new List<CodeLine>();
+        foreach (var include in includes)
+        {
+            codeLines.Remove(include);
+            if (!included.Contains(include)) 
+            {
+                if (include.Args.Count == 1) 
+                    CustomLibraryConnector.Include(stack, _compilatorAssemblyLoadContext, include.Args[0]);
+                else if (include.Args.Count == 2) 
+                    CustomLibraryConnector.Include(stack, _compilatorAssemblyLoadContext, include.Args[0], include.Args[1]);
+                else throw new CompilationException("Incorect args count");
+                included.Add(include);
+            } 
+        }
     }
 
     public static class Directives
     {
         public const string Init = "#init";
         public const string Import = "#import";
+        public const string Include = "#include";
         public const string Define = "#define";
         public const string End = "#end";
         public const string Class = "#class";
@@ -63,7 +163,7 @@ public class Compilator_DF_A : ICompilator
 
     public readonly static string[] KeyWords = BasicValues.ToArray.Concat(BasicFunctions.ToArray).Concat(Directives.ToArray).ToArray();
 
-    public Function Compilate(List<ICodeLine> codeLines, CompileStack stack, string[] args)
+    public Function Compilate(List<CodeLine> codeLines, CompileStack stack, string[] args)
     {
         List<Instruction> Program = new List<Instruction>();
 
@@ -82,9 +182,9 @@ public class Compilator_DF_A : ICompilator
             throw;
         }
     }
-    private void CompilateDirectives(List<ICodeLine> codeLines, CompileStack stack)
+    private void CompilateDirectives(List<CodeLine> codeLines, CompileStack stack)
     {
-        List<ICodeLine> compiledCodeLines = new List<ICodeLine>();
+        List<CodeLine> compiledCodeLines = new List<CodeLine>();
         for (int i = 0; i < codeLines.Count; i++)
         {
             var codeLine = codeLines[i];
@@ -119,34 +219,8 @@ public class Compilator_DF_A : ICompilator
                         throw new CompilationException("It isn't posible to init not a variable");
                     }
                     break;
-                case Directives.Import:
-                    if (codeLine.Args.Count == 0) throw new CompilationException("Incorect args count");
-                    string lib = codeLine.Args[0];
-                    if (lib.EndsWith(".vcpl"))
-                    {
-                        if (codeLine.Args.Count != 2) throw new CompilationException("Incorect args count");
-                        try
-                        {
-                            using(StreamReader sr = new StreamReader(lib)) {
-                                string code = sr.ReadToEnd();
-                                var libCodeLines = CompilerCodeConvertor.Convert(code, codeLine.Args[1]);
-                                CompilateDirectives(libCodeLines, stack);
-                            }
-                        }
-                        catch
-                        {
-                            throw new CompilationException("Lib import Error");
-                        }
-                    }
-                    else if (lib.EndsWith(".dll"))
-                    {
-                        if (codeLine.Args.Count != 1) throw new CompilationException("Incorect args count");
-                        CustomLibraryConnector.Import(stack, _compilatorAssemblyLoadContext, codeLine.Args[0]);
-                    }
-                    else throw new CompilationException("Incorect name of library. Now supports .dll and .vcpl libraries only");
-                    break;
                 case Directives.Define:
-                    List<ICodeLine> funcCodeLines = new List<ICodeLine>();
+                    List<CodeLine> funcCodeLines = new List<CodeLine>();
                     int j = i + 1;
                     for (; (codeLines[j].FunctionName != Directives.End || codeLines[j].Args[0] != codeLine.Args[0]); j++)
                     {
@@ -165,12 +239,12 @@ public class Compilator_DF_A : ICompilator
             compiledCodeLines.Add(codeLine);
         }
 
-        foreach (ICodeLine compiledCodeLine in compiledCodeLines) codeLines.Remove(compiledCodeLine);
+        foreach (CodeLine compiledCodeLine in compiledCodeLines) codeLines.Remove(compiledCodeLine);
     }
 
-    private void CompilateCodeLines(List<ICodeLine> codeLines, List<Instruction> program, CompileStack stack)
+    private void CompilateCodeLines(List<CodeLine> codeLines, List<Instruction> program, CompileStack stack)
     {
-        foreach (ICodeLine codeLine in codeLines)
+        foreach (CodeLine codeLine in codeLines)
         {
             if (stack.PeekVal(codeLine.FunctionName) is Function function)
             {

@@ -8,6 +8,6 @@ namespace VCPL.CodeConvertion
 {
     public interface ICodeConvertor
     {
-        public ICodeLine Convert(string line);
+        public CodeLine Convert(string line);
     }
 }
