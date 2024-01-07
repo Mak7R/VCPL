@@ -8,7 +8,6 @@ using System.Windows.Input;
 using BasicFunctions;
 using GlobalRealization;
 using Microsoft.Win32;
-using FileController;
 using VCPL;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
@@ -16,6 +15,9 @@ using VCPL.Еnvironment;
 using System.Collections;
 using System.DirectoryServices;
 using VCPL.Compilator.Stacks;
+using System.IO;
+using System.Diagnostics;
+using System.Windows.Shapes;
 
 namespace VCPLBrowser
 {
@@ -58,10 +60,28 @@ namespace VCPLBrowser
             debugEnvironment.envCodeConvertorsContainer.AddCodeConvertor("CLite", _codeConvertor);
         }
 
+        private bool ReadFile(string path, out string code)
+        {
+            try
+            {
+                using (StreamReader sr = new StreamReader(path))
+                {
+                    code = sr.ReadToEnd();
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+                code = string.Empty;
+                return false;
+            }
+        }
+
         public void InitByFile(string filePath)
         {
             this.FilePath = filePath;
-            if (FileCodeEditor.ReadCodeS(FilePath, out string readedData))
+            if (ReadFile(FilePath, out string readedData))
             {
                 CodeInput.Text = readedData;
                 UpdateTitle();
@@ -75,16 +95,17 @@ namespace VCPLBrowser
         
         private void SaveToFile()
         {
-            bool ok = FileCodeEditor.WriteCodeS(FilePath, CodeInput.Text);
-            if (ok)
+            try
             {
-                MessageBox.Show(this, "File was saved succesful", "File was saved succesful", MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                using (StreamWriter sw = new StreamWriter(FilePath))
+                {
+                    sw.Write(CodeInput.Text);
+                }
+                MessageBox.Show(this, "File was saved", "File was succesful saved", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            else
+            catch(Exception ex)
             {
-                MessageBox.Show(this, "File was not saved", "File was not saved", MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                MessageBox.Show(this, "File was not saved", ex.Message, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         
@@ -114,7 +135,7 @@ namespace VCPLBrowser
 
         private void OpenFromFile()
         {
-            if (FileCodeEditor.ReadCodeS(FilePath, out string readedData))
+            if (ReadFile(FilePath, out string readedData))
             {
                 CodeInput.Text = readedData;
                 MessageBox.Show(this, "File was open succesful", "File was open succesful", MessageBoxButton.OK,
@@ -223,16 +244,15 @@ namespace VCPLBrowser
                                         MessageBoxImage.Error);
                                 });
                             }
-                        mainWindow.Dispatcher.Invoke(() =>
-                        {
-                            mainWindow.Page.Visibility = Visibility.Hidden;
-                            mainWindow.Page.Children.Clear(); /// ???
-                            mainWindow.CodeInput.Visibility = Visibility.Visible;
-                            mainWindow.RunStop.Header = "Run";
-                            mainWindow.isRun = false;
-                        });
-                        }
-                        catch (ThreadInterruptedException)
+                            mainWindow.Dispatcher.Invoke(() =>
+                            {
+                                mainWindow.Page.Visibility = Visibility.Hidden;
+                                mainWindow.Page.Children.Clear(); /// ???
+                                mainWindow.CodeInput.Visibility = Visibility.Visible;
+                                mainWindow.RunStop.Header = "Run";
+                                mainWindow.isRun = false;
+                            });
+                        } catch (ThreadInterruptedException)
                         {
                             mainWindow.Dispatcher.Invoke(() =>
                             {
@@ -251,7 +271,6 @@ namespace VCPLBrowser
                 });
                 program.IsBackground = true;
                 program.SetApartmentState(ApartmentState.STA);
-                
                 program.Start(this);
                 // message compilation successful
                 
