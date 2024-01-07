@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VCPL.Compilator;
+namespace VCPL.Compilator.Stacks;
 
 public abstract class IndexableStack<T>
 {
@@ -49,7 +49,7 @@ public abstract class IndexableStack<T>
     }
     protected void Clear() // can be better
     {
-        while(_size > 0)
+        while (_size > 0)
         {
             Pop();
         }

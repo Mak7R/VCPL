@@ -6,6 +6,7 @@ using GlobalRealization;
 using VCPL;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
+using VCPL.Compilator.Stacks;
 
 namespace VCPLConsole;
 

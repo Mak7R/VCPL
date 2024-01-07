@@ -18,6 +18,6 @@ public static class Library
     public readonly static List<(string? name, object? value)> Items = new()
     {
         ("ConstantName", "Some constant"),
-        ("MethodName", (ElementaryFunction)((RuntimeStack stack, IPointer[] args) => {  })),
+        ("MethodName", (ElementaryFunction)((IPointer[] args) => {  })),
     };
 }

@@ -9,6 +9,7 @@ using System.Runtime.Loader;
 using VCPL.CodeConvertion;
 using VCPL.Еnvironment;
 using VCPL.Instructions;
+using VCPL.Compilator.Stacks;
 
 namespace VCPL.Compilator;
 

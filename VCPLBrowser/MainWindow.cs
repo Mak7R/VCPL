@@ -19,7 +19,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using BasicFunctions;
 using GlobalRealization;
-using VCPL.Compilator;
+using VCPL.Compilator.Stacks;
 using VCPL.Еnvironment;
 
 namespace VCPLBrowser;
@@ -93,7 +93,7 @@ public partial class MainWindow
         CompileStack basicStack = BasicStack.Get();
 
         basicStack.AddConst("Page", Page);
-        basicStack.AddConst("Label", (ElementaryFunction)((stack, args) =>
+        basicStack.AddConst("Label", (ElementaryFunction)((args) =>
         {
             this.Dispatcher.Invoke(() =>
             {
@@ -109,14 +109,14 @@ public partial class MainWindow
                 args[2].Set(label);
             });
         }));
-        basicStack.AddConst("Write", (ElementaryFunction)((stack, args) =>
+        basicStack.AddConst("Write", (ElementaryFunction)((args) =>
         {
             this.Dispatcher.Invoke(() => {
                 Label console = args[0].Get<Label>();
                 console.Content = (string)console.Content + args[1].Get()?.ToString();
             });
         }));
-        basicStack.AddConst("WriteLine", (ElementaryFunction)((stack, args) =>
+        basicStack.AddConst("WriteLine", (ElementaryFunction)((args) =>
         {
             this.Dispatcher.Invoke(() => {
                 Label console = args[0].Get<Label>();

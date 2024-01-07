@@ -1,6 +1,7 @@
-﻿using System;
+﻿using GlobalRealization;
+using System;
 
-namespace GlobalRealization;
+namespace VCPL.Compilator.Stacks;
 
 public class RuntimeStack
 {
@@ -63,7 +64,7 @@ public class RuntimeStack
             Array.Copy(_array, newArray, _size); // ????? List<object?> ??????????
             _array = newArray;
         }
-        else if(_array[_size] != null && _array[_size].Length == size)
+        else if (_array[_size] != null && _array[_size].Length == size)
         {
             int i = 0;
             for (; i < args.Length; i++)

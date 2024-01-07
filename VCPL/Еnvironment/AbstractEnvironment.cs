@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using VCPL.CodeConvertion;
 using VCPL.Instructions;
+using VCPL.Compilator.Stacks;
 
 namespace VCPL.Еnvironment;
 
@@ -50,6 +51,13 @@ public abstract class AbstractEnvironment
     }
 
     public readonly ILogger Logger;
+
+    private RuntimeStack? stack;
+    public RuntimeStack RuntimeStack
+    {
+        get { return stack ?? throw new Exception("Stack was not inited"); } // debugger exception
+        set { stack = value; }
+    } // change to debug exception
 
     public abstract ElementaryFunction CreateFunction(Instruction[] program, int size);
 

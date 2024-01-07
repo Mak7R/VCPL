@@ -5,11 +5,11 @@ namespace TestIncludesLib
 {
     public static class Library
     {
-        private const float PI = 3.14f;
+        private const double PI = 3.14;
         public static List<(string?, object?)> Items = new()
         {
             ("PI", PI),
-            ("GetCircleLength", new Function((stack, args) =>
+            ("GetCircleLength", (ElementaryFunction)((args) =>
             {
                 if (args.Length != 2) throw new RuntimeException("Incorrect arguments count");
                 int radius = args[0].Get<int>();

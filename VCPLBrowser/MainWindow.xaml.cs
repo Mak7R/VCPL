@@ -15,6 +15,7 @@ using VCPL.Compilator;
 using VCPL.Еnvironment;
 using System.Collections;
 using System.DirectoryServices;
+using VCPL.Compilator.Stacks;
 
 namespace VCPLBrowser
 {
@@ -174,6 +175,8 @@ namespace VCPLBrowser
             {
                 ICompilator compilator = new Compilator_IIDL(enviriment);
                 CompileStack cStack = CreateBasicStack();
+                RuntimeStack rtStack = cStack.Pack();
+                enviriment.RuntimeStack = rtStack;
                 try
                 {
                     main = compilator.CompilateMain(cStack, CodeInput.Text, "CLite", Array.Empty<string>());
@@ -195,8 +198,7 @@ namespace VCPLBrowser
                     });
                     return;
                 }
-
-                var rtStack = cStack.Pack();
+                
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
@@ -210,8 +212,7 @@ namespace VCPLBrowser
                             try
                             {
                                 debugEnvironment.Run();
-                                debugEnvironment.RuntimeStack = rtStack;
-                                main.Invoke(rtStack, Array.Empty<IPointer>()); // think about args
+                                main.Invoke(Array.Empty<IPointer>()); // think about args
                                 rtStack.Clear();
                             }
                             catch (RuntimeException re)

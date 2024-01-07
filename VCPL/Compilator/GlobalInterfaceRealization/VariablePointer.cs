@@ -1,4 +1,5 @@
 ﻿using GlobalRealization;
+using VCPL.Compilator.Stacks;
 
 namespace VCPL.Compilator.GlobalInterfaceRealization;
 public struct VariablePointer : IPointer

@@ -2,6 +2,7 @@
 using VCPL.CodeConvertion;
 using VCPL.Compilator.GlobalInterfaceRealization;
 using VCPL.Instructions;
+using VCPL.Compilator.Stacks;
 
 namespace VCPL.Еnvironment
 {
@@ -10,14 +11,14 @@ namespace VCPL.Еnvironment
         public ReleaseEnvironment(ILogger logger) : base(logger) { }
         public override ElementaryFunction CreateFunction(Instruction[] program, int size)
         {
-            return (stack, args) =>
+            return (args) =>
             {
-                stack.Push(size, args);
+                RuntimeStack.Push(size, args);
                 for (int i = 0; i < program.Length; i++)
                 {
                     try
                     {
-                        program[i].Function.Invoke(stack, program[i].Args);
+                        program[i].Function.Invoke(program[i].Args);
                     }
                     catch (Return)
                     {
@@ -38,7 +39,7 @@ namespace VCPL.Еnvironment
                         throw;
                     }
                 }
-                stack.Pop();
+                RuntimeStack.Pop();
             };
         }
 

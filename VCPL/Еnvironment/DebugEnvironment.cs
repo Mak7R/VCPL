@@ -4,6 +4,7 @@ using VCPL.CodeConvertion;
 using VCPL.Compilator;
 using VCPL.Compilator.GlobalInterfaceRealization;
 using VCPL.Instructions;
+using VCPL.Compilator.Stacks;
 
 namespace VCPL.Еnvironment
 {
@@ -17,13 +18,6 @@ namespace VCPL.Еnvironment
         private bool isDbgMod = false;
         private bool isStep = false;
 
-        private RuntimeStack? stack;
-
-        public RuntimeStack RuntimeStack { 
-            get { return stack ?? throw new Exception("Stack was not inited"); } // debugger exception
-            set { stack = value; }
-        } // change to debug exception
-
         public void Run()
         {
             isDbgMod = false;
@@ -33,7 +27,7 @@ namespace VCPL.Еnvironment
         public void Stop()
         {
             isDbgMod = true;
-            level = (stack?.Count ?? throw new Exception("Stack was not inited")); // debugger exception
+            level = this.RuntimeStack.Count; // debugger exception
         }
 
         public void GoUp()
@@ -49,25 +43,25 @@ namespace VCPL.Еnvironment
 
         public void GoDown()
         {
-            if (level <= stack?.Count) level++;
+            if (level <= RuntimeStack.Count) level++;
             isStep = true;
         }
 
         public override ElementaryFunction CreateFunction(Instruction[] program, int size)
         {
-            return (stack, args) =>
+            return (args) =>
             {
-                stack.Push(size, args);
+                RuntimeStack.Push(size, args);
                 for (int i = 0; i < program.Length; i++)
                 {
                     try
                     {
-                        while (isDbgMod && level >= stack.Count && !isStep)
+                        while (isDbgMod && level >= RuntimeStack.Count && !isStep)
                         {
                             OnStopped?.Invoke();
                         }
                         isStep = false;
-                        program[i].Function.Invoke(stack, program[i].Args);
+                        program[i].Function.Invoke(program[i].Args);
                     }
                     catch (Return)
                     {
@@ -88,7 +82,7 @@ namespace VCPL.Еnvironment
                         throw;
                     }
                 }
-                stack.Pop();
+                RuntimeStack.Pop();
             };
         }
 
