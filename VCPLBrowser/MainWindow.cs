@@ -20,6 +20,7 @@ using System.Windows.Threading;
 using BasicFunctions;
 using GlobalRealization;
 using VCPL.Compilator;
+using VCPL.Еnvironment;
 
 namespace VCPLBrowser;
 
@@ -92,7 +93,7 @@ public partial class MainWindow
         CompileStack basicStack = BasicStack.Get();
 
         basicStack.AddConst("Page", Page);
-        basicStack.AddConst("Label", new Function((stack, args) =>
+        basicStack.AddConst("Label", (ElementaryFunction)((stack, args) =>
         {
             this.Dispatcher.Invoke(() =>
             {
@@ -108,14 +109,14 @@ public partial class MainWindow
                 args[2].Set(label);
             });
         }));
-        basicStack.AddConst("Write", new Function((stack, args) =>
+        basicStack.AddConst("Write", (ElementaryFunction)((stack, args) =>
         {
             this.Dispatcher.Invoke(() => {
                 Label console = args[0].Get<Label>();
                 console.Content = (string)console.Content + args[1].Get()?.ToString();
             });
         }));
-        basicStack.AddConst("WriteLine", new Function((stack, args) =>
+        basicStack.AddConst("WriteLine", (ElementaryFunction)((stack, args) =>
         {
             this.Dispatcher.Invoke(() => {
                 Label console = args[0].Get<Label>();
@@ -277,14 +278,5 @@ public partial class MainWindow
         //}));
         basicStack.Up();
         return basicStack;
-    }
-
-    private void Init()
-    {
-        CompilerCodeConvertor.AddCodeConvertor("CLite", _codeConvertor);
-        CompilerCodeConvertor.SplitCode = (string code) => { return code.Split("\r\n"); }; 
-
-        Page.Height = this.Height - 65;
-        Page.Width = this.Width;
     }
 }

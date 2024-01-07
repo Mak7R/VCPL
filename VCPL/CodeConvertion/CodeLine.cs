@@ -1,22 +1,21 @@
 ﻿using System.Collections.Generic;
 using VCPL.CodeConvertion;
+using VCPL.Compilator;
 
 namespace VCPL.CodeConvertion;
 
 public class CodeLine
 {
-    /// <summary>
-    /// Name of the function
-    /// </summary>
+    public int LineNumber { get; init; }
     public string FunctionName { get; set; }
-    /// <summary>
-    /// List of arguments
-    /// </summary>
     public List<string> Args { get; set; }
 
-    public CodeLine(string functionName, List<string> args)
+    public CodeLine(int lineNumber, string functionName, List<string> args)
     {
+        LineNumber = lineNumber;
         FunctionName = functionName;
         Args = args;
     }
+
+    public CompilationException GenerateException(string message) => new CompilationException(this, message);
 }

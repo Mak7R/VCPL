@@ -1,6 +1,6 @@
 ﻿using GlobalRealization;
 
-namespace VCPL.Compilator.Pointers;
+namespace VCPL.Compilator.GlobalInterfaceRealization;
 public struct VariablePointer : IPointer
 {
     private readonly RuntimeStack _stack;

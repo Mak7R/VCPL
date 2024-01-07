@@ -1,6 +1,9 @@
 ﻿using GlobalRealization;
+using System;
 using System.Collections.Generic;
-using VCPL.Compilator.Pointers;
+using System.Threading;
+using VCPL.Compilator.GlobalInterfaceRealization;
+using VCPL.Еnvironment;
 
 namespace VCPL.Compilator;
 
@@ -28,7 +31,7 @@ public class CompileStack : IndexableStack<ContextLevel>
     public void AddVar(string name) { 
         for(int i = 0; i < Count; i++)
             if (this[i].Contains(name)) 
-                throw new CompilationException("This variable already exist");
+                throw new Exception("This variable already exist");
         Peek().Variables.Add(name);
     }
     public IPointer AddConst(string? name, object? value) {
@@ -50,7 +53,7 @@ public class CompileStack : IndexableStack<ContextLevel>
         {
             for (int i = 0; i < Count; i++)
                 if (this[i].Contains(name))
-                    throw new CompilationException("This variable already exist");
+                    throw new Exception("This variable already exist");
             (var ptr, var index) = AddConstant(value);
             current.Constants.Add(name, index);
             return ptr;
@@ -75,13 +78,13 @@ public class CompileStack : IndexableStack<ContextLevel>
                 if (constant.Key == name) return constants[constant.Value];
             }
         }
-        throw new CompilationException("Variable was not found");
+        throw new Exception("Variable was not found");
     }
     public object? PeekVal(string name) {
         for (int i = 0; i < Count; i++)
             if (this[i].Constants.TryGetValue(name, out int ptr)) 
                 return constants[ptr].Get();
-        throw new CompilationException("Variable was not found");   
+        throw new Exception($"Variable {name} was not found");   
     }
     public void Up() { Push(new ContextLevel()); }
 

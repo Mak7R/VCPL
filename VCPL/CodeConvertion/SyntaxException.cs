@@ -4,6 +4,12 @@ namespace VCPL.CodeConvertion;
 
 public class SyntaxException : Exception
 {
-    public SyntaxException () {}
-    public SyntaxException(string message) : base(message){}
+    private readonly int _line;
+    private readonly string _message;
+    public SyntaxException(int line, string message) 
+        : base($"Syntax exception in line {line}: {message}.") 
+    { 
+        this._line = line;
+        this._message = message;
+    }
 }

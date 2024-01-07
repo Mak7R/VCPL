@@ -35,7 +35,7 @@ public static class CustomLibraryConnector
         catch
         {
             try { dependent = loadContext.LoadFromAssemblyPath(LibrariesDomain + assemblyName.Name + FileFormat); }
-            catch { throw new CompilationException("Cannot to load lib"); }
+            catch { throw new Exception("Cannot to load lib"); }
         }
 
         AssemblyName[] dependencies = dependent.GetReferencedAssemblies();
@@ -44,6 +44,7 @@ public static class CustomLibraryConnector
     public static void Include(CompileStack stack, AssemblyLoadContext loadContext, string assemblyName, string? namespaceName = null)
     {
         Assembly lib;
+
         if (!ContainsAssembly(loadContext, assemblyName))
         {
             try
@@ -58,9 +59,9 @@ public static class CustomLibraryConnector
                 }
                 catch
                 {
-                    throw new CompilationException("Cannot to load a library");
+                    throw new Exception("Cannot to load a library");
                 }
-                throw new CompilationException("Cannot to load a library");
+                throw new Exception("Cannot to load a library");
             }
 
             AssemblyName[] dependencies = lib.GetReferencedAssemblies();
@@ -74,11 +75,11 @@ public static class CustomLibraryConnector
         var pathPoints = assemblyName.Split("\\");
         string shortAsmName = pathPoints[pathPoints.Length - 1];
         Type Library = lib.GetType(shortAsmName + ".Library")
-                               ?? throw new CompilationException(
+                               ?? throw new Exception(
                                    "In assembly was not found class Library");
 
         FieldInfo Items = Library.GetField("Items", BindingFlags.Public | BindingFlags.Static)
-                            ?? throw new CompilationException("Field Items was not found");
+                            ?? throw new Exception("Field Items was not found");
         object? value = Items.GetValue(null);
         if (value is ICollection<(string? name, object? value)> items)
         {
@@ -87,7 +88,7 @@ public static class CustomLibraryConnector
                 stack.AddConst($"{namespaceName ?? shortAsmName}.{item.name}", item.value);
             stack.Up();
         }
-        else throw new CompilationException($"Cannot convert {value?.GetType().ToString() ?? "null"} to {typeof(ICollection<(string?, object?)>)}");
+        else throw new Exception($"Cannot convert {value?.GetType().ToString() ?? "null"} to {typeof(ICollection<(string?, object?)>)}");
     }
 
 }

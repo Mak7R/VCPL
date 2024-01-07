@@ -1,6 +1,6 @@
 ﻿using GlobalRealization;
 
-namespace VCPL.Compilator.Pointers;
+namespace VCPL.Compilator.GlobalInterfaceRealization;
 public struct ConstantPointer : IPointer
 {
     private readonly object? _value;

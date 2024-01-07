@@ -12,7 +12,9 @@ using FileController;
 using VCPL;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
+using VCPL.Еnvironment;
 using System.Collections;
+using System.DirectoryServices;
 
 namespace VCPLBrowser
 {
@@ -22,21 +24,41 @@ namespace VCPLBrowser
     public partial class MainWindow : Window
     {
         private string FilePath = "";
-        private Function? main;
+
+        private ElementaryFunction? main;
         private Thread? program;
-        private bool runThread = false;
-        private ICodeConvertor _codeConvertor = new CLiteConvertor();
-        
+
+        private readonly ICodeConvertor _codeConvertor = new CLiteConvertor();
+        private readonly ILogger vcplLogger;
+        private readonly ReleaseEnvironment releaseEnvironment;
+        private readonly DebugEnvironment debugEnvironment;
+        private AbstractEnvironment enviriment;
+
         public MainWindow()
         {
             InitializeComponent();
 
-            this.Init();
+            vcplLogger = new VCPLBrowserLogger((message) =>
+            {
+                this.Dispatcher.Invoke(() =>
+                {
+                    LogOutput.Text += message;
+                });
+            });
+            releaseEnvironment = new ReleaseEnvironment(vcplLogger);
+            debugEnvironment = new DebugEnvironment(vcplLogger);
+
+            enviriment = releaseEnvironment;
+
+            releaseEnvironment.SplitCode = (string code) => { return code.Split("\r\n"); };
+            releaseEnvironment.envCodeConvertorsContainer.AddCodeConvertor("CLite", _codeConvertor);
+
+            debugEnvironment.SplitCode = (string code) => { return code.Split("\r\n"); };
+            debugEnvironment.envCodeConvertorsContainer.AddCodeConvertor("CLite", _codeConvertor);
         }
 
-        public MainWindow(string filePath)
+        public void InitByFile(string filePath)
         {
-            InitializeComponent();
             this.FilePath = filePath;
             if (FileCodeEditor.ReadCodeS(FilePath, out string readedData))
             {
@@ -48,7 +70,6 @@ namespace VCPLBrowser
                 MessageBox.Show(this, "File was not open", "File was not open", MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
-            this.Init();
         }
         
         private void SaveToFile()
@@ -117,6 +138,25 @@ namespace VCPLBrowser
             }
         }
 
+        private void OnEnviromentClick(object sender, RoutedEventArgs e) // can be better
+        {
+            MenuItem s = (MenuItem)sender;
+            
+            if ((string)s.Header == "Release")
+            {
+                enviriment = releaseEnvironment;
+            }
+            else if ((string)s.Header == "Debug")
+            {
+                enviriment = debugEnvironment;
+            }
+            else
+            {
+                throw new Exception("Incorrect enviroment");
+            }
+            ChosenEnviroment.Header = s.Header;
+        }
+
         private void UpdateTitle()
         {
             this.Title = this.FilePath == string.Empty ? "VCPLBrowser" : $"VCPLBrowser ({BasicString.GetNameFromPath(this.FilePath)})";
@@ -125,21 +165,20 @@ namespace VCPLBrowser
         private bool isRun = false;
         private void OnRunStopClick(object sender, RoutedEventArgs e)
         {
-            if (isRun) program.Interrupt();
+            if (isRun && program != null) {
+                program.Interrupt();
+                CodeInput.Visibility = Visibility.Visible;
+                Page.Visibility = Visibility.Hidden;      
+            }
             else
             {
-                /// compilation should goes in new thread ???
-
-                List<CodeLine> codeLines = new List<CodeLine>();
+                ICompilator compilator = new Compilator_IIDL(enviriment);
+                CompileStack cStack = CreateBasicStack();
                 try
                 {
-                    foreach (string line in CodeInput.Text.Split("\r\n"))
-                    {
-                        if (BasicString.IsNoDataString(line)) continue;
-                        codeLines.Add(_codeConvertor.Convert(line));
-                    }
+                    main = compilator.CompilateMain(cStack, CodeInput.Text, "CLite", Array.Empty<string>());
                 }
-                catch(SyntaxException se)
+                catch (SyntaxException se)
                 {
                     Dispatcher.Invoke(() =>
                     {
@@ -147,15 +186,6 @@ namespace VCPLBrowser
                             MessageBoxImage.Error);
                     });
                     return;
-                }
-
-                ICompilator compilator = new Compilator_IIDL();
-                CompileStack cStack = CreateBasicStack();
-                try
-                {
-                    compilator.ImportAll(codeLines, null);
-                    compilator.IncludeAll(codeLines, cStack);// should to change to CompilateMain
-                    main = compilator.Compilate(codeLines, cStack, Array.Empty<string>()); // can put args here
                 }
                 catch (CompilationException ce)
                 {
@@ -166,47 +196,56 @@ namespace VCPLBrowser
                     return;
                 }
 
+                var rtStack = cStack.Pack();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
 
                 program = new Thread((object? obj) =>
                 {
                     if (obj == null) throw new ArgumentNullException(nameof(obj));
-                    try
+                    if (obj is MainWindow mainWindow)
                     {
                         try
                         {
-                            var rtStack = cStack.Pack();
-                            GC.Collect();
-                            GC.WaitForPendingFinalizers();
-                            main.Get().Invoke(rtStack, Array.Empty<IPointer>()); // think about args
-                            rtStack.Clear();
-                        }
-                        catch (RuntimeException re)
-                        {
-                            Dispatcher.Invoke(() =>
+                            try
                             {
-                                MessageBox.Show(this, re.Message, "RuntimeException", MessageBoxButton.OK,
-                                    MessageBoxImage.Error);
+                                debugEnvironment.Run();
+                                debugEnvironment.RuntimeStack = rtStack;
+                                main.Invoke(rtStack, Array.Empty<IPointer>()); // think about args
+                                rtStack.Clear();
+                            }
+                            catch (RuntimeException re)
+                            {
+                                Dispatcher.Invoke(() =>
+                                {
+                                    MessageBox.Show(this, re.Message, "RuntimeException", MessageBoxButton.OK,
+                                        MessageBoxImage.Error);
+                                });
+                            }
+                        mainWindow.Dispatcher.Invoke(() =>
+                        {
+                            mainWindow.Page.Visibility = Visibility.Hidden;
+                            mainWindow.Page.Children.Clear(); /// ???
+                            mainWindow.CodeInput.Visibility = Visibility.Visible;
+                            mainWindow.RunStop.Header = "Run";
+                            mainWindow.isRun = false;
+                        });
+                        }
+                        catch (ThreadInterruptedException)
+                        {
+                            mainWindow.Dispatcher.Invoke(() =>
+                            {
+                                mainWindow.Page.Visibility = Visibility.Hidden;
+                                mainWindow.Page.Children.Clear(); /// ???
+                                mainWindow.Visibility = Visibility.Visible;
+                                mainWindow.RunStop.Header = "Run";
+                                mainWindow.isRun = false;
                             });
                         }
-                        ((MainWindow)obj).Dispatcher.Invoke(() =>
-                        {
-                            ((MainWindow)obj).Page.Visibility = Visibility.Hidden;
-                            ((MainWindow)obj).Page.Children.Clear(); /// ???
-                            ((MainWindow)obj).CodeInput.Visibility = Visibility.Visible;
-                            ((MainWindow)obj).RunStop.Header = "Run";
-                            ((MainWindow)obj).isRun = false;
-                        });
                     }
-                    catch (ThreadInterruptedException)
+                    else
                     {
-                        ((MainWindow)obj).Dispatcher.Invoke(() =>
-                        {
-                            ((MainWindow)obj).Page.Visibility = Visibility.Hidden;
-                            ((MainWindow)obj).Page.Children.Clear(); /// ???
-                            ((MainWindow)obj).CodeInput.Visibility = Visibility.Visible;
-                            ((MainWindow)obj).RunStop.Header = "Run";
-                            ((MainWindow)obj).isRun = false;
-                        });
+                        throw new ArgumentException($"Argument have to be MainWindow but was {obj.GetType()}");
                     }
                 });
                 program.IsBackground = true;
@@ -234,12 +273,77 @@ namespace VCPLBrowser
         }
         private void MainWindow_OnKeyDown(object sender, KeyEventArgs e)
         {
-             if (!pressedKeys.Contains(e.Key))pressedKeys.Add(e.Key);
+             if (!pressedKeys.Contains(e.Key)) pressedKeys.Add(e.Key);
         }
 
         private void MainWindow_OnKeyUp(object sender, KeyEventArgs e)
         {
             pressedKeys.Remove(e.Key);
+        }
+
+        private void Continue_Click(object sender, RoutedEventArgs e)
+        {
+            if (enviriment is DebugEnvironment dbg)
+            {
+                dbg.Run();
+            }
+        }
+
+        private void Stop_Click(object sender, RoutedEventArgs e)
+        {
+            if (enviriment is DebugEnvironment dbg)
+            {
+                dbg.Stop();
+            }
+        }
+
+        private void GoUp_Click(object sender, RoutedEventArgs e)
+        {
+            if (enviriment is DebugEnvironment dbg)
+            {
+                dbg.GoUp();
+            }
+        }
+
+        private void GoDown_Click(object sender, RoutedEventArgs e)
+        {
+            if (enviriment is DebugEnvironment dbg)
+            {
+                dbg.GoDown();
+            }
+        }
+
+        private void GoThrough_Click(object sender, RoutedEventArgs e)
+        {
+            if (enviriment is DebugEnvironment dbg)
+            {
+                dbg.GoThrough();
+            }
+        }
+
+        private void Clear_Click(object sender, RoutedEventArgs e)
+        {
+            LogOutput.Text = "";
+        }
+
+        private bool isShow = true;
+        private void ShowHideConsole_Click(object sender, RoutedEventArgs e)
+        {
+            if (isShow)
+            {
+                Grid.SetRowSpan(Page, 2);
+                Grid.SetRowSpan(CodeInput, 2);
+                LogOutput.Visibility = Visibility.Hidden;
+                ((MenuItem)sender).Header = "Show";
+            }
+            else
+            {
+                Grid.SetRowSpan(Page, 1);
+                Grid.SetRowSpan(CodeInput, 1);
+                LogOutput.Visibility = Visibility.Visible;
+                ((MenuItem)sender).Header = "Hide";
+            }
+            isShow = !isShow;
         }
     }
 }

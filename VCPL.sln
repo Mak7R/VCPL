@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VCPL", "VCPL\VCPL.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BasicFunctions", "BasicFunctions\BasicFunctions.csproj", "{3C1B57A0-2D29-48F9-8EFC-2082A3ED3D34}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GlobalRealization", "GlobalRealization\GlobalRealization.csproj", "{D09EE5C2-12FF-45ED-9B04-71C1354C047B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GlobalInterface", "GlobalRealization\GlobalInterface.csproj", "{D09EE5C2-12FF-45ED-9B04-71C1354C047B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VCPLBrowser", "VCPLBrowser\VCPLBrowser.csproj", "{F3891222-D923-414B-A7C8-97CCFDCB9BD8}"
 EndProject
@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileController", "FileContr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{A8E776F1-929E-4C8A-BD91-35FB689DF640}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestIncludesLib", "TestIncludesLib\TestIncludesLib.csproj", "{4411BEE6-82E9-4817-AD20-328F521A7EB1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestIncludesLib", "TestIncludesLib\TestIncludesLib.csproj", "{4411BEE6-82E9-4817-AD20-328F521A7EB1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

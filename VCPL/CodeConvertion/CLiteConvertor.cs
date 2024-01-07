@@ -14,7 +14,7 @@ namespace VCPL.CodeConvertion
         /// <param name="line">String line which should be converted to CodeLine</param>
         /// <exception cref="SyntaxException">If is any error with line parsing it can throw new SyntaxException</exception>
         /// <returns>New CodeLine which was generetad from line</returns>
-        public CodeLine Convert(string line)
+        public CodeLine Convert(int lineNumber, string line)
         {
             string FunctionName = "";
             string? ReturnData;
@@ -30,7 +30,7 @@ namespace VCPL.CodeConvertion
             else
             {
                 ReturnData = line.Substring(0, equalsIndex).Trim();
-                if (ReturnData == "") throw new SyntaxException("Missed return getter");
+                if (ReturnData == "") throw new SyntaxException(lineNumber, "no variable before '=' symbol");
                 line = line.Substring(equalsIndex + 1).Trim();
             }
 
@@ -42,11 +42,11 @@ namespace VCPL.CodeConvertion
             }
             else if ((openParenIndex == -1) != (closeParenIndex == -1))
             {
-                throw new SyntaxException("No open parren excaption or no close parren excaption");
+                throw new SyntaxException(lineNumber, "no open parren or no close parren");
             }
             else if (openParenIndex > closeParenIndex)
             {
-                throw new SyntaxException("No open parren excaption");
+                throw new SyntaxException(lineNumber, "no open parren");
             }
             else
             {
@@ -56,7 +56,7 @@ namespace VCPL.CodeConvertion
             }
             
             if (ReturnData != null) { Args.Add(ReturnData); }
-            return new CodeLine(FunctionName, Args);
+            return new CodeLine(lineNumber, FunctionName, Args);
         }
 
         private static List<string> GetArgsList(string argsString)

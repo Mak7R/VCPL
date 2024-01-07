@@ -15,17 +15,9 @@ namespace VCPLBrowser
     {
         protected void OnStartup(object sender, StartupEventArgs e)
         {
-            MainWindow mainWindow;
-            string filename;
-            if (e.Args.Length > 0)
-            {
-                filename = e.Args[0];
-                mainWindow = new MainWindow(filename);
-            }
-            else
-            {
-                mainWindow = new MainWindow();
-            }
+            MainWindow mainWindow = new MainWindow();
+            if (e.Args.Length > 0) mainWindow.InitByFile(e.Args[0]);
+
             mainWindow.Show();
         }
     }
