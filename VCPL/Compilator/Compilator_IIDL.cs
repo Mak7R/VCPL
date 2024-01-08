@@ -10,6 +10,7 @@ using VCPL.CodeConvertion;
 using VCPL.Еnvironment;
 using VCPL.Instructions;
 using VCPL.Compilator.Stacks;
+using VCPL.Exceptions;
 
 namespace VCPL.Compilator;
 
@@ -75,7 +76,7 @@ public class Compilator_IIDL : ICompilator
             if (codeLine.FunctionName == Directives.Import)
             {
                 codeLines.RemoveAt(i);
-                if (codeLine.Args.Count < 1) throw codeLine.GenerateException("incorrect args count, import can get only 1, 2 or 3 arguments");
+                if (codeLine.Args.Count < 1) throw codeLine.GenerateException(ExceptionsController.IncorrectArgumentsCount(new int[] {2, 3}, codeLine.Args.Count));
                 if (!importedLibs.Contains(codeLine.Args[0])) // can be diferent name but one file // will fixed with enviriment update
                 {
                     importedLibs.Add(codeLine.Args[0]);
@@ -104,7 +105,7 @@ public class Compilator_IIDL : ICompilator
                     }
                     else
                     {
-                        throw codeLine.GenerateException("incorrect args count, import can get only 1, 2 or 3 arguments");
+                        throw codeLine.GenerateException(ExceptionsController.IncorrectArgumentsCount(new[] {2, 3}, codeLine.Args.Count ));
                     }
                     ImportAll(importCode, importedLibs);
                     codeLines.InsertRange(i, importCode);
@@ -118,7 +119,7 @@ public class Compilator_IIDL : ICompilator
         }
     }
 
-    public void IncludeAll(List<CodeLine> codeLines, CompileStack stack)
+    public void IncludeAll(List<CodeLine> codeLines, CompileStack stack, AbstractEnvironment environment)
     {
         ReloadAssemblyLoadContext();
         List<CodeLine> includes = new List<CodeLine>();
@@ -139,7 +140,7 @@ public class Compilator_IIDL : ICompilator
                 {
                     try
                     {
-                        CustomLibraryConnector.Include(stack, _compilatorAssemblyLoadContext, include.Args[0]);
+                        CustomLibraryConnector.Include(stack, environment, _compilatorAssemblyLoadContext, include.Args[0]);
                     }
                     catch (Exception e)
                     {
@@ -150,14 +151,14 @@ public class Compilator_IIDL : ICompilator
                 {
                     try
                     {
-                        CustomLibraryConnector.Include(stack, _compilatorAssemblyLoadContext, include.Args[0], include.Args[1]);
+                        CustomLibraryConnector.Include(stack, environment, _compilatorAssemblyLoadContext, include.Args[0], include.Args[1]);
                     }
                     catch(Exception e)
                     {
                         throw include.GenerateException(e.Message);
                     }
                 }
-                else throw include.GenerateException("incorect args count, include can get only 1 or 2 args");
+                else throw include.GenerateException(ExceptionsController.IncorrectArgumentsCount(new[] {1, 2}, include.Args.Count));
                 included.Add(include);
             } 
         }
@@ -246,8 +247,8 @@ public class Compilator_IIDL : ICompilator
             switch (codeLine.FunctionName)
             {
                 case Directives.Init:
-                    if (codeLine.Args.Count == 0) throw codeLine.GenerateException("incorrect args count in init function");
-                    if (isKeyWord(codeLine.Args[0])) throw codeLine.GenerateException("keyword cannot be a variable name");
+                    if (codeLine.Args.Count == 0) throw codeLine.GenerateException(ExceptionsController.IncorrectArgumentsCount(new[] { 1, 2 }, codeLine.Args.Count));
+                    if (isKeyWord(codeLine.Args[0])) throw codeLine.GenerateException(ExceptionsController.KeywordCannotBeVariable(codeLine.Args[0]));
                     if (BasicString.isVariable(codeLine.Args[0]))
                     {
                         switch (codeLine.Args.Count)
@@ -277,15 +278,15 @@ public class Compilator_IIDL : ICompilator
                                 }
                                 else
                                 {
-                                    throw codeLine.GenerateException("constant can be inited only with value constan");
+                                    throw codeLine.GenerateException(ExceptionsController.ConstantInitedByNotLiteral());
                                 }
                                 break;
-                            default: throw codeLine.GenerateException("#init has recived more than 2 args");
+                            default: throw codeLine.GenerateException(ExceptionsController.IncorrectArgumentsCount(new[] {1, 2}, codeLine.Args.Count));
                         }
                     }
                     else
                     {
-                        throw codeLine.GenerateException("it isn't posible to init not a variable");
+                        throw codeLine.GenerateException(ExceptionsController.LiteralInited());
                     }
                     break;
                 case Directives.Define:
@@ -309,7 +310,7 @@ public class Compilator_IIDL : ICompilator
                     compiledCodeLines.Add(codeLines[j]);
                     i = j;
                     break;
-                default: throw codeLine.GenerateException($"unknown directive: {codeLine.FunctionName}");
+                default: throw codeLine.GenerateException(ExceptionsController.Unknown("directive", codeLine.FunctionName));
             }
             compiledCodeLines.Add(codeLine);
         }
@@ -366,7 +367,7 @@ public class Compilator_IIDL : ICompilator
                 }
                 program.Add(_environment.CreateInstruction(codeLine, function, args));
             }
-            else throw codeLine.GenerateException($"unknown function: {codeLine.FunctionName}");
+            else throw codeLine.GenerateException(ExceptionsController.Unknown("function", codeLine.FunctionName));
         }
     }
 
@@ -388,6 +389,6 @@ public class Compilator_IIDL : ICompilator
         else if (BasicString.isDouble(arg)) return Convert.ToDouble(arg, new CultureInfo("en-US"));
         else if (BasicString.isNumber(arg)) return Convert.ToInt32(arg);
         else if (BasicString.isString(arg)) return arg.Substring(1, arg.Length - 2);
-        else throw line.GenerateException("type was not detected");
+        else throw line.GenerateException(ExceptionsController.Unknown("type of variable", arg));
     }
 }

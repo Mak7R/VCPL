@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VCPL.Compilator;
+namespace VCPL.Exceptions;
 
 public class RuntimeException : Exception
 {

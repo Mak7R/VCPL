@@ -1,7 +1,7 @@
 ﻿using GlobalRealization;
 using System;
 using VCPL.CodeConvertion;
-using VCPL.Compilator;
+using VCPL.Exceptions;
 
 namespace VCPL.Instructions;
 public class DebugInstruction : Instruction

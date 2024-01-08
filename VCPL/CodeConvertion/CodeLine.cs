@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using VCPL.CodeConvertion;
-using VCPL.Compilator;
+using VCPL.Exceptions;
 
 namespace VCPL.CodeConvertion;
 

@@ -5,7 +5,7 @@ using VCPL.Instructions;
 using VCPL.Compilator.Stacks;
 using System;
 using System.Threading;
-using VCPL.Compilator;
+using VCPL.Exceptions;
 
 namespace VCPL.Еnvironment
 {

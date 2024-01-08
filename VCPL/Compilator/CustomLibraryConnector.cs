@@ -3,21 +3,14 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Loader;
 using VCPL.Compilator.Stacks;
+using VCPL.Exceptions;
+using VCPL.Еnvironment;
 
 namespace VCPL.Compilator;
 
 public static class CustomLibraryConnector
 {
-    public static string LibrariesDomain = AppDomain.CurrentDomain.BaseDirectory;
     public const string FileFormat = ".dll";
-    public static bool ContainsAssembly(AssemblyLoadContext context, AssemblyName assemblyName)
-    {
-        var loadedAssemblies = context.Assemblies;
-        foreach (Assembly assembly in loadedAssemblies)
-            if (assembly.FullName == assemblyName.FullName)
-                return true;
-        return false;
-    }
     public static bool ContainsAssembly(AssemblyLoadContext loadContext, string assemblyName)
     {
         var loadedAssemblies = loadContext.Assemblies;
@@ -27,46 +20,38 @@ public static class CustomLibraryConnector
         return false;
     }
     
-    public static void LoadDependencies(AssemblyLoadContext loadContext, AssemblyName assemblyName)
+    public static void LoadDependencies(AssemblyLoadContext loadContext, AssemblyName assemblyName, AbstractEnvironment env)
     {
-        if (ContainsAssembly(loadContext, assemblyName)) return;
+        if (ContainsAssembly(loadContext, assemblyName.FullName)) return;
         
         Assembly dependent;
         try { dependent = loadContext.LoadFromAssemblyName(assemblyName); }
         catch
         {
-            try { dependent = loadContext.LoadFromAssemblyPath(LibrariesDomain + assemblyName.Name + FileFormat); }
-            catch { throw new Exception("Cannot to load lib"); }
+            try { dependent = loadContext.LoadFromAssemblyPath(env.GetFilePath(assemblyName.Name ?? string.Empty, FileFormat)); }
+            catch(Exception e) { throw new Exception(ExceptionsController.CannotLoadLib(assemblyName.Name ?? string.Empty, e.Message)); }
         }
 
         AssemblyName[] dependencies = dependent.GetReferencedAssemblies();
-        foreach (var dep in dependencies) LoadDependencies(loadContext, dep);
+        foreach (var dep in dependencies) LoadDependencies(loadContext, dep, env);
     }
-    public static void Include(CompileStack stack, AssemblyLoadContext loadContext, string assemblyName, string? namespaceName = null)
+    public static void Include(CompileStack stack, AbstractEnvironment env, AssemblyLoadContext loadContext, string assemblyName, string? namespaceName = null)
     {
         Assembly lib;
-
+        
         if (!ContainsAssembly(loadContext, assemblyName))
         {
             try
             {
-                lib = loadContext.LoadFromAssemblyPath(assemblyName + FileFormat);
+                lib = loadContext.LoadFromAssemblyPath(env.GetFilePath(assemblyName, FileFormat));
             }
-            catch
+            catch (Exception e)
             {
-                try
-                {
-                    lib = loadContext.LoadFromAssemblyPath(LibrariesDomain + assemblyName + FileFormat);
-                }
-                catch
-                {
-                    throw new Exception("Cannot to load a library");
-                }
-                throw new Exception("Cannot to load a library");
+                throw new Exception(ExceptionsController.CannotLoadLib(assemblyName, e.Message));
             }
 
             AssemblyName[] dependencies = lib.GetReferencedAssemblies();
-            foreach (var dependent in dependencies) LoadDependencies(loadContext, dependent);
+            foreach (var dependent in dependencies) LoadDependencies(loadContext, dependent, env);
         }
         else
         {
@@ -77,10 +62,10 @@ public static class CustomLibraryConnector
         string shortAsmName = pathPoints[pathPoints.Length - 1];
         Type Library = lib.GetType(shortAsmName + ".Library")
                                ?? throw new Exception(
-                                   "In assembly was not found class Library");
+                                   ExceptionsController.InAssemblyNotFound($"class Library ({shortAsmName + ".Library"})"));
 
         FieldInfo Items = Library.GetField("Items", BindingFlags.Public | BindingFlags.Static)
-                            ?? throw new Exception("Field Items was not found");
+                            ?? throw new Exception(ExceptionsController.InAssemblyNotFound("field Items"));
         object? value = Items.GetValue(null);
         if (value is ICollection<(string? name, object? value)> items)
         {
@@ -89,7 +74,7 @@ public static class CustomLibraryConnector
                 stack.AddConst($"{namespaceName ?? shortAsmName}.{item.name}", item.value);
             stack.Up();
         }
-        else throw new Exception($"Cannot convert {value?.GetType().ToString() ?? "null"} to {typeof(ICollection<(string?, object?)>)}");
+        else throw new Exception(ExceptionsController.CannotConvert(value?.GetType(), typeof(ICollection<(string? name, object? value)>)));
     }
 
 }

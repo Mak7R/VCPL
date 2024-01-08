@@ -1,6 +1,6 @@
 ﻿using GlobalRealization;
 using System;
-using VCPL.Compilator;
+using VCPL.Exceptions;
 
 namespace VCPL.Instructions;
 

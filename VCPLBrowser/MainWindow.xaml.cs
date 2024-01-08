@@ -18,6 +18,7 @@ using VCPL.Compilator.Stacks;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Shapes;
+using VCPL.Exceptions;
 
 namespace VCPLBrowser
 {

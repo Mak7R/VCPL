@@ -7,6 +7,7 @@ using VCPL;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
 using VCPL.Compilator.Stacks;
+using VCPL.Exceptions;
 
 namespace VCPLConsole;
 
