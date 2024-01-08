@@ -5,6 +5,7 @@ using VCPL.Compilator;
 using VCPL.Compilator.GlobalInterfaceRealization;
 using VCPL.Instructions;
 using VCPL.Compilator.Stacks;
+using System.Threading;
 
 namespace VCPL.Еnvironment
 {
@@ -76,10 +77,15 @@ namespace VCPL.Еnvironment
                             break;
                         }
                     }
-                    catch(RuntimeException ex)
+                    catch (ThreadInterruptedException)
                     {
-                        Logger.Log($"ERROR in {program[i]}: {ex.Message}");
                         throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        var e = program[i].GenerateException(ex);
+                        Logger.Log($"{e.Message}: {e.InnerException?.Message}");
+                        throw e;
                     }
                 }
                 RuntimeStack.Pop();

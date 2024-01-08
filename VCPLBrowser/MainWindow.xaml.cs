@@ -189,8 +189,8 @@ namespace VCPLBrowser
         {
             if (isRun && program != null) {
                 program.Interrupt();
-                CodeInput.Visibility = Visibility.Visible;
-                Page.Visibility = Visibility.Hidden;      
+                //CodeInput.Visibility = Visibility.Visible;
+                //Page.Visibility = Visibility.Hidden;      
             }
             else
             {

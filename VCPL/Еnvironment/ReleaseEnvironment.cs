@@ -3,6 +3,9 @@ using VCPL.CodeConvertion;
 using VCPL.Compilator.GlobalInterfaceRealization;
 using VCPL.Instructions;
 using VCPL.Compilator.Stacks;
+using System;
+using System.Threading;
+using VCPL.Compilator;
 
 namespace VCPL.Еnvironment
 {
@@ -23,20 +26,24 @@ namespace VCPL.Еnvironment
                     catch (Return)
                     {
                         IPointer? returnedValue = Return.Get();
-                        if (returnedValue == null)
-                        {
-                            break;
-                        }
-                        else
+                        if (returnedValue != null)
                         {
                             args[args.Length - 1].Set(returnedValue.Get());
-                            break;
                         }
+                        break;
                     }
-                    catch (RuntimeException ex)
+                    catch (ThreadInterruptedException)
+                    {
+                        throw;
+                    }
+                    catch (RuntimeException)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex) // catch all exceptions and convert to runtime
                     {
                         Logger.Log(ex.Message);
-                        throw;
+                        throw program[i].GenerateException(ex);
                     }
                 }
                 RuntimeStack.Pop();

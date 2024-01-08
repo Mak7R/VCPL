@@ -1,4 +1,6 @@
 ﻿using GlobalRealization;
+using System;
+using VCPL.Compilator;
 
 namespace VCPL.Instructions;
 
@@ -11,5 +13,10 @@ public class Instruction
     {
         this.Function = function;
         this.Args = args;
+    }
+
+    public virtual RuntimeException GenerateException(Exception ex)
+    {
+        return new RuntimeException($"Runtime exception: {ex.Message}", ex);
     }
 }

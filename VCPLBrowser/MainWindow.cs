@@ -105,21 +105,21 @@ public partial class MainWindow
                 label.Height = 400;
                 label.Margin = new Thickness(20, 20, 0, 0);
                 label.Content = args[1].Get();
-                args[0].Get<Canvas>().Children.Add(label);
+                ((Canvas)args[0].Get()).Children.Add(label);
                 args[2].Set(label);
             });
         }));
         basicStack.AddConst("Write", (ElementaryFunction)((args) =>
         {
             this.Dispatcher.Invoke(() => {
-                Label console = args[0].Get<Label>();
+                Label console = (Label)args[0].Get();
                 console.Content = (string)console.Content + args[1].Get()?.ToString();
             });
         }));
         basicStack.AddConst("WriteLine", (ElementaryFunction)((args) =>
         {
             this.Dispatcher.Invoke(() => {
-                Label console = args[0].Get<Label>();
+                Label console = (Label)args[0].Get();
                 console.Content = (string)console.Content + args[1].Get()?.ToString() + '\n';
             });
         }));

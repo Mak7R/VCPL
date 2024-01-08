@@ -1,5 +1,7 @@
 ﻿using GlobalRealization;
+using System;
 using VCPL.CodeConvertion;
+using VCPL.Compilator;
 
 namespace VCPL.Instructions;
 public class DebugInstruction : Instruction
@@ -10,8 +12,8 @@ public class DebugInstruction : Instruction
         this.codeLine = codeLine;
     }
 
-    public override string ToString()
+    public override RuntimeException GenerateException(Exception ex)
     {
-        return $"{codeLine.FunctionName} in line {codeLine.LineNumber}";
+        return new RuntimeException($"Runtime exception in {codeLine.FunctionName} in line {codeLine.LineNumber}", ex);
     }
 }

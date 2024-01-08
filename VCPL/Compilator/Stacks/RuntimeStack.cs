@@ -45,7 +45,7 @@ public class RuntimeStack
         }
         else
         {
-            if (_array[_size] != null && _array[_size].Length == size)
+            if (_array[_size] != null && _array[_size].Length >= size)
             {
                 for (int i = 0; i < _array[_size].Length; i++) _array[_size][i] = null;
             }
@@ -64,7 +64,7 @@ public class RuntimeStack
             Array.Copy(_array, newArray, _size); // ????? List<object?> ??????????
             _array = newArray;
         }
-        else if (_array[_size] != null && _array[_size].Length == size)
+        else if (_array[_size] != null && _array[_size].Length >= size)
         {
             int i = 0;
             for (; i < args.Length; i++)
