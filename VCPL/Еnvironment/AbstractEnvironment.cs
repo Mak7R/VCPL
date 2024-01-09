@@ -1,9 +1,10 @@
 ﻿using BasicFunctions;
-using GlobalRealization;
+using GlobalInterface;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using VCPL.CodeConvertion;
+using VCPL.Compilator;
 using VCPL.Instructions;
 using VCPL.Stacks;
 
@@ -11,6 +12,7 @@ namespace VCPL.Еnvironment;
 
 public abstract class AbstractEnvironment
 {
+    public readonly CustomLibraryConnector LibraryConnector = new CustomLibraryConnector();
     public readonly CodeConvertorsContainer envCodeConvertorsContainer = new CodeConvertorsContainer();
     public Func<string, string[]> SplitCode = (string code) => { throw new Exception("Split code was not implemented"); };  // enviriment exception
     public virtual List<CodeLine> ConvertCode(string code, string convertorName)

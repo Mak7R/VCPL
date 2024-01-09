@@ -8,7 +8,7 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Threading;
 
 using BasicFunctions;
-using GlobalRealization;
+using GlobalInterface;
 using VCPL.GlobalInterfaceRealization;
 
 namespace VCPL.Stacks;

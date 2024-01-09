@@ -1,4 +1,4 @@
-﻿using GlobalRealization;
+﻿using GlobalInterface;
 using VCPL.Stacks;
 
 namespace VCPL.GlobalInterfaceRealization;

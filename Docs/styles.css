@@ -1,0 +1,14 @@
+.code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  padding: 2px 4px;
+  border: 1px solid #5c5c5c;
+  border-radius: 2px;
+  color: #15ddbc;
+}
+
+.important{
+  color: red;
+  font-size: 16px;
+  font: bold;
+}

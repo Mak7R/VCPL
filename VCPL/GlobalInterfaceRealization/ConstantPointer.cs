@@ -1,4 +1,4 @@
-﻿using GlobalRealization;
+﻿using GlobalInterface;
 using VCPL.Exceptions;
 
 namespace VCPL.GlobalInterfaceRealization;

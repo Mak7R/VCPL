@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VCPL", "VCPL\VCPL.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BasicFunctions", "BasicFunctions\BasicFunctions.csproj", "{3C1B57A0-2D29-48F9-8EFC-2082A3ED3D34}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GlobalInterface", "GlobalRealization\GlobalInterface.csproj", "{D09EE5C2-12FF-45ED-9B04-71C1354C047B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GlobalInterface", "GlobalInterface\GlobalInterface.csproj", "{D09EE5C2-12FF-45ED-9B04-71C1354C047B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VCPLCode", "VCPLBrowser\VCPLCode.csproj", "{F3891222-D923-414B-A7C8-97CCFDCB9BD8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VCPLCode", "VCPLCode\VCPLCode.csproj", "{F3891222-D923-414B-A7C8-97CCFDCB9BD8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VCPLConsole", "VCPLConsole\VCPLConsole.csproj", "{F608C68A-7446-409D-9A39-FEC306C6F8E8}"
 EndProject

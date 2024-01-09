@@ -12,7 +12,14 @@
 
     <ItemGroup>
       <ProjectReference Include="..\BasicFunctions\BasicFunctions.csproj" />
-      <ProjectReference Include="..\GlobalRealization\GlobalInterface.csproj" />
+      <ProjectReference Include="..\GlobalInterface\GlobalInterface.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="VCPL.ico">
+        <PackagePath>\</PackagePath>
+        <Pack>True</Pack>
+      </None>
     </ItemGroup>
 
 </Project>

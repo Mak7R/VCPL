@@ -5,9 +5,10 @@
         <TargetFramework>net7.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
         <UseWPF>true</UseWPF>
-        <ApplicationIcon>VCPLIcon.ico</ApplicationIcon>
+        <ApplicationIcon>..\VCPL\VCPL.ico</ApplicationIcon>
 		<AssemblyVersion>3.4.0.0</AssemblyVersion>
 		<FileVersion>3.4.0.0</FileVersion>
+		<PackageIcon></PackageIcon>
     </PropertyGroup>
 
     <ItemGroup>

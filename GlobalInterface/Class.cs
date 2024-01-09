@@ -1,6 +1,6 @@
 ﻿
 
-namespace GlobalRealization;
+namespace GlobalInterface;
 
 
 /// <summary>

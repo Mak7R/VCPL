@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using BasicFunctions;
-using GlobalRealization;
+using GlobalInterface;
 using Microsoft.Win32;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
@@ -207,7 +207,7 @@ namespace VCPLBrowser
                     {
                         string code = string.Empty;
                         Dispatcher.Invoke(() => code = CodeInput.Text);
-                        ElementaryFunction main = compilator.CompilateMain(cStack, code, this.ChosenSyntax, Array.Empty<string>());
+                        ElementaryFunction main = compilator.CompilateMain(cStack, code, ChosenSyntax, "main");
                         GC.Collect();
                         GC.WaitForPendingFinalizers();
                         main.Invoke(Array.Empty<IPointer>());

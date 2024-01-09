@@ -1,5 +1,5 @@
 ﻿
-namespace GlobalRealization;
+namespace GlobalInterface;
 
 public interface IPointer
 {

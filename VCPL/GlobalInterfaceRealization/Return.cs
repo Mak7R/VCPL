@@ -1,5 +1,5 @@
 ﻿using System;
-using GlobalRealization;
+using GlobalInterface;
 
 namespace VCPL.GlobalInterfaceRealization;
 

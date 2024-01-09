@@ -8,7 +8,7 @@ using VCPL.Еnvironment;
 
 namespace VCPL.Compilator;
 
-public static class CustomLibraryConnector
+public class CustomLibraryConnector
 {
     public const string FileFormat = ".dll";
     public static bool ContainsAssembly(AssemblyLoadContext loadContext, string assemblyName)
@@ -35,7 +35,7 @@ public static class CustomLibraryConnector
         AssemblyName[] dependencies = dependent.GetReferencedAssemblies();
         foreach (var dep in dependencies) LoadDependencies(loadContext, dep, env);
     }
-    public static void Include(CompileStack stack, AbstractEnvironment env, AssemblyLoadContext loadContext, string assemblyName, string? namespaceName = null)
+    public virtual void Include(CompileStack stack, AbstractEnvironment env, AssemblyLoadContext loadContext, string assemblyName, string? namespaceName = null)
     {
         Assembly lib;
         

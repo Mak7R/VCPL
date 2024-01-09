@@ -1,5 +1,5 @@
 ﻿using BasicFunctions;
-using GlobalRealization;
+using GlobalInterface;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -140,7 +140,7 @@ public class Compilator_IIDL : ICompilator
                 {
                     try
                     {
-                        CustomLibraryConnector.Include(stack, environment, _compilatorAssemblyLoadContext, include.Args[0]);
+                        environment.LibraryConnector.Include(stack, environment, _compilatorAssemblyLoadContext, include.Args[0]);
                     }
                     catch (Exception e)
                     {
@@ -151,7 +151,7 @@ public class Compilator_IIDL : ICompilator
                 {
                     try
                     {
-                        CustomLibraryConnector.Include(stack, environment, _compilatorAssemblyLoadContext, include.Args[0], include.Args[1]);
+                        environment.LibraryConnector.Include(stack, environment, _compilatorAssemblyLoadContext, include.Args[0], include.Args[1]);
                     }
                     catch(Exception e)
                     {
@@ -198,25 +198,24 @@ public class Compilator_IIDL : ICompilator
 
     public readonly static string[] KeyWords = BasicValues.ToArray.Concat(BasicFunctions.ToArray).Concat(Directives.ToArray).ToArray();
 
-    public ElementaryFunction CompilateMain(CompileStack stack, string code, string convertorName, string[] args)
+    public ElementaryFunction CompilateMain(CompileStack stack, string code, string convertorName, string name = "Main")
     {
         List<CodeLine> codeLines = _environment.ConvertCode(code, convertorName);
         ImportAll(codeLines, null);
         IncludeAll(codeLines, stack, _environment);
-        return Compilate(new CodeLine(0, "Main", args.ToList()), codeLines, stack, args);
+        return Compilate(new CodeLine(0, name, new List<string>()), codeLines, stack, Array.Empty<string>());
     }
 
     public ElementaryFunction Compilate(CodeLine function, List<CodeLine> codeLines, CompileStack stack, string[] args)
     {
         List<Instruction> Program = new List<Instruction>();
-
         stack.Up();
         try
         {
-            foreach (string arg in args) {
+            for (int i = 0; i < args.Length; i++) {
                 try
                 {
-                    stack.AddVar(arg);
+                    stack.AddVar(args[i]);
                 }
                 catch (Exception e)
                 {
@@ -231,8 +230,8 @@ public class Compilator_IIDL : ICompilator
         }
         catch(Exception e)
         {
-            stack.Down(); // can to write stack trace
-            _environment.Logger.Log($"ERROR: in {(function.FunctionName == "Main" ? function.FunctionName : function.Args[0])}: {e.Message}");
+            stack.Down();
+            _environment.Logger.Log($"Error in {(function.FunctionName == "Main" ? function.FunctionName : function.Args[0])}: {e.Message}");
             throw;
         }
     }

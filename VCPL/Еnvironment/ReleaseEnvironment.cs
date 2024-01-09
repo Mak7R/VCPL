@@ -1,4 +1,4 @@
-﻿using GlobalRealization;
+﻿using GlobalInterface;
 using VCPL.CodeConvertion;
 using VCPL.Instructions;
 using VCPL.Stacks;

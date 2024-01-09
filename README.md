@@ -1,31 +1,19 @@
-# VCPL
-<h3>EN</h3>
+<h1> VCPL </h1>
+
+# EN
 <p>
 VCPL is a Virtually Compiled Programming Language.
-During the compilation process, the instructions entered by the user are transformed into a function that C# understands and can execute.
-</p>
-<p>
-At the moment, the language is procedural. The user can write instructions and combine them into functions.
-</p>
-<p>
-To expand the capabilities of the VCPL language, you can write a class library in C#.
-The library must contain the Library class, which must contain a public static field with a collection of type ICollection<(string? name, object? value)> and named Items.
-You can also add a GetNecessaryLibs method,
-which will transfer a set of necessary additions.
+VCPL runs in the .NET environment. Its core is written in the C# language. <a href="/Docs/Compiler.md">Compiler</a> and <a href="/Docs/CoreComponents.md">Core Components</a> can be modified, new <a href="/ Docs/SyntaxConvertor.md">syntax converters</a>, which will be fully compatible with each other. The code can be written in several <a href="/Docs/SyntaxConvertor.md">syntaxes</a>. The language supports the ability to <a href="/Docs/Import.md">link third-party files with VCPL code</a> with different syntax. You can also include <a href="/Docs/Include.md">libraries written in C#</a>. VCPL is a procedural language, the result of a compilation can be <a href="/Docs/Invoke.md">invoked multiple times</a> in a single run of the program that implements its invocation, but since the result of the compilation is represented as a delegate, it cannot save to file.
 </p>
 
 
-<h3>UA</h3>
+# UA
 <p>
 VCPL - це віртуально компільована мова програмування. 
-В процесі компіляції інструкції, що вводить користувач перетворються на функцію яку розуміє та може виконати C#.
+VCPL виконується в середовищі .NET. Її ядро написано на мові C#. <a href="/Docs/Compiler.md">Компілятор</a> та <a href="/Docs/CoreComponents.md">компоненти ядра</a> можна модифікувати, можна додавати нові <a href="/Docs/SyntaxConvertor.md">синтаксичні конвертори</a>, які будть цілком сумісні між собою. Код може бути написаний на декількох <a href="/Docs/SyntaxConvertor.md">синтаксисах</a>. Мова підримує можливість <a href="/Docs/Import.md">підкючати сторонні файли з кодом VCPL</a> з різним синтаксесом. Також можна підключати <a href="/Docs/Include.md">бібліотеки написані на C#</a>. VCPL є процедурною мовою, результат компіляції може бути багаторазово <a href="/Docs/Invoke.md">викликаний</a> при одному запуску програми, що реалізує її запуск, проте оскільки результат компіляції представлений у вигляді делегату, його не можна зберегти до файлу.
 </p>
-<p>
-На даний момент мова є процедурною. Користувач може писати інструкції та об'єднувати їх до функцій.
-</p>
-<p>
-Для розщирення можливостей мови VCPL можна написати бібліотеку класів на C#. 
-Бібліотека має містити клас Library в якому обов'язково містити публічне статичне поле з колекцією типу ICollection<(string? name, object? value)> і іменем Items.
-Також можна додати метод GetNecessaryLibs, 
-яке передасть набір необхідних доповнень.
-</p>
+
+<h3>Перелік базових компонентів VCPL</h3>
+<ul>
+    <li></li>
+</ul>
