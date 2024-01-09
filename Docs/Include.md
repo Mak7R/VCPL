@@ -1,6 +1,45 @@
 <link rel="stylesheet" href="styles.css">
 
+# EN 
+<h3>How to import a C# code file into VCPL</h3>
 
+<p>
+In order to import the C# library (.dll), it is necessary to write:
+<pre class="code">
+#include(FileName\Or\PathToFile\WithoutFormat)
+</pre>
+
+Or
+
+<pre class="code">
+#include(FileName\Or\PathToFile\WithoutFormat, NamespaceName)
+</pre>
+
+To use data from the library, write:
+<pre class="code">
+yournamespace.data
+</pre>
+</p>
+
+
+<strong class="important">Clarification</strong>
+<p>
+<p>
+When specifying a <strong class="important">NOT</strong> file, write its .dll format, and the file itself must necessarily have the .dll format. Also, the version of .NET in your library must be the same as the program you are using.
+</p>
+<p>
+If you import a file with a full path and no namespace specified, your namespace will be the filename instead of the full path.
+</p>
+
+<p>
+The library file must have the same name as the namespace in it, and the code must also contain a Library class with a public static field Items of type ICollection<(string? name, object? value)>.
+</p>
+
+<p>
+The namespace that was used will also be added to the constant stack.
+</p>
+
+<p>When developing your library, import the GlobalInterface module to it. This will allow you to create functions and manage pointers to them</p>
 
 # UA
 <h3>Як імпортувати файл з кодом C# до VCPL</h3>

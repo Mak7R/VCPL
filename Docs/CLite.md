@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="styles.css">
 
+# CLite
 
-# UA
-<h3>CLite</h3>
+CLite Syntax documentation will be soon

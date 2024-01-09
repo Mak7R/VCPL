@@ -1,5 +1,15 @@
 <link rel="stylesheet" href="styles.css">
 
+# EN
+<h3>About the compiler and its basic implementation Compiler_IIDL</h3>
+<p>
+The compiler must implement the ICompiler interface. That is, it must have a CompileMain method that accepts an object of type CompileStack (a stack for data during compilation), string code (all the code in the form of a string), string convertorName (the name of the compiler for the main file) and string name (the name of the main function) (will be displayed in the error stack when DebugEnviroment is selected).
+</p>
+
+<p>
+Compiler_IIDL base compiler.
+This compiler first imports all dependencies it finds and dependencies for all dependencies. The imported code will be inserted instead of the #import directive. Next, all C# libraries added with the #include directive will be included. After that, the code first compiles all the directives. And then all the usual code will be compiled.
+</p>
 
 # UA
 <h3>Про компілятор та його базову реалізацію Compiler_IIDL</h3>
