@@ -58,4 +58,9 @@ public static class ExceptionsController
     {
         return $"Cannot convert from {from?.ToString() ?? "null"} to {to?.ToString() ?? "null"}";
     }
+
+    public static string CannotChangeConstant()
+    {
+        return $"Cannot change constant";
+    }
 }

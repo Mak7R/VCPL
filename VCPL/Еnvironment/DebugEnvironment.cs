@@ -63,6 +63,7 @@ namespace VCPL.Еnvironment
                         }
                         isStep = false;
                         program[i].Function.Invoke(program[i].Args);
+                        Thread.Sleep(0);
                     }
                     catch (Return)
                     {

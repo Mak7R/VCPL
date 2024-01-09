@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Runtime.InteropServices.JavaScript;
@@ -100,8 +101,6 @@ public static class BasicStack
 
         basicContext.AddConst("if", (ElementaryFunction)((args) =>
         {
-            if (args.Length != 3) throw new RuntimeException("Incorect arguments count");
-
             if ((bool)args[0].Get())
                 ((ElementaryFunction)args[1].Get()).Invoke(Array.Empty<IPointer>());
             else ((ElementaryFunction)args[2].Get()).Invoke(Array.Empty<IPointer>());
@@ -119,31 +118,24 @@ public static class BasicStack
             Thread.Sleep(val);
         }));
 
-        //basicContext.AddConst("GetFromArray", new Function((stack, args) =>
-        //{
-        //    if (args.Length != 3) throw new RuntimeException("Incorrect args count");
-        //    try
-        //    {
-        //        args[2].Set(args[0].Get<object?[]>()[args[1].Get<int>()]);
-        //    }
-        //    catch (IndexOutOfRangeException)
-        //    {
-        //        throw new RuntimeException("Index out of range");
-        //    }
-        //}));
+        basicContext.AddConst("Array", (ElementaryFunction)((args) => {
+            int size = (int)args[0].Get();
+            args[1].Set(new object?[size]);
+        }));
 
-        //basicContext.AddConst("SetToArray", new Function((stack, args) =>
-        //{
-        //    if (args.Length != 3) throw new RuntimeException("Incorrect args count");
-        //    try
-        //    {
-        //        args[0].Get<object?[]>()[args[1].Get<int>()] = args[2].Get();
-        //    }
-        //    catch (IndexOutOfRangeException)
-        //    {
-        //        throw new RuntimeException("Index out of range");
-        //    }
-        //}));
+        basicContext.AddConst("Array.Get", (ElementaryFunction)((args) =>
+        {
+            object?[] array = (object?[])args[0].Get();
+            int pos = (int)args[1].Get();
+            args[2].Set(array[pos]);
+        }));
+
+        basicContext.AddConst("Array.Set", (ElementaryFunction)((args) =>
+        {
+            object?[] array = (object?[])args[0].Get();
+            int pos = (int)args[1].Get();
+            array[pos] = args[2].Get();
+        }));
 
         basicContext.AddConst("CreateStopwatch", (ElementaryFunction)((args) =>
         {
@@ -161,6 +153,15 @@ public static class BasicStack
             Stopwatch stopwatch = (Stopwatch)args[0].Get();
             stopwatch.Stop();
             args[1].Set(stopwatch.ElapsedMilliseconds);
+        }));
+
+        basicContext.AddConst("Invoke", (ElementaryFunction)((args) => { 
+            ElementaryFunction function = (ElementaryFunction)args[0].Get();
+            function.Invoke(args.Skip(1).ToArray());
+        }));
+
+        basicContext.AddConst("Randint", (ElementaryFunction)((args) => {
+            args[2].Set(Random.Shared.Next((int)args[0].Get(), (int)args[1].Get()));
         }));
 
         basicContext.Up();

@@ -2,7 +2,7 @@
 using VCPL.Compilator.Stacks;
 
 namespace VCPL.Compilator.GlobalInterfaceRealization;
-public struct VariablePointer : IPointer
+public readonly struct VariablePointer : IPointer
 {
     private readonly RuntimeStack _stack;
     private readonly int _level;

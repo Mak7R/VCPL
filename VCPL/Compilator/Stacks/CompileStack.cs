@@ -70,7 +70,19 @@ public class CompileStack : IndexableStack<ContextLevel>
     }
     public IPointer PeekPtr(string name)
     {
-        for (int lvl = 0; lvl < Count; lvl++)
+        for (int pos = 0; pos < this[Count - 1].Variables.Count; pos++)
+        {
+            if (this[Count - 1].Variables[pos] == name)
+            {
+                return new LocalPointer(_rtStack, pos);
+            }
+            
+        }
+        foreach (var constant in this[Count - 1].Constants)
+        {
+            if (constant.Key == name) return constants[constant.Value];
+        }
+        for (int lvl = 0; lvl < Count - 1; lvl++)
         {
             for (int pos = 0; pos < this[lvl].Variables.Count; pos++)
             {

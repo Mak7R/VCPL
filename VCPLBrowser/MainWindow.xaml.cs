@@ -185,101 +185,69 @@ namespace VCPLBrowser
             this.Title = this.FilePath == string.Empty ? "VCPLBrowser" : $"VCPLBrowser ({BasicString.GetNameFromPath(this.FilePath)})";
         }
 
-        private bool isRun = false;
         private void OnRunStopClick(object sender, RoutedEventArgs e)
         {
-            if (isRun && program != null) {
-                program.Interrupt();
-                //CodeInput.Visibility = Visibility.Visible;
-                //Page.Visibility = Visibility.Hidden;      
-            }
-            else
+            if (program != null) { program.Interrupt(); return; }
+            program = new Thread(() =>
             {
-                ICompilator compilator = new Compilator_IIDL(enviriment);
-                CompileStack cStack = CreateBasicStack();
-                RuntimeStack rtStack = cStack.Pack();
-                enviriment.RuntimeStack = rtStack;
                 try
                 {
-                    main = compilator.CompilateMain(cStack, CodeInput.Text, "CLite", Array.Empty<string>());
-                }
-                catch (SyntaxException se)
-                {
-                    Dispatcher.Invoke(() =>
+                    ICompilator compilator = new Compilator_IIDL(enviriment);
+                    CompileStack cStack = CreateBasicStack();
+                    RuntimeStack rtStack = cStack.Pack();
+                    enviriment.RuntimeStack = rtStack;
+                    try
                     {
-                        MessageBox.Show(this, se.Message, "SyntaxException", MessageBoxButton.OK,
-                            MessageBoxImage.Error);
-                    });
-                    return;
-                }
-                catch (CompilationException ce)
-                {
-                    Dispatcher.Invoke(() =>
-                    {
-                        MessageBox.Show(this, ce.Message, "CompilationException", MessageBoxButton.OK, MessageBoxImage.Error);
-                    });
-                    return;
-                }
-                
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-
-                program = new Thread((object? obj) =>
-                {
-                    if (obj == null) throw new ArgumentNullException(nameof(obj));
-                    if (obj is MainWindow mainWindow)
-                    {
-                        try
-                        {
-                            try
-                            {
-                                debugEnvironment.Run();
-                                main.Invoke(Array.Empty<IPointer>()); // think about args
-                                rtStack.Clear();
-                            }
-                            catch (RuntimeException re)
-                            {
-                                Dispatcher.Invoke(() =>
-                                {
-                                    MessageBox.Show(this, re.Message, "RuntimeException", MessageBoxButton.OK,
-                                        MessageBoxImage.Error);
-                                });
-                            }
-                            mainWindow.Dispatcher.Invoke(() =>
-                            {
-                                mainWindow.Page.Visibility = Visibility.Hidden;
-                                mainWindow.Page.Children.Clear(); /// ???
-                                mainWindow.CodeInput.Visibility = Visibility.Visible;
-                                mainWindow.RunStop.Header = "Run";
-                                mainWindow.isRun = false;
-                            });
-                        } catch (ThreadInterruptedException)
-                        {
-                            mainWindow.Dispatcher.Invoke(() =>
-                            {
-                                mainWindow.Page.Visibility = Visibility.Hidden;
-                                mainWindow.Page.Children.Clear(); /// ???
-                                mainWindow.Visibility = Visibility.Visible;
-                                mainWindow.RunStop.Header = "Run";
-                                mainWindow.isRun = false;
-                            });
-                        }
+                        string code = string.Empty;
+                        Dispatcher.Invoke(() => code = CodeInput.Text);
+                        main = compilator.CompilateMain(cStack, code, "CLite", Array.Empty<string>());
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                        debugEnvironment.Run();
+                        main.Invoke(Array.Empty<IPointer>());
                     }
-                    else
+                    catch (SyntaxException se)
                     {
-                        throw new ArgumentException($"Argument have to be MainWindow but was {obj.GetType()}");
+                        Dispatcher.Invoke(() =>
+                        {
+                            MessageBox.Show(this, se.Message, "Syntax Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                        });
                     }
+                    catch (CompilationException ce)
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            MessageBox.Show(this, ce.Message, "Compilation Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                        });
+                    }
+                    catch (RuntimeException re)
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            MessageBox.Show(this, re.Message, "Runtime Exception", MessageBoxButton.OK,
+                                MessageBoxImage.Error);
+                        });
+                    }
+                }
+                catch (ThreadInterruptedException) { }
+                Dispatcher.Invoke(() =>
+                {
+                    Page.Visibility = Visibility.Hidden;
+                    Page.Children.Clear();
+                    CodeInput.Visibility = Visibility.Visible;
+                    RunStop.Header = "Run";
+                    program = null;
                 });
-                program.IsBackground = true;
-                program.SetApartmentState(ApartmentState.STA);
-                program.Start(this);
-                // message compilation successful
-                
-                CodeInput.Visibility = Visibility.Hidden;
-                Page.Visibility = Visibility.Visible;
-                ((MenuItem)sender).Header = "Stop";
-                isRun = true;
-            }
+            })
+            {
+                IsBackground = true
+            };
+            program.SetApartmentState(ApartmentState.STA);
+            program.Start();
+
+            CodeInput.Visibility = Visibility.Hidden;
+            Page.Visibility = Visibility.Visible;
+            ((MenuItem)sender).Header = "Stop";
         }
 
         private void RunWithoutCompilation_OnClick(object sender, RoutedEventArgs e)

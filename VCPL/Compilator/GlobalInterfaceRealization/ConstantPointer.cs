@@ -1,7 +1,8 @@
 ﻿using GlobalRealization;
+using VCPL.Exceptions;
 
 namespace VCPL.Compilator.GlobalInterfaceRealization;
-public struct ConstantPointer : IPointer
+public readonly struct ConstantPointer : IPointer
 {
     private readonly object? _value;
 
@@ -10,9 +11,11 @@ public struct ConstantPointer : IPointer
         _value = value;
     }
 
-    public object? Get() { return _value; }
+    public readonly object? Get() { return _value; }
     public void Set(object? value)
     {
-        throw new RuntimeException("Cannot to change constant");
+        throw new RuntimeException(ExceptionsController.CannotChangeConstant());
     }
+
+
 }

@@ -40,7 +40,7 @@ namespace VCPL.Еnvironment
                     {
                         throw;
                     }
-                    catch (Exception ex) // catch all exceptions and convert to runtime
+                    catch (Exception ex)
                     {
                         Logger.Log(ex.Message);
                         throw program[i].GenerateException(ex);

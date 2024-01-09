@@ -202,7 +202,7 @@ public class Compilator_IIDL : ICompilator
     {
         List<CodeLine> codeLines = _environment.ConvertCode(code, convertorName);
         ImportAll(codeLines, null);
-        IncludeAll(codeLines, stack);
+        IncludeAll(codeLines, stack, _environment);
         return Compilate(new CodeLine(0, "Main", args.ToList()), codeLines, stack, args);
     }
 
