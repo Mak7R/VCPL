@@ -15,18 +15,19 @@
                 <MenuItem Header="Save as" Height="25" Click="OnSaveAsClick"></MenuItem>
                 <MenuItem Header="Open" Height="25" Click="OnOpenClick"></MenuItem>
             </MenuItem>
-            <MenuItem x:Name="RunStop" Header="Run" Height="25" Click="OnRunStopClick"><!-- Run/Stop --></MenuItem>
-            <MenuItem x:Name="TryRerun" Header="TryRerun" IsEnabled="False" Click="RunWithoutCompilation_OnClick"></MenuItem>
+            <MenuItem x:Name="RunStop" Header="Run" Height="25" Click="OnRunStopClick">
+                <!-- Run/Stop -->
+            </MenuItem>
             <MenuItem x:Name="ChosenEnviroment" Header="Release">
                 <MenuItem Header="Release" Click="OnEnviromentClick"></MenuItem>
                 <MenuItem Header="Debug" Click="OnEnviromentClick"></MenuItem>
             </MenuItem>
 
-            <MenuItem x:Name="Continue" Header="Continue" Click="Continue_Click"></MenuItem>
-            <MenuItem x:Name="Stop" Header="Stop" Click="Stop_Click"></MenuItem>
-            <MenuItem x:Name="GoUp" Header="Go Up" Click="GoUp_Click"></MenuItem>
-            <MenuItem x:Name="GoDown" Header="Go Down" Click="GoDown_Click"></MenuItem>
-            <MenuItem x:Name="GoThrough" Header="Go Through" Click="GoThrough_Click"></MenuItem>
+            <MenuItem x:Name="Continue" Header="Continue" Click="Continue_Click" IsEnabled="False"></MenuItem>
+            <MenuItem x:Name="Stop" Header="Stop" Click="Stop_Click" IsEnabled="False"></MenuItem>
+            <MenuItem x:Name="GoUp" Header="Go Up" Click="GoUp_Click" IsEnabled="False"></MenuItem>
+            <MenuItem x:Name="GoDown" Header="Go Down" Click="GoDown_Click" IsEnabled="False"></MenuItem>
+            <MenuItem x:Name="GoThrough" Header="Go Through" Click="GoThrough_Click" IsEnabled="False"></MenuItem>
 
             <MenuItem Header="Clear" Click="Clear_Click"></MenuItem>
             <MenuItem Header="Hide" Click="ShowHideConsole_Click"></MenuItem>

@@ -1,15 +1,14 @@
 ﻿using GlobalRealization;
 using System;
 
-namespace VCPL.Compilator.Stacks;
+namespace VCPL.Stacks;
 
 public class RuntimeStack
 {
     private int _size;
     private object?[][] _array;
 
-    private const int _defaultCapacity = 10;
-
+    private const int _defaultCapacity = 32;
     public RuntimeStack()
     {
         _array = new object?[_defaultCapacity][];
@@ -39,7 +38,7 @@ public class RuntimeStack
         if (_size == _array.Length)
         {
             object?[][] newArray = new object?[_array.Length + _defaultCapacity][];
-            Array.Copy(_array, newArray, _size); // ????
+            Array.Copy(_array, newArray, _size);
             _array = newArray;
             _array[_size++] = new object?[size];
         }
@@ -61,7 +60,7 @@ public class RuntimeStack
         if (_size == _array.Length)
         {
             object?[][] newArray = new object?[_array.Length + _defaultCapacity][];
-            Array.Copy(_array, newArray, _size); // ????? List<object?> ??????????
+            Array.Copy(_array, newArray, _size);
             _array = newArray;
         }
         else if (_array[_size] != null && _array[_size].Length >= size)

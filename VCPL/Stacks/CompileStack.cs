@@ -2,11 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using VCPL.Compilator.GlobalInterfaceRealization;
 using VCPL.Exceptions;
+using VCPL.GlobalInterfaceRealization;
 using VCPL.Еnvironment;
 
-namespace VCPL.Compilator.Stacks;
+namespace VCPL.Stacks;
 
 public struct ContextLevel
 {
@@ -76,7 +76,7 @@ public class CompileStack : IndexableStack<ContextLevel>
             {
                 return new LocalPointer(_rtStack, pos);
             }
-            
+
         }
         foreach (var constant in this[Count - 1].Constants)
         {

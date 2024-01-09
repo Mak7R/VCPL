@@ -1,7 +1,7 @@
 ﻿using System;
 using GlobalRealization;
 
-namespace VCPL.Compilator.GlobalInterfaceRealization;
+namespace VCPL.GlobalInterfaceRealization;
 
 /// <summary>
 /// Realize a return call
@@ -11,7 +11,8 @@ public sealed class Return : Exception
     private static IPointer? _returnedArg;
 
     public Return() { _returnedArg = null; }
-    public Return(IPointer arg) { 
+    public Return(IPointer arg)
+    {
         _returnedArg = arg;
     }
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VCPL.Compilator.Stacks;
+namespace VCPL.Stacks;
 
 public abstract class IndexableStack<T>
 {
@@ -24,17 +24,17 @@ public abstract class IndexableStack<T>
     public T Peek()
     {
         if (_size == 0)
-            throw new InvalidOperationException("Stack is empety");
+            throw new InvalidOperationException("Stack is empty");
 
         return _array[_size - 1];
     }
     protected T Pop()
     {
         if (_size == 0)
-            throw new InvalidOperationException("Stack is empety");
+            throw new InvalidOperationException("Stack is empty");
 
         T obj = _array[--_size];
-        _array[_size] = default!;     // Free memory quicker. ?????????? think about caching
+        _array[_size] = default!;     // Free memory quicker.
         return obj;
     }
     protected void Push(T obj)
@@ -47,7 +47,7 @@ public abstract class IndexableStack<T>
         }
         _array[_size++] = obj;
     }
-    protected void Clear() // can be better
+    protected void Clear()
     {
         while (_size > 0)
         {

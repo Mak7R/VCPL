@@ -1,7 +1,7 @@
 ﻿using GlobalRealization;
 using VCPL.Exceptions;
 
-namespace VCPL.Compilator.GlobalInterfaceRealization;
+namespace VCPL.GlobalInterfaceRealization;
 public readonly struct ConstantPointer : IPointer
 {
     private readonly object? _value;

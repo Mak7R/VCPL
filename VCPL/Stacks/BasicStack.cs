@@ -9,9 +9,14 @@ using System.Threading;
 
 using BasicFunctions;
 using GlobalRealization;
-using VCPL.Compilator.GlobalInterfaceRealization;
+using VCPL.GlobalInterfaceRealization;
 
-namespace VCPL.Compilator.Stacks;
+namespace VCPL.Stacks;
+
+#pragma warning disable CS8604 // Possible null reference argument.
+#pragma warning disable CS8605 // Unboxing a possibly null value.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
 
 public static class BasicStack
 {
@@ -43,6 +48,7 @@ public static class BasicStack
         {
             var arg1 = args[0].Get();
             var arg2 = args[1].Get();
+
             args[2].Set(BasicMath.Plus(arg1, arg2));
         }));
 
@@ -118,7 +124,8 @@ public static class BasicStack
             Thread.Sleep(val);
         }));
 
-        basicContext.AddConst("Array", (ElementaryFunction)((args) => {
+        basicContext.AddConst("Array", (ElementaryFunction)((args) =>
+        {
             int size = (int)args[0].Get();
             args[1].Set(new object?[size]);
         }));
@@ -134,7 +141,9 @@ public static class BasicStack
         {
             object?[] array = (object?[])args[0].Get();
             int pos = (int)args[1].Get();
+
             array[pos] = args[2].Get();
+
         }));
 
         basicContext.AddConst("CreateStopwatch", (ElementaryFunction)((args) =>
@@ -155,12 +164,14 @@ public static class BasicStack
             args[1].Set(stopwatch.ElapsedMilliseconds);
         }));
 
-        basicContext.AddConst("Invoke", (ElementaryFunction)((args) => { 
+        basicContext.AddConst("Invoke", (ElementaryFunction)((args) =>
+        {
             ElementaryFunction function = (ElementaryFunction)args[0].Get();
             function.Invoke(args.Skip(1).ToArray());
         }));
 
-        basicContext.AddConst("Randint", (ElementaryFunction)((args) => {
+        basicContext.AddConst("Randint", (ElementaryFunction)((args) =>
+        {
             args[2].Set(Random.Shared.Next((int)args[0].Get(), (int)args[1].Get()));
         }));
 
@@ -168,3 +179,8 @@ public static class BasicStack
         return basicContext;
     }
 }
+
+#pragma warning restore CS8604 // Possible null reference argument.
+#pragma warning restore CS8605 // Unboxing a possibly null value.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8602 // Dereference of a possibly null reference.

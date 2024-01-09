@@ -1,7 +1,7 @@
 ﻿using GlobalRealization;
 using System.Collections.Generic;
 using VCPL.CodeConvertion;
-using VCPL.Compilator.Stacks;
+using VCPL.Stacks;
 
 namespace VCPL.Compilator
 {

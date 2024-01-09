@@ -1,7 +1,7 @@
 ﻿using GlobalRealization;
-using VCPL.Compilator.Stacks;
+using VCPL.Stacks;
 
-namespace VCPL.Compilator.GlobalInterfaceRealization;
+namespace VCPL.GlobalInterfaceRealization;
 public readonly struct VariablePointer : IPointer
 {
     private readonly RuntimeStack _stack;

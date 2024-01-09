@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Loader;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,17 +7,12 @@ using System.Windows.Input;
 using BasicFunctions;
 using GlobalRealization;
 using Microsoft.Win32;
-using VCPL;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
 using VCPL.Еnvironment;
-using System.Collections;
-using System.DirectoryServices;
-using VCPL.Compilator.Stacks;
 using System.IO;
-using System.Diagnostics;
-using System.Windows.Shapes;
 using VCPL.Exceptions;
+using VCPL.Stacks;
 
 namespace VCPLBrowser
 {
@@ -29,14 +23,14 @@ namespace VCPLBrowser
     {
         private string FilePath = "";
 
-        private ElementaryFunction? main;
+        private string ChosenSyntax = "CLite"; // create choosing syntax
         private Thread? program;
 
         private readonly ICodeConvertor _codeConvertor = new CLiteConvertor();
         private readonly ILogger vcplLogger;
         private readonly ReleaseEnvironment releaseEnvironment;
         private readonly DebugEnvironment debugEnvironment;
-        private AbstractEnvironment enviriment;
+        private AbstractEnvironment environment;
 
         public MainWindow()
         {
@@ -52,7 +46,7 @@ namespace VCPLBrowser
             releaseEnvironment = new ReleaseEnvironment(vcplLogger);
             debugEnvironment = new DebugEnvironment(vcplLogger);
 
-            enviriment = releaseEnvironment;
+            environment = releaseEnvironment;
 
             releaseEnvironment.SplitCode = (string code) => { return code.Split("\r\n"); };
             releaseEnvironment.envCodeConvertorsContainer.AddCodeConvertor("CLite", _codeConvertor);
@@ -73,7 +67,7 @@ namespace VCPLBrowser
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e.Message);
+                vcplLogger.Log(e.Message);
                 code = string.Empty;
                 return false;
             }
@@ -82,6 +76,11 @@ namespace VCPLBrowser
         public void InitByFile(string filePath)
         {
             this.FilePath = filePath;
+
+            string dir = System.IO.Path.GetDirectoryName(filePath) ?? string.Empty;
+            releaseEnvironment.CurrentDirectory = dir;
+            debugEnvironment.CurrentDirectory = dir;
+
             if (ReadFile(FilePath, out string readedData))
             {
                 CodeInput.Text = readedData;
@@ -156,22 +155,25 @@ namespace VCPLBrowser
             if (openFileDialog.ShowDialog() == true)
             {
                 this.FilePath = openFileDialog.FileName;
+                string dir = System.IO.Path.GetDirectoryName(FilePath) ?? string.Empty;
+                releaseEnvironment.CurrentDirectory = dir;
+                debugEnvironment.CurrentDirectory = dir;
                 this.OpenFromFile();
                 UpdateTitle();
             }
         }
 
-        private void OnEnviromentClick(object sender, RoutedEventArgs e) // can be better
+        private void OnEnviromentClick(object sender, RoutedEventArgs e) 
         {
             MenuItem s = (MenuItem)sender;
             
             if ((string)s.Header == "Release")
             {
-                enviriment = releaseEnvironment;
+                environment = releaseEnvironment;
             }
             else if ((string)s.Header == "Debug")
             {
-                enviriment = debugEnvironment;
+                environment = debugEnvironment;
             }
             else
             {
@@ -188,22 +190,26 @@ namespace VCPLBrowser
         private void OnRunStopClick(object sender, RoutedEventArgs e)
         {
             if (program != null) { program.Interrupt(); return; }
+            if (environment is DebugEnvironment dbg)
+            {
+                dbg.Run();
+                Stop.IsEnabled = true;
+            }
             program = new Thread(() =>
             {
                 try
                 {
-                    ICompilator compilator = new Compilator_IIDL(enviriment);
+                    ICompilator compilator = new Compilator_IIDL(environment);
                     CompileStack cStack = CreateBasicStack();
                     RuntimeStack rtStack = cStack.Pack();
-                    enviriment.RuntimeStack = rtStack;
+                    environment.RuntimeStack = rtStack;
                     try
                     {
                         string code = string.Empty;
                         Dispatcher.Invoke(() => code = CodeInput.Text);
-                        main = compilator.CompilateMain(cStack, code, "CLite", Array.Empty<string>());
+                        ElementaryFunction main = compilator.CompilateMain(cStack, code, this.ChosenSyntax, Array.Empty<string>());
                         GC.Collect();
                         GC.WaitForPendingFinalizers();
-                        debugEnvironment.Run();
                         main.Invoke(Array.Empty<IPointer>());
                     }
                     catch (SyntaxException se)
@@ -237,6 +243,11 @@ namespace VCPLBrowser
                     CodeInput.Visibility = Visibility.Visible;
                     RunStop.Header = "Run";
                     program = null;
+                    Continue.IsEnabled = false;
+                    Stop.IsEnabled = false;
+                    GoDown.IsEnabled = false;
+                    GoUp.IsEnabled = false;
+                    GoThrough.IsEnabled = false;
                 });
             })
             {
@@ -248,11 +259,6 @@ namespace VCPLBrowser
             CodeInput.Visibility = Visibility.Hidden;
             Page.Visibility = Visibility.Visible;
             ((MenuItem)sender).Header = "Stop";
-        }
-
-        private void RunWithoutCompilation_OnClick(object sender, RoutedEventArgs e)
-        {
-            throw new NotImplementedException();
         }
 
         private List<Key> pressedKeys = new List<Key>();
@@ -272,23 +278,33 @@ namespace VCPLBrowser
 
         private void Continue_Click(object sender, RoutedEventArgs e)
         {
-            if (enviriment is DebugEnvironment dbg)
+            if (environment is DebugEnvironment dbg)
             {
                 dbg.Run();
+                Stop.IsEnabled = true;
+                Continue.IsEnabled = false;
+                GoThrough.IsEnabled = false;
+                GoUp.IsEnabled = false;
+                GoDown.IsEnabled = false;
             }
         }
 
         private void Stop_Click(object sender, RoutedEventArgs e)
         {
-            if (enviriment is DebugEnvironment dbg)
+            if (environment is DebugEnvironment dbg)
             {
                 dbg.Stop();
+                Stop.IsEnabled = false;
+                Continue.IsEnabled = true;
+                GoThrough.IsEnabled = true;
+                GoUp.IsEnabled = true;
+                GoDown.IsEnabled = true;
             }
         }
 
         private void GoUp_Click(object sender, RoutedEventArgs e)
         {
-            if (enviriment is DebugEnvironment dbg)
+            if (environment is DebugEnvironment dbg)
             {
                 dbg.GoUp();
             }
@@ -296,7 +312,7 @@ namespace VCPLBrowser
 
         private void GoDown_Click(object sender, RoutedEventArgs e)
         {
-            if (enviriment is DebugEnvironment dbg)
+            if (environment is DebugEnvironment dbg)
             {
                 dbg.GoDown();
             }
@@ -304,7 +320,7 @@ namespace VCPLBrowser
 
         private void GoThrough_Click(object sender, RoutedEventArgs e)
         {
-            if (enviriment is DebugEnvironment dbg)
+            if (environment is DebugEnvironment dbg)
             {
                 dbg.GoThrough();
             }

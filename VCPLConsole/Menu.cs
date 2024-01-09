@@ -1,38 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using BasicFunctions;
-using FileController;
 using GlobalRealization;
 using VCPL;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
-using VCPL.Compilator.Stacks;
 using VCPL.Exceptions;
+using VCPL.Stacks;
+using VCPL.Еnvironment;
 
 namespace VCPLConsole;
 
 public static class Menu
 {
-    public static List<string> code = new List<string>(){""};
-    private static Function main = null;
-    private static ICodeConvertor _codeConvertor = new CLiteConvertor();
-    private static CompileStack cStack;
+    public static string Code { get; set; } = string.Empty;
+    public static string FilePath { get; set; } = string.Empty; 
 
     private static CompileStack GetBasicStack()
     {
         CompileStack basicStack = BasicStack.Get();
-        basicStack.AddConst("print", new Function((stack, args) =>
+        basicStack.AddConst("print", (ElementaryFunction)((args) =>
         {
             foreach (var arg in args) Console.Write(arg.Get()?.ToString());
         }));
-        basicStack.AddConst("read", new Function((stack, args) =>
+        basicStack.AddConst("read", (ElementaryFunction)((args) =>
         {
             string? value = Console.ReadLine();
             if (args.Length == 0) return;
             else if (args.Length == 1) args[0].Set(value);
             else throw new RuntimeException("Incorrect arguments count");
         }));
-        basicStack.AddConst("endl", new Function((stack, args) =>
+        basicStack.AddConst("endl", (ElementaryFunction)((args) =>
         {
             Console.WriteLine();
         }));
@@ -56,49 +55,39 @@ public static class Menu
         {
             Draw();
             ConsoleKeyInfo key = Console.ReadKey(true);
-            string filePath;
 
             switch (key.KeyChar)
             {
                 case '1':
                     Console.Write("Write path to file to read: ");
-                    filePath = Console.ReadLine();
-                    List<string> readedData = FileCodeEditor.ReadCode(filePath);
-                    if (readedData != null)
-                    {
-                        Console.WriteLine("File was successful readed");
-                        code = readedData;
-                    }
-                    else
-                    {
-                        Console.WriteLine("File was not successful readed");
-                    }
+                    FilePath = Console.ReadLine() ?? string.Empty;
+                    Code = FileProvider.ReadCode(FilePath);
                     Console.ReadKey(true);
                     break;
                 case '2':
                     Console.Write("Write path to file to save: ");
-                    filePath = Console.ReadLine();
-                    bool ok = FileCodeEditor.WriteCode(filePath, code);
-                    if (ok)
-                    {
-                        Console.WriteLine("File was successful writed");
-                    }
-                    else
-                    {
-                        Console.WriteLine("File was not successful writed");
-                    }
+                    FilePath = Console.ReadLine() ?? "";
+                    FileProvider.WriteCode(FilePath, Code);
                     Console.ReadKey(true);
                     break;
                 case '3':
                     Console.Clear();
-                    CodeEditor.SetCode(code);
-                    code = CodeEditor.ConsoleReader();
+                    CodeEditor.SetCode(Code.Split('\n').ToList());
+                    var codeLines = CodeEditor.ConsoleReader();
+
+                    StringBuilder stringBuilder = new StringBuilder();
+                    foreach (var line in codeLines)
+                    {
+                        stringBuilder.AppendLine(line);
+                    }
+                    Code = stringBuilder.ToString();
+
                     Console.Clear();
                     Console.WriteLine("Code was successful edit");
                     Console.ReadKey(true);
                     break;
                 case '4':
-                    CompilateCode();
+                    RunCode();
                     break;
                 case '0':
                     return;
@@ -108,86 +97,51 @@ public static class Menu
         }
     }
 
-    public static void CompilateCode()
+    private static readonly ICodeConvertor _codeConvertor = new CLiteConvertor();
+    static Menu()
     {
-        
-        
-        Console.Clear();
-        List<CodeLine> codeLines = new List<CodeLine>();
-        try
-        {
-            foreach (var line in code)
-            {
-                if (BasicString.IsNoDataString(line)) continue;
-                codeLines.Add(_codeConvertor.Convert(line));
-            }
-        }
-        catch(SyntaxException se)
-        {
-            Console.WriteLine(se.Message);
-            Console.ReadKey(true);
-            
-            ReadOption();
-        }
+        releaseEnvironment = new ReleaseEnvironment(ConsoleLogger.CSLogger);
+        debugEnvironment = new DebugEnvironment(ConsoleLogger.CSLogger);
 
-        ICompilator compilator = new Compilator_IIDL();
-        cStack = GetBasicStack();
+        environment = releaseEnvironment;
+
+        releaseEnvironment.SplitCode = (string code) => { return code.Split("\r\n"); };
+        releaseEnvironment.envCodeConvertorsContainer.AddCodeConvertor("CLite", _codeConvertor);
+
+        debugEnvironment.SplitCode = (string code) => { return code.Split("\r\n"); };
+        debugEnvironment.envCodeConvertorsContainer.AddCodeConvertor("CLite", _codeConvertor);
+    }
+
+    private static AbstractEnvironment environment;
+    private static readonly ReleaseEnvironment releaseEnvironment;
+    private static readonly DebugEnvironment debugEnvironment;
+    private static string ChosenSyntax = "CLite";
+    public static void RunCode()
+    {
+        Console.Clear();
+        ICompilator compilator = new Compilator_IIDL(environment);
+        CompileStack cStack = GetBasicStack();
+        RuntimeStack rtStack = cStack.Pack();
+        environment.RuntimeStack = rtStack;
+        
         try
         {
-            compilator.ImportAll(codeLines, null);
-            compilator.IncludeAll(codeLines, cStack); // should to change to CompilateMain
-            main = compilator.Compilate(codeLines, cStack, Array.Empty<string>()); // can put args here
+            ElementaryFunction main = compilator.CompilateMain(cStack, Code, ChosenSyntax, Array.Empty<string>());
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            main.Invoke(Array.Empty<IPointer>());
+        }
+        catch (SyntaxException se)
+        {
+            ConsoleLogger.CSLogger.Log(se.Message);
         }
         catch (CompilationException ce)
         {
-            Console.WriteLine(ce.Message);
-            Console.ReadKey(true);
-            
-            ReadOption();
-        }
-        
-        Console.WriteLine("Compilation was successful");
-
-        while (true)
-        {
-            
-            Console.WriteLine("Tab - run, esc - exit to menu");
-            ConsoleKeyInfo keyInfo = Console.ReadKey(true);
-            Console.Clear();
-
-            switch (keyInfo.Key)
-            {
-                case ConsoleKey.Tab:
-                    try
-                    {
-                        RunCode(); 
-                        Console.ReadKey(true);
-                        Console.Clear();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                    break;
-                case ConsoleKey.Escape:
-                    return;
-            }
-        }
-        
-    }
-
-    public static void RunCode()
-    {
-        try
-        {
-            main.Get().Invoke(cStack.Pack(), Array.Empty<IPointer>());
+            ConsoleLogger.CSLogger.Log(ce.Message);
         }
         catch (RuntimeException re)
         {
-            Console.WriteLine(re.Message);
-            Console.ReadKey(true);
-
-            ReadOption();
+            ConsoleLogger.CSLogger.Log(re.Message);
         }
     }
 }

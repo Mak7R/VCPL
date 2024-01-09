@@ -1,11 +1,11 @@
 ﻿using GlobalRealization;
 using VCPL.CodeConvertion;
-using VCPL.Compilator.GlobalInterfaceRealization;
 using VCPL.Instructions;
-using VCPL.Compilator.Stacks;
+using VCPL.Stacks;
 using System;
 using System.Threading;
 using VCPL.Exceptions;
+using VCPL.GlobalInterfaceRealization;
 
 namespace VCPL.Еnvironment
 {

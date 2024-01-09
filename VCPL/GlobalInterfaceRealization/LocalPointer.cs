@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VCPL.Compilator.Stacks;
+using VCPL.Stacks;
 
-namespace VCPL.Compilator.GlobalInterfaceRealization;
+namespace VCPL.GlobalInterfaceRealization;
 public readonly struct LocalPointer : IPointer
 {
     private readonly RuntimeStack _runtimeStack;
@@ -23,7 +23,8 @@ public readonly struct LocalPointer : IPointer
         return _runtimeStack[_runtimeStack.Count - 1, _index];
     }
 
-    public void Set(object? value) {
+    public void Set(object? value)
+    {
         _runtimeStack[_runtimeStack.Count - 1, _index] = value;
-    }  
+    }
 }

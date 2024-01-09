@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using VCPL.CodeConvertion;
 using VCPL.Instructions;
-using VCPL.Compilator.Stacks;
+using VCPL.Stacks;
 
 namespace VCPL.Еnvironment;
 
@@ -13,7 +13,7 @@ public abstract class AbstractEnvironment
 {
     public readonly CodeConvertorsContainer envCodeConvertorsContainer = new CodeConvertorsContainer();
     public Func<string, string[]> SplitCode = (string code) => { throw new Exception("Split code was not implemented"); };  // enviriment exception
-    public List<CodeLine> ConvertCode(string code, string convertorName)
+    public virtual List<CodeLine> ConvertCode(string code, string convertorName)
     {
         try
         {
@@ -38,7 +38,7 @@ public abstract class AbstractEnvironment
 
     public string CurrentDirectory { get; set; } = string.Empty;
     public string BaseDirectory { get; } = AppDomain.CurrentDomain.BaseDirectory;
-    public string GetFilePath(string name, string format)
+    public virtual string GetFilePath(string name, string format)
     {
         if (File.Exists($"{name}{format}"))
             return $"{name}{format}";
@@ -55,9 +55,9 @@ public abstract class AbstractEnvironment
     private RuntimeStack? stack;
     public RuntimeStack RuntimeStack
     {
-        get { return stack ?? throw new Exception("Stack was not inited"); } // debugger exception
+        get { return stack ?? throw new Exception("Stack was not inited"); } // enviroment exception
         set { stack = value; }
-    } // change to debug exception
+    }
 
     public abstract ElementaryFunction CreateFunction(Instruction[] program, int size);
 

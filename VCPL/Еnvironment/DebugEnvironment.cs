@@ -2,10 +2,10 @@
 using System;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
-using VCPL.Compilator.GlobalInterfaceRealization;
 using VCPL.Instructions;
-using VCPL.Compilator.Stacks;
+using VCPL.Stacks;
 using System.Threading;
+using VCPL.GlobalInterfaceRealization;
 
 namespace VCPL.Еnvironment
 {
@@ -28,24 +28,33 @@ namespace VCPL.Еnvironment
         public void Stop()
         {
             isDbgMod = true;
-            level = this.RuntimeStack.Count; // debugger exception
+            level = this.RuntimeStack.Count;
+        }
+
+        private void Step()
+        {
+            if (level > RuntimeStack.Count)
+            {
+                level = RuntimeStack.Count;
+            }
+            isStep = true;
         }
 
         public void GoUp()
         {
             level--;
-            isStep = true;
+            Step();
         }
 
         public void GoThrough()
         {
-            isStep = true;
+            Step();
         }
 
         public void GoDown()
         {
-            if (level <= RuntimeStack.Count) level++;
-            isStep = true;
+            level++;
+            Step();
         }
 
         public override ElementaryFunction CreateFunction(Instruction[] program, int size)
@@ -60,10 +69,11 @@ namespace VCPL.Еnvironment
                         while (isDbgMod && level >= RuntimeStack.Count && !isStep)
                         {
                             OnStopped?.Invoke();
+                            Thread.Sleep(0);
                         }
                         isStep = false;
                         program[i].Function.Invoke(program[i].Args);
-                        Thread.Sleep(0);
+                        Thread.Sleep(0); // it stops program when thread was intrrupted but makes program very slow
                     }
                     catch (Return)
                     {
