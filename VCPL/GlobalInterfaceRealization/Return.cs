@@ -8,7 +8,7 @@ namespace VCPL.GlobalInterfaceRealization;
 /// </summary>
 public sealed class Return : Exception
 {
-    private static IPointer? _returnedArg;
+    private readonly IPointer? _returnedArg;
 
     public Return() { _returnedArg = null; }
     public Return(IPointer arg)
@@ -16,5 +16,5 @@ public sealed class Return : Exception
         _returnedArg = arg;
     }
 
-    public static IPointer? Get() { return _returnedArg; }
+    public IPointer? Get() { return _returnedArg; }
 }

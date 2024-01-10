@@ -1,0 +1,15 @@
+#init(l)
+l = Label(Page, "Start: ")
+#define(foo)
+#init(var1)
+#init(var2)
+var1 = 10
+var2 = "Hello world"
+WriteLine(l, WriteLine)
+WriteLine(l, var1)
+WriteLine(l, var2)
+#end(foo)
+foo()
+foo()
+WriteLine(l, foo)
+Sleep(5000)

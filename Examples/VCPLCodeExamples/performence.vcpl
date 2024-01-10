@@ -1,0 +1,42 @@
+#init(l)
+l = Label(Page, "Start: ")
+
+#init(isWorkI)
+isWorkI = true
+#init(isWorkJ)
+isWorkJ = true
+#init(isWorkK)
+isWorkK = true
+#init(i)
+#init(j)
+#init(k)
+i = 0
+
+#init(perf)
+#init(stopwatch)
+
+stopwatch = CreateStopwatch()
+StopwatchStart(stopwatch)
+#define(icounter)
+i = +(i, 1)
+isWorkI = <(i, 1000)
+j = 0
+isWorkJ = true
+  #define(jcounter)
+  j = +(j, 1)
+  isWorkJ = <(j, 1000)
+  k = 0
+  isWorkK = true
+    #define(kcounter)
+    k = +(k, 1)
+    isWorkK = <(k, 1000)
+    #end(kcounter)
+  while(isWorkK, kcounter)
+  #end(jcounter)
+  while(isWorkJ, jcounter)
+#end(icounter)
+while(isWorkI, icounter)
+perf = GetDeltaTime(stopwatch)
+Write(l, "Time: ")
+WriteLine(l, perf)
+Sleep(500000)

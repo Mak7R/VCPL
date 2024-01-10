@@ -1,0 +1,19 @@
+#init(l)
+l = Label(Page, "Start: ")
+
+#init(state, false)
+
+#define(func)
+#define(ff)
+state = true
+WriteLine(l, "FF")
+#end(ff)
+WriteLine(l, "Func")
+if(state, return, ff)
+WriteLine(l, "End")
+#end(func)
+
+func()
+func()
+
+Sleep(5000)

@@ -1,0 +1,14 @@
+#init(l)
+l = Label(Page, "Start: ")
+
+#init(arr)
+arr = Array(5)
+Array.Set(arr, 2, "Hello")
+
+#init(str)
+
+str = Array.Get(arr, 2)
+
+WriteLine(l, str)
+
+Sleep(5000)

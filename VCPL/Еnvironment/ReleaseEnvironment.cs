@@ -23,12 +23,12 @@ namespace VCPL.Еnvironment
                     {
                         program[i].Function.Invoke(program[i].Args);
                     }
-                    catch (Return)
+                    catch (Return r)
                     {
-                        IPointer? returnedValue = Return.Get();
+                        IPointer? returnedValue = r.Get();
                         if (returnedValue != null)
                         {
-                            args[args.Length - 1].Set(returnedValue.Get());
+                            new VariablePointer(RuntimeStack, 0, 0).Set(returnedValue.Get());
                         }
                         break;
                     }

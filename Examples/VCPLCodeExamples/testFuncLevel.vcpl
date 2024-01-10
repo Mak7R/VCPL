@@ -1,0 +1,26 @@
+#init(l)
+l = Label(Page, "Start: \n")
+
+#init(myVar)
+myVar = 10
+
+#define(f1)
+#init(local)
+local = 15
+WriteLine(l, local)
+#end(f1)
+
+#define(m)
+#init(lvm)
+lvm = 11
+f1()
+#define(m1)
+#init(lvm1)
+lvm1 = 12
+f1()
+#end(m1)
+m1()
+#end(m)
+f1()
+m()
+Sleep(5000)

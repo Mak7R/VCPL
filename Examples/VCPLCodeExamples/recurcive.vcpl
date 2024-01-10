@@ -1,0 +1,14 @@
+#init(l)
+l = Label(Page, "Start: ")
+
+#init(myF)
+myF = func
+
+#define(func)
+  WriteLine(l, "I am Func")
+  Sleep(2000)
+  Invoke(myF)
+#end(func)
+
+func()
+Sleep(5000)

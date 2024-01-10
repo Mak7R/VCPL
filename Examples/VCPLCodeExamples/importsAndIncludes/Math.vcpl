@@ -1,0 +1,6 @@
+#import(Console, CLite, Console)
+#include(TestIncludesLib, lowlevellib)
+
+#init(STO, 100)
+
+Console.writeLine("Math was inited")

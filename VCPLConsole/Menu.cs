@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using GlobalInterface;
+using System;
 using System.Text;
-using BasicFunctions;
-using GlobalRealization;
-using VCPL;
 using VCPL.CodeConvertion;
 using VCPL.Compilator;
 using VCPL.Exceptions;
@@ -126,7 +123,7 @@ public static class Menu
         
         try
         {
-            ElementaryFunction main = compilator.CompilateMain(cStack, Code, ChosenSyntax, Array.Empty<string>());
+            ElementaryFunction main = compilator.CompilateMain(cStack, Code, ChosenSyntax);
             GC.Collect();
             GC.WaitForPendingFinalizers();
             main.Invoke(Array.Empty<IPointer>());

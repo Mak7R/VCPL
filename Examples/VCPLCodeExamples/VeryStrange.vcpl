@@ -1,0 +1,12 @@
+#init(l)
+l = Label(Page, "Start: ")
+
+#define(myF, arg1)
+
+WriteLine(l, arg1)
+
+#end(myF)
+
+
+Invoke(myF, "Hello world!")
+Sleep(5000)

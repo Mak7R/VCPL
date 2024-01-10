@@ -1,0 +1,12 @@
+#init(l)
+l = Label(Page, "Start: ")
+
+#init(a)
+#init(mylist, array, 4)
+
+SetToArray(mylist, 0, "Hello world!")
+a = GetFromArray(mylist, 0)
+
+WriteLine(l, a)
+
+Sleep(10000)

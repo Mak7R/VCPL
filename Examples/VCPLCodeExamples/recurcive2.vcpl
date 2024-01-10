@@ -1,0 +1,26 @@
+#init(l)
+l = Label(Page, "Start: ")
+
+#init(myF)
+myF = func
+
+#define(inv)
+Invoke(myF)
+#end(inv)
+
+#init(b)
+#init(k)
+k = 0
+#define(func)
+  #init(r)
+  r = Randint(1, 10)
+  WriteLine(l, r)
+  Sleep(1000)
+  b = <(k, 3)
+  k = +(k, 1)
+  if(b, inv, pass)
+  WriteLine(l, r)
+#end(func)
+
+func()
+Sleep(5000)

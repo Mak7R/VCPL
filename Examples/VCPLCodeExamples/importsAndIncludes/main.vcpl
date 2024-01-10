@@ -1,0 +1,11 @@
+#import(Math, CLite, math)
+
+Console.writeLine("Main starts")
+
+Console.writeLine(math.STO)
+#init(res)
+
+res = lowlevellib.GetCircleLength(5)
+Console.writeLine(res)
+
+Sleep(10000)

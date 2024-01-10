@@ -1,0 +1,13 @@
+#init(a)
+#init(b)
+
+print("Write a: ")
+a = read()
+print("Write b: ")
+b = read()
+
+#init(c)
+
+c = +(a, b)
+print(c)
+Sleep(4000)

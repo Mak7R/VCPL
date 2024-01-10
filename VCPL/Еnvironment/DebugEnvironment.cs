@@ -75,18 +75,14 @@ namespace VCPL.Еnvironment
                         program[i].Function.Invoke(program[i].Args);
                         Thread.Sleep(0); // it stops program when thread was intrrupted but makes program very slow
                     }
-                    catch (Return)
+                    catch (Return r)
                     {
-                        IPointer? returnedValue = Return.Get();
-                        if (returnedValue == null)
+                        IPointer? returnedValue = r.Get();
+                        if (returnedValue != null)
                         {
-                            break;
+                            new VariablePointer(RuntimeStack, 0, 0).Set(returnedValue.Get());
                         }
-                        else
-                        {
-                            args[args.Length - 1].Set(returnedValue.Get());
-                            break;
-                        }
+                        break;
                     }
                     catch (ThreadInterruptedException)
                     {

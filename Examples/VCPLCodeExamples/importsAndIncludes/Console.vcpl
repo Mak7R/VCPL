@@ -1,0 +1,9 @@
+
+#init(console)
+console = Label(Page, "")
+
+#define(writeLine, arg)
+WriteLine(console, arg)
+#end(writeLine)
+
+writeLine("Lib 1 Base was inited")

@@ -1,0 +1,17 @@
+#init(l)
+l = Label(Page, "Start: ")
+
+#init(num)
+num = 0
+
+#define(func, arg1, rt)
+arg1 = +(arg1, 2)
+WriteLine(l, arg1)
+return(arg1)
+#end(func)
+
+WriteLine(l, num)
+num = func(num)
+WriteLine(l, num)
+
+Sleep(5000)

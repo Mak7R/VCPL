@@ -1,0 +1,4 @@
+#init(l)
+l = Label(Page, "Start: ")
+WriteLine(l, l)
+Sleep(5000)

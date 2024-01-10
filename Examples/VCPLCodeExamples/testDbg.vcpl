@@ -1,0 +1,16 @@
+#init(l)
+Sleep(4000)
+l = Label(Page, "Start: ")
+WriteLine(l, "")
+WriteLine(l, "Hello")
+WriteLine(l, "I am Bob")
+
+#define(foo)
+WriteLine(l, "What?")
+WriteLine(l, "WTF?")
+#end(foo)
+foo()
+
+WriteLine(l, "And you?")
+
+Sleep(5000)

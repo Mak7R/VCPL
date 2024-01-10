@@ -1,0 +1,13 @@
+#init(l)
+l = Label(Page, "Start: ")
+
+#define(foo)
+WriteLine(l, local)
+#init(local)
+local = 20
+#end(foo)
+
+foo()
+foo()
+
+Sleep(5000)
